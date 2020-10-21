@@ -1,0 +1,568 @@
+﻿Region,Woreda,Kebele,Lon,Lat,Primary Crops,Expansion or Current
+Tigray,Gulumekeda,Adistesfa,39.367731,14.468619,Wheat,2020 Expansion
+Tigray,Gulumekeda,Shewitlemlem,39.366279,14.420728,Wheat,2020 Expansion
+Tigray,Gulumekeda,Ambesetefikada,39.400945,14.388475,Wheat,2020 Expansion
+Tigray,Gulumekeda,Mezabir,39.291487,14.384259,Wheat,2020 Expansion
+Tigray,Gulu Mekeda,Shewitlemlem,39.366279,14.420728,Wheat,2020 Expansion
+Tigray,Gulumekeda,Kileat,39.449722,14.437175,Wheat,2020 Expansion
+Tigray,Tsrae- Wenberta,Michael emba,39.814907,13.77238,Wheat,2020 Expansion
+Tigray,Tsrae- Wenberta,Kelisha-emni,39.721018,13.645629,Wheat,2020 Expansion
+Tigray,Kilte Awlaelo,Gemad,39.563364,13.874125,Wheat,2020 Expansion
+Tigray,Kilte Awlaelo,Tsaedanaele,39.52614,13.897617,Wheat,2020 Expansion
+Tigray,Kilte Awlaelo,Saz,39.55533,13.93333,Wheat,2020 Expansion
+Tigray,Sewha saesie,Beleso ,39.5196,14.17046,Wheat,2020 Expansion
+Tigray,Sewha saesie,Saesie,39.34055,14.15118,Wheat,2020 Expansion
+Tigray,Sewha saesie,Kumasewha,39.33131,14.16027,Wheat,2020 Expansion
+Tigray,Sewha saesie,Geblen,39.571855,14.329346,Sorhum,2020 Expansion
+Tigray,Sewha saesie,Embamezewle,39.591991,14.16703,Wheat and Teff,2020 Expansion
+Tigray,Atsbi,Gebrekidan,39.72359685,14.00214702,"Wheat, barley, cereals",2020 Expansion
+Tigray,Atsbi,Hadnet,39.69792501,13.99003701,"Wheat, barley, cereals",2020 Expansion
+Tigray,Atsbi,Haresaw,39.75308959,13.99223595,"Wheat, barley, cereals",2020 Expansion
+Tigray,Atsbi,Zarema,39.68926179,13.91971256,"Wheat, barley, cereals",2020 Expansion
+Tigray,Atsbi,Kalamin,39.75765019,13.82183504,"Wheat, barley, cereals",2020 Expansion
+Tigray,Atsbi,Adimesanu,39.69107357,13.8365665,"Wheat, barley, cereals",2020 Expansion
+Tigray,Atsbi,Dbabakoryen,39.65041711,13.7817205,"Wheat, barley, cereals",2020 Expansion
+Tigray,Raya Alamata,Tumuga ,39.58571,12.30692,"sorghum, teff, wheat",2020 Expansion
+Tigray,Raya Alamata,Harle,39.60502,12.33748,"sorghum, teff, wheat",2020 Expansion
+Tigray,Hawzien,Debrehiwet,39.3951492,13.9570894,"Wheat,Barley Millet",2020 Expansion
+Tigray,Hawzien,Megab,39.3820305,13.9347544,"Wheat,Barley Millet",2020 Expansion
+Tigray,Hawzien,Siluh,39.4577446,13.9861727,"Wheat,Barley Millet",2020 Expansion
+Tigray,Hawzien,Hayelom,39.4558758,14.01382,"Wheat,Barley Millet",2020 Expansion
+Tigray,Hawzien,Degamba,39.4558754,14.10262,"Wheat,Barley Millet",2020 Expansion
+Tigray,Tsaedaemba,Tsenkanet,39.55202,14.01002,Wheat,2020 Expansion
+Tigray,Tsaedaemba,May megelta,39.56454,14.09319,Wheat,2020 Expansion
+Tigray,Embaseneiti,Adirgeto,39.23734,14.0485,Sorghum,2020 Expansion
+Tigray,Embaseneiti,Mereto,39.310264,14.085798,Sorghum,2020 Expansion
+Tigray,Embaseneiti,May_tuem,39.297233,14.043002,Sorghum,2020 Expansion
+Tigray,Hahayle,Edagahamus,39.142603,14.16392,Wheat & Teff,2020 Expansion
+Tigray,Hahayle, Agamo,39.09799,14.16881,Wheat & Teff,2020 Expansion
+Tigray,Adwa,Selam,38.56938,14.15744,"Sorghum, Teff, cereals",2020 Expansion
+Tigray,Adwa,Smret,38.51264,14.13339,"Sorghum, Maize cereals",2020 Expansion
+Tigray,Adwa,Lakia,38.81285,14.1483,"Teff, wheat, cereals",2020 Expansion
+Tigray,Adwa,Gedeba,38.97046,14.10802,"Teff, Wheat, cereals",2020 Expansion
+Tigray,Adwa,Yeha,39.01586,14.28512,"Teff, Wheat, cereals",2020 Expansion
+Tigray,Zana,Walka,38.47301147,13.9314113,"Teff,maize,finger millet",2020 Expansion
+Tigray,Zana,Bahra,38.4486162,13.9940156,"Teff,maize,finger millet",2020 Expansion
+Tigray,Zana,Kbrto,38.36922,13.89728,"Teff,maize,finger millet",2020 Expansion
+Tigray,Zana,Tukle,38.43854,13.85784,"Teff,maize,finger millet",2020 Expansion
+Tigray,Zana,Hadnet,38.488296,13.92911109,"Teff,maize,finger millet",2020 Expansion
+Tigray,Zana,Maylomin,38.43854,13.85784,"Teff,maize,finger millet",2020 Expansion
+Tigray,Laelay koraro,Hakfen,38.470317,14.13433,"Maize,finger millet,teff ",2020 Expansion
+Tigray,Laelay koraro,Lmat,38.4802123,14.0672269,"Teff,maize,finger millet",2020 Expansion
+Tigray,Laelay koraro,Adi geshti,38.4780496,14.0267753,"Teff,maize,finger millet",2020 Expansion
+Tigray,Laelay koraro,Adi ngsti,38.4898629,14.1846636,"Maize,finger millet,teff ",2020 Expansion
+Tigray,Hintalo,Hagereselam,39.470371,13.314231,"Wheat, Barley and Sorghum",2020 Expansion
+Tigray,Hintalo,Ara,39.54618,13.206063,"Wheat, Barley and Sorghum",2020 Expansion
+Tigray,Hintalo,Fikrealem,39.506872,13.206063,"Wheat, Barley and Sorghum",2020 Expansion
+Tigray,Hintalo,Maynebri,39.498184,13.134404,"Wheat, Barley and Sorghum",2020 Expansion
+Tigray,Hintalo,Waza,39.538822,13.067072,"Wheat, Barley and Sorghum",2020 Expansion
+Tigray,Tanqua milash,Adiweyane,38.939694,13.547956,Sorghum and maize,2020 Expansion
+Tigray,Abergele Yechila,Felegehiwet,38.841779,13.284002,Sorghum ,2020 Expansion
+Tigray,Maykinetal,Wechi,39.950625,14.019452,Sorghum ,2020 Expansion
+Tigray,Kolatembien,Debretsehay,38.95869,13.63875,Sorghum and maize,2020 Expansion
+Tigray,Kolatembien,Limat,39.00553,13.67047,Sorghum and maize,2020 Expansion
+Tigray,Ganta Afeshum,Beati may,39.44825,14.31830556,Wheat,2020 Expansion
+Tigray,Ganta Afeshum,Golaa  genahti,39.49063889,14.29258333,Wheat,2020 Expansion
+Tigray,Ganta Afeshum,Kokob tsibah,39.44552778,14.35580556,Wheat,2020 Expansion
+Tigray,Ganta Afeshum,Maytsaeda,39.47608333,14.33180556,Wheat,2020 Expansion
+Tigray,Ganta Afeshum,Hagereselam,39.48091667,14.35266667,Wheat,2020 Expansion
+Tigray,Bizet,Maywoini ,39.34238889,14.23427778,Wheat,2020 Expansion
+Tigray,Adiet,Betsemaeti,38.63238333,13.98407222,Maize,2020 Expansion
+Tigray,Adiet,Gundi,38.66833056,13.87364722,Sorghum,2020 Expansion
+Tigray,Adiet,Adihutsa,38.64722222,13.965,Teff,2020 Expansion
+Amhara,Abuko,Salmne,39.64574318,10.8821052,"Wheat, teff, Sorghum, Maize",2020 Expansion
+Amhara,Abuko,Degaga,39.63886429,10.80528543,"Wheat, teff, Sorghum, Maize",2020 Expansion
+Amhara,Abuko,Felena,39.63247612,10.92108337,"Wheat, teff, Sorghum, Maize",2020 Expansion
+Amhara,Abuko,Dindin,39.66124066,10.84375482,"Wheat, teff, Sorghum, Maize",2020 Expansion
+Amhara,Abuko,Jema Nigus,39.68219712,10.82237551,"Wheat, teff, Sorghum, Maize",2020 Expansion
+Amhara,Abuko,Bele,39.63461354,10.8066055,"Wheat, teff, Sorghum, Maize",2020 Expansion
+Amhara,Abuko,Kalo,39.61092925,10.74682041,"Wheat, teff, Sorghum, Maize",2020 Expansion
+Amhara,Abuko,Beteho,39.68625241,10.77525886,"Wheat, teff, Sorghum, Maize",2020 Expansion
+Amhara,Abuko,Neti,39.55317777,10.76376805,"Wheat, teff, Sorghum, Maize",2020 Expansion
+Amhara,Abuko,A/sara,39.57146381,10.74093568,"Wheat, teff, Sorghum, Maize",2020 Expansion
+Amhara,Abuko,A/darma,39.5474002,10.70436071,"Wheat, teff, Sorghum, Maize",2020 Expansion
+Amhara,Abuko,Soba Jegul,39.63581013,10.95688879,"Wheat, teff, Sorghum, Maize",2020 Expansion
+Amhara,Abuko,Maybar,39.65001914,10.98438719,"Wheat, teff, Sorghum, Maize",2020 Expansion
+Amhara,Abuko,Haro,39.60606552,10.9070017,"Wheat, teff, Sorghum, Maize",2020 Expansion
+Amhara,Borena,Mendeyu,38.64403,10.70809,"Wheat, Teff, Sorghum,",2020 Expansion
+Amhara,Borena,Woreke abu,38.63358,10.66414,"Wheat, Teff, Sorghum,",2020 Expansion
+Amhara,Borena,Beta,38.58703,10.65174,"Wheat, Teff, Sorghum,",2020 Expansion
+Amhara,Borena,Aychal bonya,38.63253,10.65278,"Wheat, Teff, Sorghum,",2020 Expansion
+Amhara,Borena,Wobo,38.64343,10.71403,"Wheat, Teff, Sorghum,",2020 Expansion
+Amhara,Borena,Sefatera,38.65817,10.79514,"Wheat, Teff, Sorghum,",2020 Expansion
+Amhara,Borena,Yecho masi,38.66878,10.67889,"Wheat, Teff, Sorghum,",2020 Expansion
+Amhara,Borena,Dinsa kariba,38.70426,10.68983,"Wheat, Teff, Sorghum,",2020 Expansion
+Amhara,Borena,Derami,38.73476,10.71417,"Wheat, Teff, Sorghum,",2020 Expansion
+Amhara,Borena,Werke meskele,38.74829,10.70698,"Wheat, Teff, Sorghum,",2020 Expansion
+Amhara,Borena,Dibi chere,38.70201,10.77008,"Wheat, Teff, Sorghum,",2020 Expansion
+Amhara,Borena,Sirba Menekuko,38.65326,10.73375,"Wheat, Teff, Sorghum,",2020 Expansion
+Amhara,Borena,Key Afer,38.83352,10.76631,"Wheat, Teff, Sorghum,",2020 Expansion
+Amhara,Borena,Chefe belo,38.79152,10.76801,"Wheat, Teff, Sorghum,",2020 Expansion
+Amhara,Borena,Tewa,38.67108,10.71023,"Wheat, Teff, Sorghum,",2020 Expansion
+Amhara,Borena,Debre senbo,38.72016,10.73996,"Wheat, Teff, Sorghum,",2020 Expansion
+Amhara,Borena,Hawey betaso,38.75291,10.78576,"Wheat, Teff, Sorghum,",2020 Expansion
+Amhara,Borena,Abu,38.72767,10.82032,"Wheat, Teff, Sorghum,",2020 Expansion
+Amhara,Borena,Jenbi,38.77069,10.76091,"Wheat, Teff, Sorghum,",2020 Expansion
+Amhara,Borena,Mudlala,38.87033,10.84054,"Wheat, Teff, Sorghum,",2020 Expansion
+Amhara,Borena,Balamoch,38.87277,10.79179,"Wheat, Teff, Sorghum,",2020 Expansion
+Amhara,Borena,Hulagosh,38.77694,10.7909,"Wheat, Teff, Sorghum,",2020 Expansion
+Amhara,Borena,Dega dabi,38.75511,10.81113,"Wheat, Teff, Sorghum,",2020 Expansion
+Amhara,Borena,Mehal,38.74481,10.76225,"Wheat, Teff, Sorghum,",2020 Expansion
+Amhara,Borena,Keto,38.80353,10.75761,"Wheat, Teff, Sorghum,",2020 Expansion
+Amhara,Borena,Dilfire,38.83755,10.80503,"Wheat, Teff, Sorghum,",2020 Expansion
+Amhara,Borena,Chiro cherkos,38.85843,10.84019,"Wheat, Teff, Sorghum,",2020 Expansion
+Amhara,Borena,Jelesa,38.79763,10.82053,"Wheat, Teff, Sorghum,",2020 Expansion
+Amhara,Borena,Anferfira,38.82423,10.82686,"Wheat, Teff, Sorghum,",2020 Expansion
+Amhara,Delanta,Ziban Dega,39.09136883,11.57143297,"Wheat, Lentil",2020 Expansion
+Amhara,Delanta,Dehana),39.17312227,11.57805175,"Wheat, Lentil",2020 Expansion
+Amhara,Delanta,Goshimedia),39.24584313,11.54101088,"Teff, Sorghum",2020 Expansion
+Amhara,Delanta,Baba,39.07035522,11.49492938,"Wheat, Lentil",2020 Expansion
+Amhara,Delanta,Chiga Chekutr,39.09115148,11.52323034,"Wheat, Lentil",2020 Expansion
+Amhara,Delanta,Asim Elana,39.1336945,11.56552912,"Wheat, Lentil",2020 Expansion
+Amhara,Delanta,Slana Tikurena,39.03756694,11.50794028,"Wheat, Lentil",2020 Expansion
+Amhara,Delanta,Kechin Areh Chekutr,39.07129714,11.52131863,"Wheat, Lentil",2020 Expansion
+Amhara,Delanta,Ambaye Zerniyat,39.21408584,11.62737515,"Wheat, Lentil",2020 Expansion
+Amhara,Delanta,Tardat Gebriel,39.12742014,11.58383626,"Wheat, Lentil",2020 Expansion
+Amhara,Delanta,Tardat Medihaniyalem,39.15867094,11.61751728,"Wheat, Lentil",2020 Expansion
+Amhara,Delanta,Tikishign Sinat,39.40417959,11.7332502,"Wheat, Lentil",2020 Expansion
+Amhara,Delanta,Keda Mistinkir,39.18274069,11.50233257,"Wheat, Lentil",2020 Expansion
+Amhara,Delanta,Wetegie Aberkut,39.01755008,11.52404898,"Wheat, Lentil",2020 Expansion
+Amhara,Delanta,Shekol Senbelet,39.08028103,11.47827736,"Wheat, Lentil",2020 Expansion
+Amhara,Delanta,Mesnoamba,39.19927624,11.59699935,"Wheat, Lentil",2020 Expansion
+Amhara,Delanta,Tima Tikishign,39.42511792,11.72485476,"Wheat, Lentil",2020 Expansion
+Amhara,Delanta,Tana,39.18117806,11.65319901,"Wheat, Lentil",2020 Expansion
+Amhara,Delanta,Selit Dima,39.3511092,11.71195074,"Wheat, Lentil",2020 Expansion
+Amhara,Gishe Rie,Ferese Bet,39.53221622,10.52753428,"Wheat, teff, Maize",2020 Expansion
+Amhara,Gishe Rie,Darat,39.58181882,10.54442237,"Wheat, teff, Maize",2020 Expansion
+Amhara,Gishe Rie,Wefelek,39.62190346,10.5207871,"Wheat, teff, Maize",2020 Expansion
+Amhara,Gishe Rie,Wejit,39.63561835,10.5907494,"Wheat, teff, Maize",2020 Expansion
+Amhara,Gishe Rie,Asenafit,39.68930684,10.56392163,"Wheat, teff, Maize",2020 Expansion
+Amhara,Gishe Rie,Tebel Chachura,39.65212692,10.67691087,"Wheat, teff, Maize",2020 Expansion
+Amhara,Gishe Rie,Girar Ameba,39.66078968,10.67025466,"Wheat, teff, Maize",2020 Expansion
+Amhara,Gishe Rie,Dell,39.58435471,10.65751036,"Wheat, teff, Maize",2020 Expansion
+Amhara,Gishe Rie,Korebetite,39.54963931,10.5965183,"Wheat, teff, Maize",2020 Expansion
+Amhara,Jamma,Kebena,39.24286,10.23013,"Wheat, Teff",2020 Expansion
+Amhara,Jamma,Ababore,39.26586,10.25055,"Wheat, Teff",2020 Expansion
+Amhara,Jamma,Keyafer,39.35672,10.37654,"Wheat, Teff",2020 Expansion
+Amhara,Jamma,Micha,39.35832,10.40711,"Wheat, Teff",2020 Expansion
+Amhara,Jamma,Borena,39.36966,10.47535,"Wheat, Teff",2020 Expansion
+Amhara,Jamma,Ketari,39.35219,10.5459,"Wheat, Teff",2020 Expansion
+Amhara,Jamma,Tulumojo,39.36453,10.49577,"Wheat, Teff",2020 Expansion
+Amhara,Jamma,Amayo,39.33109,10.54947,"Wheat, Teff",2020 Expansion
+Amhara,Jamma,Faji,39.27615,10.52715,"Wheat, Teff",2020 Expansion
+Amhara,Jamma,Ejerti,39.24373,10.43461,"Wheat, Teff",2020 Expansion
+Amhara,Jamma,Aley,39.20743,10.46711,"Wheat, Teff",2020 Expansion
+Amhara,Jamma,Zerkami,39.14295,10.4394,"Wheat, Teff",2020 Expansion
+Amhara,Jamma,Shilafafe,39.1705,10.36681,"Wheat, Teff",2020 Expansion
+Amhara,Jamma,Abewoled,39.13673,10.38237,"Wheat, Teff",2020 Expansion
+Amhara,Jamma,Bilew,39.22921,10.34471,"Wheat, Teff",2020 Expansion
+Amhara,Jamma,Goye,39.30049,10.32235,"Wheat, Teff",2020 Expansion
+Amhara,Kelalaa,Korke,38.97244,10.51284,"Wheat,Teff, Sorghum",2020 Expansion
+Amhara,Kelalaa,Degorach,39.12753,10.51064,"Wheat,Teff, Sorghum",2020 Expansion
+Amhara,Kelalaa,Yimeri,39.01267,10.58145,"Wheat,Teff, Sorghum",2020 Expansion
+Amhara,Kelalaa,Tirantir,38.83515,10.45467,"Wheat,Teff, Sorghum",2020 Expansion
+Amhara,Kelalaa,Abet wuha,38.8973,10.47758,"Wheat,Teff, Sorghum",2020 Expansion
+Amhara,Kelalaa,Gor,39.09024,10.68328,"Wheat,Teff, Sorghum",2020 Expansion
+Amhara,Kelalaa,Baket,39.12829,10.54863,"Wheat,Teff, Sorghum",2020 Expansion
+Amhara,Kelalaa,Jejeba,38.94808,10.4972,"Wheat,Teff, Sorghum",2020 Expansion
+Amhara,Kelalaa,Workie,38.97434,10.64435,"Wheat,Teff, Sorghum",2020 Expansion
+Amhara,Kelalaa,Minaya,39.09117,10.45531,"Wheat,Teff, Sorghum",2020 Expansion
+Amhara,Kelalaa,Teltele,39.04107,10.68378,"Wheat,Teff, Sorghum",2020 Expansion
+Amhara,Kelalaa,Warja,38.96775,10.74483,"Wheat,Teff, Sorghum",2020 Expansion
+Amhara,Kelalaa,Addis amba,38.87976,10.45886,"Wheat,Teff, Sorghum",2020 Expansion
+Amhara,Kelalaa,Berieda,39.00046,10.7235,"Wheat,Teff, Sorghum",2020 Expansion
+Amhara,Kelalaa,Bereda,39.00046,10.7235,"Wheat,Teff, Sorghum",2020 Expansion
+Amhara,Kelalaa,Mukech,38.94044,10.62148,"Wheat,Teff, Sorghum",2020 Expansion
+Amhara,Kelalaa,Kobi,38.97244,10.51284,"Wheat,Teff, Sorghum",2020 Expansion
+Amhara,Kelalaa,Shafi,39.07383,10.53889,"Wheat,Teff, Sorghum",2020 Expansion
+Amhara,Kelalaa,Baqelo,39.0097,10.48943,"Wheat,Teff, Sorghum",2020 Expansion
+Amhara,Kelalaa,Anarat,39.02051,10.4157,"Wheat,Teff, Sorghum",2020 Expansion
+Amhara,Kelalaa,Deger,38.98294,10.43121,"Wheat,Teff, Sorghum",2020 Expansion
+Amhara,Kelalaa,Shinet,38.90468,10.69386,"Wheat,Teff, Sorghum",2020 Expansion
+Amhara,Legambo,Keymebrat,38.92808,10.78142,"Barley, Wheat,Teff",2020 Expansion
+Amhara,Legambo,Hote,38.96205,10.79578,"Barley, Wheat,Teff",2020 Expansion
+Amhara,Legambo,Selamber-Jingo,39.01324,10.81891,"Barley, Wheat,Teff",2020 Expansion
+Amhara,Legambo,Biyo,39.01199,10.782,"Barley, Wheat,Teff",2020 Expansion
+Amhara,Legambo,Genete,39.05205,10.79186,"Barley, Wheat,Teff",2020 Expansion
+Amhara,Legambo,Yilada,39.11759,10.77913,"Barley, Wheat,Teff",2020 Expansion
+Amhara,Legambo,Tikse,39.1466,10.80748,"Barley, Wheat,Teff",2020 Expansion
+Amhara,Legambo,Argitiy,39.18006,10.75012,"Barley, Wheat,Teff",2020 Expansion
+Amhara,Legambo,Gol-Kechember,39.19683,10.76745,"Barley, Wheat,Teff",2020 Expansion
+Amhara,Legambo,Kindo,39.21527,10.87998,"Barley, Wheat,Teff",2020 Expansion
+Amhara,Legambo,Tache Akesta,39.17393,10.8642,"Barley, Wheat,Teff",2020 Expansion
+Amhara,Legambo,Hitetera,39.05632,10.77344,"Barley, Wheat,Teff",2020 Expansion
+Amhara,Legambo,Kore,39.1497,10.74988,"Barley, Wheat,Teff",2020 Expansion
+Amhara,Legehida,Mejete,39.2662,10.70257,"Barley, Wheat,Teff, Maize",2020 Expansion
+Amhara,Legehida,Awatel,39.24893,10.67207,"Barley, Wheat,Teff, Maize",2020 Expansion
+Amhara,Legehida,Siregedel,39.2707,10.75344,"Barley, Wheat,Teff, Maize",2020 Expansion
+Amhara,Legehida,Siba,39.32341,10.73755,"Barley, Wheat,Teff, Maize",2020 Expansion
+Amhara,Legehida,Birbirta,39.2237,10.71228,"Barley, Wheat,Teff, Maize",2020 Expansion
+Amhara,Legehida,Aselel,39.22276,10.77351,"Barley, Wheat,Teff, Maize",2020 Expansion
+Amhara,Legehida,Ayit,39.26675,10.79808,"Barley, Wheat,Teff, Maize",2020 Expansion
+Amhara,Legehida,Zenamba,39.3103,10.77654,"Barley, Wheat,Teff, Maize",2020 Expansion
+Amhara,Legehida,Sedere,39.34639,10.77631,"Barley, Wheat,Teff, Maize",2020 Expansion
+Amhara,Legehida,Kire gebeya,39.34776,10.67079,"Barley, Wheat,Teff, Maize",2020 Expansion
+Amhara,Legehida,Shikif,39.33033,10.64251,"Barley, Wheat,Teff, Maize",2020 Expansion
+Amhara,Legehida,Denbia,39.30588,10.63584,"Barley, Wheat,Teff, Maize",2020 Expansion
+Amhara,Legehida,Telanta,39.15293,10.65852,"Barley, Wheat,Teff, Maize",2020 Expansion
+Amhara,Mehal Saint,Assef zemer,38.58893,10.86422,"Wheat, Teff, sorghum",2020 Expansion
+Amhara,Mehal Saint,Kotet,38.65155,10.87854,"Wheat, Teff, sorghum",2020 Expansion
+Amhara,Mehal Saint,Derew,38.65167,10.93425,"Wheat, Teff, sorghum",2020 Expansion
+Amhara,Mehal Saint,Alegeta,38.6836,10.97522,"Wheat, Teff, sorghum",2020 Expansion
+Amhara,Mehal Saint,Atedas,38.72356,11.00051,"Wheat, Teff, sorghum",2020 Expansion
+Amhara,Mehal Saint,Work mawucha,38.75149,10.98421,"Wheat, Teff, sorghum",2020 Expansion
+Amhara,Mehal Saint,Sensa,38.63445,10.98261,"Wheat, Teff, sorghum",2020 Expansion
+Amhara,Mehal Saint,Bacheta,38.57877,10.90528,"Wheat, Teff, sorghum",2020 Expansion
+Amhara,Mehal Saint,Lenguat,38.71602,10.95698,"Wheat, Teff, sorghum",2020 Expansion
+Amhara,Mehal Saint,Gert,38.73948,10.93623,"Wheat, Teff, sorghum",2020 Expansion
+Amhara,Mehal Saint,Wezed,38.71903,10.89468,"Wheat, Teff, sorghum",2020 Expansion
+Amhara,Mehal Saint,Samagn,38.78732,10.94151,"Wheat, Teff, sorghum",2020 Expansion
+Amhara,Mekidela,Gobedin,38.81772,11.29287,"Barley, Wheat,Teff, Sorghum, Maize",2020 Expansion
+Amhara,Mekidela,Adada,38.87638,11.2929,"Barley, Wheat,Teff, Sorghum, Maize",2020 Expansion
+Amhara,Mekidela,Dender,38.78496,11.27315,"Barley, Wheat,Teff, Sorghum, Maize",2020 Expansion
+Amhara,Mekidela,Debire Zeyit,38.93501,11.20138,"Barley, Wheat,Teff, Sorghum, Maize",2020 Expansion
+Amhara,Mekidela,Defergie,39.05964,11.24427,"Barley, Wheat,Teff, Sorghum, Maize",2020 Expansion
+Amhara,Mekidela,Tebi,39.00855,11.24834,"Barley, Wheat,Teff, Sorghum, Maize",2020 Expansion
+Amhara,Mekidela,Adeguya,39.01299,11.18512,"Barley, Wheat,Teff, Sorghum, Maize",2020 Expansion
+Amhara,Mekidela,Haroge,38.9172,11.20887,"Barley, Wheat,Teff, Sorghum, Maize",2020 Expansion
+Amhara,Mekidela,Kibitiya,39.07157,11.19962,"Barley, Wheat,Teff, Sorghum, Maize",2020 Expansion
+Amhara,Mekidela,Genatit,39.0962,11.22556,"Barley, Wheat,Teff, Sorghum, Maize",2020 Expansion
+Amhara,Mekidela,Gonderoch,39.09756,11.24095,"Barley, Wheat,Teff, Sorghum, Maize",2020 Expansion
+Amhara,Mekidela,Bazura,39.10611,11.29216,"Barley, Wheat,Teff, Sorghum, Maize",2020 Expansion
+Amhara,Mekidela,Mingash,39.14899,11.2586,"Barley, Wheat,Teff, Sorghum, Maize",2020 Expansion
+Amhara,Mekidela,Dedere,39.14933,11.18296,"Barley, Wheat,Teff, Sorghum, Maize",2020 Expansion
+Amhara,Mekidela,Mata Meda,38.85375,11.30824,"Barley, Wheat,Teff, Sorghum, Maize",2020 Expansion
+Amhara,Mekidela,Warekaye,38.75392,11.34486,"Barley, Wheat,Teff, Sorghum, Maize",2020 Expansion
+Amhara,Saint Ajbar,Melesanka,38.69288,11.05992,"Barley, Wheat, Teff, Sorgum, Maize",2020 Expansion
+Amhara,Saint Ajbar,Mes,38.57868,11.09082,"Barley, Wheat, Teff, Sorgum, Maize",2020 Expansion
+Amhara,Saint Ajbar,Ambasember,38.61029,11.12213,"Barley, Wheat, Teff, Sorgum, Maize",2020 Expansion
+Amhara,Saint Ajbar,Wonzegir,38.65661,11.11329,"Barley, Wheat, Teff, Sorgum, Maize",2020 Expansion
+Amhara,Saint Ajbar,Shehot,38.83396,11.11204,"Barley, Wheat, Teff, Sorgum, Maize",2020 Expansion
+Amhara,Saint Ajbar,Waro,38.86255,11.11477,"Barley, Wheat, Teff, Sorgum, Maize",2020 Expansion
+Amhara,Saint Ajbar,Aneshe,38.86225,11.09076,"Barley, Wheat, Teff, Sorgum, Maize",2020 Expansion
+Amhara,Saint Ajbar,Dido,38.89802,11.10211,"Barley, Wheat, Teff, Sorgum, Maize",2020 Expansion
+Amhara,Saint Ajbar,Wukir,38.791,11.18263,"Barley, Wheat, Teff, Sorgum, Maize",2020 Expansion
+Amhara,Saint Ajbar,Gulmeda,38.85541,11.04551,"Barley, Wheat, Teff, Sorgum, Maize",2020 Expansion
+Amhara,Saint Ajbar,Endotie,38.97184,11.03104,"Barley, Wheat, Teff, Sorgum, Maize",2020 Expansion
+Amhara,Saint Ajbar,Segerat,38.83702,10.97806,"Barley, Wheat, Teff, Sorgum, Maize",2020 Expansion
+Amhara,Saint Ajbar,Yegoda,38.63934,11.13304,"Barley, Wheat, Teff, Sorgum, Maize",2020 Expansion
+Amhara,Saint Ajbar,Ashinga,38.79582,11.02261,"Barley, Wheat, Teff, Sorgum, Maize",2020 Expansion
+Amhara,Saint Ajbar,Ewa,38.93314,11.02642,"Barley, Wheat, Teff, Sorgum, Maize",2020 Expansion
+Amhara,Saint Ajbar,Tengobalel,38.93116,11.03736,"Barley, Wheat, Teff, Sorgum, Maize",2020 Expansion
+Amhara,Saint Ajbar,Beja,38.80137,10.9707,"Barley, Wheat, Teff, Sorgum, Maize",2020 Expansion
+Amhara,Saint Ajbar,Gedeba,38.91706,10.96075,"Barley, Wheat, Teff, Sorgum, Maize",2020 Expansion
+Amhara,Saint Ajbar,Feres Bar,38.87748,10.99452,"Barley, Wheat, Teff, Sorgum, Maize",2020 Expansion
+Amhara,Saint Ajbar,Shengodefer,38.86184,10.98911,"Barley, Wheat, Teff, Sorgum, Maize",2020 Expansion
+Amhara,Saint Ajbar,Ambaferit,38.89876,11.00784,"Barley, Wheat, Teff, Sorgum, Maize",2020 Expansion
+Amhara,Saint Ajbar,Yegodo,38.63934,11.13304,"Barley, Wheat, Teff, Sorgum, Maize",2020 Expansion
+Amhara,Saint Ajbar,Densa Abodo,38.54058,11.06303,"Barley, Wheat, Teff, Sorgum, Maize",2020 Expansion
+Amhara,Saint Ajbar,T mariam,38.75395,11.11232,"Barley, Wheat, Teff, Sorgum, Maize",2020 Expansion
+Amhara,Saint Ajbar,Debitera,38.73728,11.11817,"Barley, Wheat, Teff, Sorgum, Maize",2020 Expansion
+Amhara,Saint Ajbar,Keta chilaga,38.88716,10.91227,"Barley, Wheat, Teff, Sorgum, Maize",2020 Expansion
+Amhara,Saint Ajbar,Beja chilaga,38.86673,10.91091,"Barley, Wheat, Teff, Sorgum, Maize",2020 Expansion
+Amhara,Tenta,Yamed,39.24955,11.23804,"Barley, Wheat,Teff",2020 Expansion
+Amhara,Tenta,Sengola,39.2527,11.20368,"Barley, Wheat,Teff",2020 Expansion
+Amhara,Tenta,Abamela,39.28608,11.24626,"Barley, Wheat,Teff",2020 Expansion
+Amhara,Tenta,Cheleme,39.27633,11.30431,"Barley, Wheat,Teff",2020 Expansion
+Amhara,Tenta,Amba Mariam,39.22877,11.20706,"Barley, Wheat,Teff",2020 Expansion
+Amhara,Tenta,Meserbi Fotto,39.2253,11.12483,"Barley, Wheat,Teff",2020 Expansion
+Amhara,Tenta,Kulbitamba,39.20773,11.28533,"Barley, Wheat,Teff",2020 Expansion
+Amhara,Tenta,Kurkur,39.16186,11.14922,"Barley, Wheat,Teff",2020 Expansion
+Amhara,Tenta,China,39.16356,11.20802,"Barley, Wheat,Teff",2020 Expansion
+Amhara,Tenta,Tedat,39.24972,11.33934,"Barley, Wheat,Teff",2020 Expansion
+Amhara,Tenta,Chacha,39.23481,11.40156,"Barley, Wheat,Teff",2020 Expansion
+Amhara,Tenta,Wata,39.24207,11.43443,"Barley, Wheat,Teff",2020 Expansion
+Amhara,Tenta,Meguat,39.21093,11.34624,"Barley, Wheat,Teff",2020 Expansion
+Amhara,Tenta,Gafa,39.22066,11.315,"Barley, Wheat,Teff",2020 Expansion
+Amhara,Tenta,Debek,39.17736,11.33696,"Barley, Wheat,Teff",2020 Expansion
+Amhara,Tenta,Robit,39.12879,11.36584,"Barley, Wheat,Teff",2020 Expansion
+Amhara,Tenta,Bila,39.29712,11.33621,"Barley, Wheat,Teff",2020 Expansion
+Amhara,Tenta,Sholawu,39.31497,11.40188,"Barley, Wheat,Teff",2020 Expansion
+Amhara,Tenta,Yemat,39.28043,11.27853,"Barley, Wheat,Teff",2020 Expansion
+Amhara,Tenta,Yederek,39.08315,11.39733,"Barley, Wheat,Teff",2020 Expansion
+Amhara,Woreilu,Kuntit,39.42871,10.44956,"Wheat, Teff",2020 Expansion
+Amhara,Woreilu,Debre Nigist,39.44273,10.53347,"Wheat, Teff",2020 Expansion
+Amhara,Woreilu,Arenfema,39.49639,10.8513,"Wheat, Teff",2020 Expansion
+Amhara,Woreilu,Adati,39.49191,10.7797,"Wheat, Teff",2020 Expansion
+Amhara,Woreilu,Kirie Mariam,39.37466,10.62588,"Wheat, Teff",2020 Expansion
+Amhara,Woreilu,Doyo,39.52393,10.86855,"Wheat, Teff",2020 Expansion
+Amhara,Woreilu,Gatira,39.54226,10.84923,"Wheat, Teff",2020 Expansion
+Amhara,Woreilu,Yebello,39.43429,10.73508,"Wheat, Teff",2020 Expansion
+Amhara,Woreilu,Degnu,39.45183,10.82759,"Wheat, Teff",2020 Expansion
+Amhara,Woreilu,Hochecho Ketema,39.46058,10.61471,"Wheat, Teff",2020 Expansion
+Tigray,Adwa,Bethans,38.8504,14.1509,Null,Current
+Tigray,Adwa,DebreGenetA,38.963,14.107,Null,Current
+Tigray,Adwa,EndaBagerima,38.961,14.158,Null,Current
+Tigray,Adwa,Gendebta,39.015,14.23,Null,Current
+Tigray,Adwa,Lalaylogomti,39.010145,14.12735,Null,Current
+Tigray,Adwa,MariamShewito,38.95662,14.21718,Null,Current
+Tigray,Adwa,Seloda,38.8843,14.204,Null,Current
+Tigray,Adwa,TahtayLegomti,38.9704,14.0784,Null,Current
+Tigray,Adwa,Wedikeshi,38.878,14.2475,Null,Current
+Tigray,Adwa,Woyenti,39.038132,14.205338,Null,Current
+Tigray,Ahferom,Adiyikoro,39.07198333,14.19138333,Null,Current
+Tigray,Ahferom,Adizata,39.08181667,14.2262,Null,Current
+Tigray,Ahferom,Betgebez,39.10301667,14.36085,Null,Current
+Tigray,Ahferom,Edagaarbi,39.25228,14.20521,Null,Current
+Tigray,Ahferom,EmbaAhfrom,39.21587,14.24734,Null,Current
+Tigray,Ahferom,Endamariam,39.16273,14.26368,Null,Current
+Tigray,Ahferom,Kudo,39.23335,14.18524,Null,Current
+Tigray,Ahferom,Laelayhahaile,39.17888,14.17428,Null,Current
+Tigray,Ahferom,LaelayMegariaTsemri,39.08091,14.27076667,Null,Current
+Tigray,Ahferom,Maysuru,39.17853333,14.2793,Null,Current
+Tigray,Ahferom,Mezbr,39.03853,14.34498,Null,Current
+Tigray,Ahferom,Sefo,39.19678,14.21603,Null,Current
+Tigray,Ahferom,Sero,39.22411667,14.32078333,Null,Current
+Tigray,Ahferom,TahtayDaeroka,39.11961667,14.21841667,Null,Current
+Tigray,Ahferom,TahtayMegariaTsebri,39.07828333,14.30111667,Null,Current
+Tigray,Alamata,Gerjale,39.651575,12.527198,Null,Current
+Tigray,Alamata,KuluGizeLemlem,39.65574,12.447477,Null,Current
+Tigray,Alamata,LaelayDayu,39.650299,12.466214,Null,Current
+Tigray,Alamata,Limaat,39.657985,12.398839,Null,Current
+Tigray,Alamata,SelamBekalsi,39.659153,12.414739,Null,Current
+Tigray,Alamata,SelenWuha,39.657374,12.358934,Null,Current
+Tigray,Alamata,Sorya,39.32907,12.34583,Null,Current
+Tigray,Alamata,Tao,39.64047,12.5179,Null,Current
+Tigray,Alamata,Tsetsera,39.4313,12.37728,Null,Current
+Tigray,Atsbi,BarkaAdiswha,39.70919,13.79387,Null,Current
+Tigray,Atsbi,FelegeWayane,39.7409,13.9071,Null,Current
+Tigray,Atsbi,Golgolemalee,39.72736,13.87282,Null,Current
+Tigray,Atsbi,Habees,39.68752,13.81053,Null,Current
+Tigray,Atsbi,RubaFelege,39.72898,13.94422,Null,Current
+Tigray,Emba-Alaje,Amedwuha,39.33957,12.89367,Null,Current
+Tigray,Emba-Alaje,Ayba,39.53561,12.89097,Null,Current
+Tigray,Emba-Alaje,Seret,39.3872,13.04526,Null,Current
+Tigray,Emba-Alaje,Tekea,39.47559,12.9176,Null,Current
+Tigray,Endamekoni,HizbaTeklehymanot,39.549625,12.80528167,Null,Current
+Tigray,Endamekoni,Mekan ,39.52550166,12.74920333,Null,Current
+Tigray,Endamekoni,Meswaeti ,39.54465833,12.69882,Null,Current
+Tigray,Endamekoni,SimretS,39.50650833,12.72587333,Null,Current
+Tigray,Endamekoni,Tahtayhaya,39.56391667,12.70454167,Null,Current
+Tigray,Enesie Sar Midir,Adisalem,38.4665,10.78602,Null,Current
+Tigray,Enesie Sar Midir,AlemeTesfa,38.43718,10.95347,Null,Current
+Tigray,Enesie Sar Midir,AwusaMeda,38.39108,10.99846,Null,Current
+Tigray,Enesie Sar Midir,Berlay,38.35053,10.93635,Null,Current
+Tigray,Enesie Sar Midir,DebrAbay,38.36968,10.81197,Null,Current
+Tigray,Enesie Sar Midir,DebreAliays,38.4553,10.91651,Null,Current
+Tigray,Enesie Sar Midir,DebreGenet,38.31261,10.91103,Null,Current
+Tigray,Enesie Sar Midir,DebreGeorgis,38.44727,10.99684,Null,Current
+Tigray,Enesie Sar Midir,DebreKidusan,38.2624,10.80685,Null,Current
+Tigray,Enesie Sar Midir,Debremawie,38.37385,10.87255,Null,Current
+Tigray,Enesie Sar Midir,DembezaAmbaLay,38.37871,10.91141,Null,Current
+Tigray,Enesie Sar Midir,Felegehiwot,38.28638,10.92708,Null,Current
+Tigray,Enesie Sar Midir,Goshedur,38.25709,10.92944,Null,Current
+Tigray,Enesie Sar Midir,HagereGenet,38.32013,10.77531,Null,Current
+Tigray,Enesie Sar Midir,HagereSelamE,38.38316,10.7633,Null,Current
+Tigray,Enesie Sar Midir,Lul,38.40667,10.70791,Null,Current
+Tigray,Enesie Sar Midir,MekaneGenet,38.33391,11.00523,Null,Current
+Tigray,Enesie Sar Midir,Melabesh,38.4583,10.83523,Null,Current
+Tigray,Enesie Sar Midir,MitinaYimach,38.3508,11.03647,Null,Current
+Tigray,Enesie Sar Midir,Selamber,38.48934,10.881,Null,Current
+Tigray,Enesie Sar Midir,WoryaMeskel,38.46225,10.74562,Null,Current
+Tigray,Enesie Sar Midir,Yetefet,38.3235,10.97067,Null,Current
+Tigray,Enesie Sar Midir,ZihonHuha,38.41444,10.8758,Null,Current
+Tigray,Enesie Sar Midir,ZobarYikuanda,38.4701,10.68773,Null,Current
+Tigray,Ganta-afeshum,Adekiney,39.30789,14.27692,Null,Current
+Tigray,Ganta-afeshum,Simret,39.28237,14.28043,Null,Current
+Tigray,Ganta-afeshum,WuhdetG,39.2653,14.31872,Null,Current
+Tigray,Goncha Siso Enesie,Abarwuha,38.15232,11.02268,Null,Current
+Tigray,Goncha Siso Enesie,AgazenMeda,38.18116,11.10331,Null,Current
+Tigray,Goncha Siso Enesie,Angot,38.20642,11.01804,Null,Current
+Tigray,Goncha Siso Enesie,Derit,38.1371,11.09242,Null,Current
+Tigray,Goncha Siso Enesie,Filatako,38.10078,11.08554,Null,Current
+Tigray,Goncha Siso Enesie,MehalGoncha,38.20915,11.05474,Null,Current
+Tigray,Goncha Siso Enesie,SaratYerawoch,38.34412,11.06702,Null,Current
+Tigray,Goncha Siso Enesie,Segena,38.29259,11.10519,Null,Current
+Tigray,Goncha Siso Enesie,SelamgieAmbarie,38.24068,11.10148,Null,Current
+Tigray,Goncha Siso Enesie,Wondye,38.27698,11.05132,Null,Current
+Tigray,Hawzien,Debrebirhan,39.46886,13.92454,Null,Current
+Tigray,Hawzien,Debreselam,39.33234,13.95408,Null,Current
+Tigray,Hawzien,Mozutey,39.46714,14.04165,Null,Current
+Tigray,Hawzien,Qoraro,39.25988,13.86542,Null,Current
+Tigray,Hawzien,SelamH,39.44903,13.9531,Null,Current
+Tigray,Hintalo Wajerat,FikreAlem,39.50667,13.20583,Null,Current
+Tigray,Hintalo Wajerat,HagereSelamW,39.47039,13.31372,Null,Current
+Tigray,Hintalo Wajerat,Hareko,39.3571371,13.183572,Null,Current
+Tigray,Hintalo Wajerat,Metkel,39.33889,13.36833,Null,Current
+Tigray,Ibinat,AbaBikila,38.09279,12.28212,Null,Current
+Tigray,Ibinat,Abina,38.21639,12.28058,Null,Current
+Tigray,Ibinat,AderSeg,38.14919,12.29665,Null,Current
+Tigray,Ibinat,Amisetya,38.32135,12.33541,Null,Current
+Tigray,Ibinat,AquaShumoch,38.05479,12.02169,Null,Current
+Tigray,Ibinat,Aquha,38.34943,12.39482,Null,Current
+Tigray,Ibinat,Balarab,38.26007,12.31803,Null,Current
+Tigray,Ibinat,Burkoche,38.35279,12.41277,Null,Current
+Tigray,Ibinat,DeberAbaJale,38.02621,12.12973,Null,Current
+Tigray,Ibinat,EmbachekoGunaguna,38.12471,12.04585,Null,Current
+Tigray,Ibinat,GelaMatebiya,38.1349,12.20091,Null,Current
+Tigray,Ibinat,JimanDeregeha,38.07679,12.12512,Null,Current
+Tigray,Ibinat,Kita,38.36343,12.23886,Null,Current
+Tigray,Ibinat,LusinaAbegeldi,38.17096,12.18188,Null,Current
+Tigray,Ibinat,Mechena,38.04879,12.06952,Null,Current
+Tigray,Ibinat,Niquara,38.2555,12.2137,Null,Current
+Tigray,Ibinat,Selamaya,38.17502,12.12543,Null,Current
+Tigray,Ibinat,Serawudi,37.97077,12.13049,Null,Current
+Tigray,Ibinat,Shunge,38.1771,12.08237,Null,Current
+Tigray,Ibinat,TaraSenba,38.00931,12.22824,Null,Current
+Tigray,Ibinat,Tigage,38.41673,12.34042,Null,Current
+Tigray,Ibinat,Wariba,38.10837,11.98646,Null,Current
+Tigray,Ibinat,Wonberoch,38.01144,12.17849,Null,Current
+Tigray,Ibinat,WorgajaWagi,38.01687,12.28664,Null,Current
+Tigray,Ibinat,Ziha,37.98849,12.07409,Null,Current
+Tigray,KinteAwelo,AbrahaAtsbaha,39.511604,13.837765,Null,Current
+Tigray,KinteAwelo,AdiKisandid,39.61081667,13.82423333,Null,Current
+Tigray,KinteAwelo,Aynalem,39.54968333,13.75331667,Null,Current
+Tigray,KinteAwelo,Debrebrhan,39.4907,13.69226667,Null,Current
+Tigray,KinteAwelo,Genfel,39.58768333,13.78058333,Null,Current
+Tigray,KinteAwelo,HadnetK,39.56335,13.66293333,Null,Current
+Tigray,KinteAwelo,Hayelom,39.46253333,13.75925,Null,Current
+Tigray,KinteAwelo,Kihen,39.564816,13.6227,Null,Current
+Tigray,KinteAwelo,MahbereWeyni,39.55716667,13.69048333,Null,Current
+Tigray,KinteAwelo,Mesanu,39.66021667,13.7033,Null,Current
+Tigray,KinteAwelo,Nagash,39.59755,13.87613333,Null,Current
+Tigray,KolaTembien,AdiHa,39.087,13.733,Null,Current
+Tigray,KolaTembien,Atakilti,38.9,13.7,Null,Current
+Tigray,KolaTembien,AwetBikalsi,39.136,13.744,Null,Current
+Tigray,KolaTembien,Begasheka,38.92838333,13.62643333,Null,Current
+Tigray,KolaTembien,DebreGenetK,39,13.6,Null,Current
+Tigray,KolaTembien,Debrinetseb,38.78695,13.71583,Null,Current
+Tigray,KolaTembien,Endabano,38.98961667,13.7764,Null,Current
+Tigray,KolaTembien,GetskiMilesiley,39.0193,13.69018333,Null,Current
+Tigray,KolaTembien,Guroro,38.81022,13.69381,Null,Current
+Tigray,KolaTembien,Guya,38.82239,13.6175,Null,Current
+Tigray,KolaTembien,Menji,38.89091667,13.69308333,Null,Current
+Tigray,KolaTembien,Mtsaiwerki,38.78111,13.62158,Null,Current
+Tigray,KolaTembien,Santa gelebeda,39.1722,13.82936,Null,Current
+Tigray,KolaTembien,Smret,38.85106,13.6408,Null,Current
+Tigray,KolaTembien,Werkamba,38.98961667,13.7764,Null,Current
+Tigray,KolaTembien,WuhdetK,39.10903,13.8285,Null,Current
+Tigray,Libo Kemkem,Agela,37.77793,12.08913,Null,Current
+Tigray,Libo Kemkem,Agid,37.63774,12.12436,Null,Current
+Tigray,Libo Kemkem,Ameno,37.92786,12.21214,Null,Current
+Tigray,Libo Kemkem,Anigot,37.77565,12.05515,Null,Current
+Tigray,Libo Kemkem,Asta,37.79168,12.22985,Null,Current
+Tigray,Libo Kemkem,BilbWuha,37.75818,12.32109,Null,Current
+Tigray,Libo Kemkem,Birkutea,37.93442,12.10269,Null,Current
+Tigray,Libo Kemkem,Derita,37.81345,12.19167,Null,Current
+Tigray,Libo Kemkem,Estifanos,37.8684,12.07803,Null,Current
+Tigray,Libo Kemkem,Ginaza,37.73503,12.10899,Null,Current
+Tigray,Libo Kemkem,Goza,37.78897,12.2906,Null,Current
+Tigray,Libo Kemkem,kabe,37.63329,12.04253,Null,Current
+Tigray,Libo Kemkem,Keregna,37.63355,12.0875,Null,Current
+Tigray,Libo Kemkem,Libo ,37.88088,12.18526,Null,Current
+Tigray,Libo Kemkem,Martadios,37.87177,12.24637,Null,Current
+Tigray,Libo Kemkem,MendereMariam,37.68869,12.30258,Null,Current
+Tigray,Libo Kemkem,MichelDebre,37.71948,12.27402,Null,Current
+Tigray,Libo Kemkem,Mitad,37.73617,12.24157,Null,Current
+Tigray,Libo Kemkem,Shamo,37.90094,12.08534,Null,Current
+Tigray,Libo Kemkem,ShehochTehara,37.83756,12.12814,Null,Current
+Tigray,Libo Kemkem,TaraGedam,37.73193,12.1516,Null,Current
+Tigray,Libo Kemkem,Tibaga,37.67116,12.05085,Null,Current
+Tigray,Libo Kemkem,WushaTires,37.67963,12.10734,Null,Current
+Tigray,Libo Kemkem,YifagAkababi,37.71093,12.06969,Null,Current
+Tigray,Medebay-Zana,Adibearj,38.54545,14.17552,Null,Current
+Tigray,Medebay-Zana, ,38.44383,13.93067,Null,Current
+Tigray,Medebay-Zana,Kuluferha,38.41515,14.18028,Null,Current
+Tigray,Medebay-Zana,Mesehle,38.42014,14.12451,Null,Current
+Tigray,Medebay-Zana,Nefasit,38.38987,14.24565,Null,Current
+Tigray,Naeder-Adet,Adiselam,38.625008,13.892691,Null,Current
+Tigray,Naeder-Adet,Adreb,38.670127,13.996596,Null,Current
+Tigray,Naeder-Adet,Jira,38.37836,13.46378,Null,Current
+Tigray,Naeder-Adet,Ksadacki,38.702031,13.863646,Null,Current
+Tigray,Naeder-Adet,Seka,38.677553,13.901873,Null,Current
+Tigray,Ofla,Adishimbirkti,39.42271482,12.56255587,Null,Current
+Tigray,Ofla,Darubekeda,39.272485,12.57984333,Null,Current
+Tigray,Ofla,Dinkashena,39.221175,12.640235,Null,Current
+Tigray,Ofla,Fala,39.39463833,12.49288167,Null,Current
+Tigray,Ofla,Zata,39.29298833,12.50773,Null,Current
+Tigray,Raya Azebo,Erba,39.76887167,12.54425167,Null,Current
+Tigray,Raya Azebo,Wargba,39.68234333,12.75934167,Null,Current
+Tigray,Raya Azebo,Werabaye,39.62322833,12.67054333,Null,Current
+Tigray,RayaAzebo,AdisKigni,39.67775,12.42191667,Null,Current
+Tigray,RayaAzebo,Bala,39.742,12.43026667,Null,Current
+Tigray,RayaAzebo,Ebo,39.67121667,12.86883333,Null,Current
+Tigray,RayaAzebo,Geneti,39.65126667,12.79798333,Null,Current
+Tigray,RayaAzebo,HadeAlga,39.8,12.7,Null,Current
+Tigray,RayaAzebo,Hawelti,39.716,12.8383,Null,Current
+Tigray,RayaAzebo,Korme,39.73416667,12.5342,Null,Current
+Tigray,RayaAzebo,Mechare,39.811,12.76645,Null,Current
+Tigray,RayaAzebo,Tsigea,39.65126667,12.79798333,Null,Current
+Tigray,RayaAzebo,Ulaga,39.80076667,12.44273333,Null,Current
+Tigray,SaesiTsaedaemba,Agazi,39.53878333,14.11513333,Null,Current
+Tigray,SaesiTsaedaemba,Asmena,39.61543333,14.2107,Null,Current
+Tigray,SaesiTsaedaemba,GuemseAgamet,39.59356667,14.01175,Null,Current
+Tigray,SaesiTsaedaemba,HadnetS,39.53878333,14.11513333,Null,Current
+Tigray,SaesiTsaedaemba,HadushAdi,39.583,14.127,Null,Current
+Tigray,SaesiTsaedaemba,HadushHiwet,39.56779,14.202609,Null,Current
+Tigray,SaesiTsaedaemba,Hangoda,39.53878333,14.11513333,Null,Current
+Tigray,SaesiTsaedaemba,Sendada,39.59608333,13.96051667,Null,Current
+Tigray,SaesiTsaedaemba,Sinkata,39.59356667,14.01175,Null,Current
+Tigray,Samre,AdekeAla,39.236951,13.348441,Null,Current
+Tigray,Samre,AdisAlemS,39.229,13.308802,Null,Current
+Tigray,Samre,AmdiWeyane,39.2,13.3,Null,Current
+Tigray,Samre,Bamba,39.06563,13.40461,Null,Current
+Tigray,Samre,Cheli,39.1160726,13.3301609,Null,Current
+Tigray,Samre,Dekera,39.11287167,13.210427,Null,Current
+Tigray,Samre,Esiret,39.0774667,13.34305,Null,Current
+Tigray,Samre,Gijet,39.1736503,13.677862,Null,Current
+Tigray,Samre,Hintsa,39.161829,13.295328,Null,Current
+Tigray,Samre,HintsaWaza,39.177571,13.28738,Null,Current
+Tigray,Samre,LemlemArena,39.28141726,13.1531016,Null,Current
+Tigray,Samre,MayTeklia,39.242201,13.254226,Null,Current
+Tigray,Samre,MetkelLemat,39.187599,13.237814,Null,Current
+Tigray,Samre,Nebarhadinet,39.0417,13.1668,Null,Current
+Tigray,Shebel Berenta,Abara,38.45123,10.47808,Null,Current
+Tigray,Shebel Berenta,Abaselima,38.45637,10.36874,Null,Current
+Tigray,Shebel Berenta,Abrekuy,38.35797,10.26471,Null,Current
+Tigray,Shebel Berenta,Ansheb,38.43482,10.52233,Null,Current
+Tigray,Shebel Berenta,Boneya,38.4524,10.43066,Null,Current
+Tigray,Shebel Berenta,Gebsit,38.35219,10.4903,Null,Current
+Tigray,Shebel Berenta,Gedayasu,38.38796,10.50118,Null,Current
+Tigray,Shebel Berenta,Karima,38.34343,10.51832,Null,Current
+Tigray,Shebel Berenta,Ledy,38.36659,10.3078,Null,Current
+Tigray,Shebel Berenta,Menegobena,38.30311,10.38347,Null,Current
+Tigray,Shebel Berenta,Mergech,38.31965,10.33402,Null,Current
+Tigray,Shebel Berenta,Miraf,38.35145,10.3807,Null,Current
+Tigray,Shebel Berenta,Mozen,38.30749,10.37133,Null,Current
+Tigray,Shebel Berenta,Selelkula,38.35776,10.36856,Null,Current
+Tigray,Shebel Berenta,Suha,38.26694,10.34635,Null,Current
+Tigray,Shebel Berenta,Tetatiro,38.39577,10.20659,Null,Current
+Tigray,Shebel Berenta,Wobo,38.39478,10.22238,Null,Current
+Tigray,Shebel Berenta,Worego,38.36928,10.41089,Null,Current
+Tigray,Shebel Berenta,Woynye,38.40502,10.42627,Null,Current
+Tigray,Shebel Berenta,Yedwuha,38.331,10.45178,Null,Current
+Tigray,Shebel Berenta,Yeju,38.30642,10.19588,Null,Current
+Tigray,Shebel Berenta,Yitihana,38.42984,10.33567,Null,Current
+Tigray,Tanqua-Abergele,Grwre,38.92595,13.35283,Null,Current
+Tigray,Tanqua-Abergele,Hadashtekli,39.004094,13.505381,Null,Current
+Tigray,Tanqua-Abergele,Jijqe,38.85783,13.50556,Null,Current
+Tigray,Tanqua-Abergele,Limat,38.969821,13.573974,Null,Current
+Tigray,TanquaAbergele,Agbe,39.05526667,13.54325,Null,Current
+Tigray,TanquaAbergele,Gera,38.96085,13.43246667,Null,Current
+Tigray,TanquaAbergele,ImbaRufael,39,13.4,Null,Current
+Tigray,TanquaAbergele,Lemlem,39.04156667,13.24661667,Null,Current
+Tigray,TanquaAbergele,Mearey,38.99416667,13.19138333,Null,Current
+Tigray,TanquaAbergele,Negedebrhan,38.93058,13.3322,Null,Current
+Tigray,TanquaAbergele,Shekatekli,39.03888333,13.53678333,Null,Current
+Tigray,TanquaAbergele,SimretT,38.79772,13.49733,Null,Current
+Tigray,TanquaAbergele,Siye,38.83012,13.42072,Null,Current
+Tigray,TanquaAbergele,Tekleweyni,38.84672,13.37087,Null,Current
+Tigray,TanquaAbergele,Tseykeme,38.90783,13.45089,Null,Current
+Tigray,Werieleke,Arena,39.15328,13.96094,Null,Current
+Tigray,Werieleke,EndaFelasi,38.985,13.91042,Null,Current
+Tigray,Werieleke,MayChekemte,39.11258,14.079,Null,Current
+Tigray,Werieleke,MayNebri,39.27922,14.08517,Null,Current
+Tigray,Werieleke,Misema,37.27195,14.1325,Null,Current
+Tigray,Werieleke,Tsae,39.12939,13.90719,Null,Current
+Tigray,WiereLahe,AdisAlemW,39.2,14.1,Null,Current
+Tigray,WiereLahe,Endachiwa,39.02396667,14.06666667,Null,Current
+Tigray,WiereLahe,Endagahamus,39.1,14,Null,Current
+Tigray,WiereLahe,Maekelawi,39.1,14,Null,Current
+Tigray,WiereLahe,MaekelSegli,38.9,13.9,Null,Current
+Tigray,WiereLahe,SelamW,39,14,Null,Current
+Tigray,WiereLahe,Zongi,39,14,Null,Current
+Amhara,LiboKemikem ,MichaelDebir,37.7365,12.280334,Null,Current
+Amhara,LiboKemikem ,Berkutae,37.93675,12.10182,Null,Current
+Amhara,LiboKemikem ,ShehochTehara,37.83469,12.12013,Null,Current
+Amhara,LiboKemikem ,Tara gedam,37.74305556,12.16833333,Null,Current
+Amhara,LiboKemikem ,Ginaza,37.74361111,12.1025,Null,Current
