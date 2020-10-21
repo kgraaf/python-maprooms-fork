@@ -1,3 +1,21 @@
+# Overview
+
+This Dash application overlays results of WRSI DL [query](http://iridl.ldeo.columbia.edu/home/.remic/.Leap/.WRSI/.Meher/.FinalIcat/Crop/%28Barley%29/VALUE/X/Y/fig-/colors/-fig) on the street or topo map and also displays points of interest from a CSV files that has at least the following columns:
+
+    * Region
+    * Woreda
+    * Kebele
+    * Lon
+    * Lat
+    * Primary Crops
+    * Expansion or Current
+
+Additionally it uses a python library to convert white background into transparent background on the fly.
+
+# Screenshot
+
+![Screenshot](x24.0-vector.png)
+
 # Installation
 
 * Install Miniconda: https://docs.conda.io/en/latest/miniconda.html
