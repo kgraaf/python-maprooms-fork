@@ -22,15 +22,15 @@ Additionally it uses a python library to convert white background into transpare
 
 * Create conda environment `dash` as follows: 
 
-    conda env create -f environment.yml 
+    `conda env create -f environment.yml`
 
 * Activate conda environment `dash` as follows:
 
-    conda activate dash
+    `conda activate dash`
 
 * Run application as follows:
 
-    python x24-vector.py data.csv
+    `python x24-vector.py data.csv`
 
 * Navigate your browser to http://127.0.0.1:8050/x24-vector/
 
