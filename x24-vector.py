@@ -223,7 +223,7 @@ def update3(regions, expansions):
 @server.route(f"/datalibrary/<crop>")
 def datalibrary(crop):
     r = requests.get(
-        f"http://iridl.ldeo.columbia.edu/home/.remic/.Leap/.WRSI/.Meher/.FinalIcat/Crop/({crop.capitalize()})/VALUE/X/Y/fig-/colors/-fig//XOVY/1/psdef//plotaxislength/500/psdef//plotborder/0/psdef/.png"
+        f"http://iridl.ldeo.columbia.edu/home/.remic/.Leap/.WRSI/.Meher/.FinalIcat/Crop/({crop.capitalize()})/VALUE/X/Y/fig-/colors/-fig//XOVY/1/psdef//plotaxislength/5000/psdef//plotborder/0/psdef/.png"
     )
     f_in = BytesIO(r.content)
     img = Image.open(f_in)
