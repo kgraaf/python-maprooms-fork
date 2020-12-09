@@ -1,0 +1,39 @@
+mode: prod # debug, devel or prod
+prefix: https://iridl.ldeo.columbia.edu
+core_path: /fbfmaproom
+admin_path: /fbfmaproom/admin
+support_email: help@iri.columbia.edu
+bypass_dlauth: true
+loglevel: info
+
+dlauth_client:
+    prefix: https://iridl.ldeo.columbia.edu
+    core_path: /auth
+    session_cookie_name: __dlauth_id
+    application_ssid: SNIP
+
+flask:
+    host: localhost
+    port: 443
+    debug: false
+    threaded: false
+    processes: 1
+    ssl_cert: keys/key.crt
+    ssl_key: keys/key.key
+
+bjoern:
+   host: localhost
+   port: 8080
+
+dbpool:
+    name: design_engine  # postgres database name
+    host: localhost
+    port: 5433
+    user: dero # user name
+    password: SNIP
+    capacity: 10 # number of connections in pool
+    close_on_exception: true
+    max_idle_time: 60 # (seconds)
+    max_open_time: 600 # (seconds)
+    max_usage_count: 1000
+    recycle_interval: 60 # (seconds) set to null to disable recycler thread
