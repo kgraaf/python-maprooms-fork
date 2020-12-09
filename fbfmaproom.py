@@ -1,157 +1,148 @@
 import sys
+import os
 import json
 import time
+import datetime
 from io import BytesIO
-import pandas as pd
+
 import numpy as np
-from PIL import Image
+import pandas as pd
+import xarray as xr
+
+from PIL import Image, ImageOps, ImageDraw
 import requests
-import dash
 import flask
+
+import dash
 import dash_core_components as dcc
 import dash_html_components as html
+import dash_daq as daq
 import dash_leaflet as dl
 import dash_leaflet.express as dlx
 from dash.dependencies import Output, Input
 
+import pyaconf
+import queuepool
 
-csv_path = sys.argv[1]
+
+def from_months_since(x, year_since=1960):
+    int_x = int(x)
+    return datetime.date(
+        int_x // 12 + year_since, int_x % 12 + 1, int(30 * (x - int_x) + 1)
+    )
+
+
+from_months_since_v = np.vectorize(from_months_since)
+
+
+CONFIG = pyaconf.load(os.environ["CONFIG"])
 
 
 # Data
 
+rain = xr.open_dataset("rain.nc", decode_times=False)
+print(rain)
+# print(from_months_since_v(rain["T"].values))
 
-crops = ["barley", "maize", "sorghum", "teff", "wheat"]
+pnep = xr.open_dataset("pnep.nc", decode_times=False)
+pnep["T"] = pnep["S"] + pnep["L"]
+print(pnep)
+# print(from_months_since_v(pnep["S"].values))
+# print(from_months_since_v(pnep["T"].values))
+# print(pnep.sel(S=274, L=2.5).values)
 
-categories = ["Complete Failure", "Poor", "Mediocre", "Average", "Good", "Very Good"]
-colorscale = ["#fffd38", "#81fa30", "#29fd2f", "#3ccb3e", "#288a2a", "#1b703f"]
 
-df = pd.read_csv(csv_path)
-df["tooltip"] = df.apply(
-    lambda d: "({:.3f}, {:.3f}), {}, {}, {}".format(
-        d["Lon"], d["Lat"], d["Region"], d["Woreda"], d["Kebele"]
-    ),
-    axis=1,
+print(rain["prcp_est"].min(), rain["prcp_est"].max())
+im = Image.fromarray(rain["prcp_est"].sel(T=276.5).values / 2000 * 255.0).convert("L")
+im = ImageOps.flip(im)
+im.save("image.png")
+
+# Server
+
+
+server = flask.Flask(__name__)
+app = dash.Dash(
+    __name__,
+    server=server,
+    url_base_pathname="/fbfmaproom/",
+    meta_tags=[
+        {"name": "description", "content": "content description 1234"},
+        {"name": "viewport", "content": "width=device-width, initial-scale=1.0"},
+    ],
 )
-# d["popup"] = d["Region"]
-print(df.info())
-
-regions = df["Region"].unique()
-expansions = df["Expansion or Current"].unique()
-
-
-def filtered_data(df, regions, expansions):
-    df_filtered = df[
-        df["Region"].isin(regions) & df["Expansion or Current"].isin(expansions)
-    ]
-    dicts = df_filtered.to_dict("rows")
-    geojson = dlx.dicts_to_geojson(dicts, lon="Lon", lat="Lat")
-    geobuf = dlx.geojson_to_geobuf(geojson)
-    return geobuf
 
 
 # Layout
 
-server = flask.Flask(__name__)
-app = dash.Dash(__name__, server=server, url_base_pathname="/x24-vector/")
+
+map = dl.Map(
+    [
+        dl.LayersControl(
+            [
+                dl.BaseLayer(
+                    dl.TileLayer(
+                        url="https://cartodb-basemaps-{s}.global.ssl.fastly.net/light_all/{z}/{x}/{y}.png",
+                    ),
+                    name="street",
+                    checked=True,
+                ),
+                dl.BaseLayer(
+                    dl.TileLayer(
+                        url="https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png"
+                    ),
+                    name="topo",
+                    checked=False,
+                ),
+                dl.Overlay(
+                    dl.TileLayer(
+                        url="/tiles/rain11/{z}/{x}/{y}",
+                        opacity=0.25,
+                    ),
+                    name="rain",
+                    checked=True,
+                ),
+            ],
+            position="topleft",
+        ),
+        dl.ScaleControl(imperial=False),
+    ],
+    center=(8, 40),
+    zoom=6,
+    style={"width": "100%", "height": "100%", "position": "absolute"},
+    # crs="EPSG3857",
+    crs="EPSG4326",
+    # crs="Simple",
+)
 
 
 app.layout = html.Div(
     [
-        dl.Map(
-            [
-                dl.LayersControl(
-                    [
-                        dl.BaseLayer(
-                            dl.TileLayer(
-                                url="https://cartodb-basemaps-{s}.global.ssl.fastly.net/light_all/{z}/{x}/{y}.png"
-                            ),
-                            name="street",
-                            checked=True,
-                        ),
-                        dl.BaseLayer(
-                            dl.TileLayer(
-                                url="https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png"
-                            ),
-                            name="topo",
-                            checked=False,
-                        ),
-                        dl.Overlay(
-                            dl.ImageOverlay(
-                                url='',
-                                bounds=[[3.3, 32.6], [15.2, 48.1]],
-                                id="img",
-                            ),
-                            name="wrsi",
-                            checked=True,
-                        ),
-                        dl.Overlay(
-                            dl.GeoJSON(
-                                format="geobuf",
-                                cluster=True,
-                                id="points",
-                                zoomToBoundsOnClick=True,
-                                superClusterOptions={"radius": 100},
-                            ),
-                            name="points",
-                            checked=True,
-                        ),
-                    ],
-                    position="topleft",
-                ),
-                dlx.categorical_colorbar(
-                    id="colorbar",
-                    categories=categories,
-                    colorscale=colorscale,
-                    width=300,
-                    height=30,
-                    position="bottomleft",
-                ),
-                dl.ScaleControl(imperial=False),
-            ],
-            center=(8, 40),
-            zoom=6,
-            style={"width": "100%", "height": "100%", "position": "absolute"},
-        ),
+        map,
         html.Div(
             [
-                html.H2("—Maproom x24.0"),
-                html.Label("Crops:"),
+                html.H2("FBF—Maproom"),
+                html.Label("Issue month:"),
                 dcc.Dropdown(
-                    options=[dict(label=v.capitalize(), value=v) for v in crops],
-                    value="barley",
-                    id="crops",
-                    clearable=True,
+                    id="issue_month",
+                    options=[
+                        dict(label=pd.to_datetime(v, format="%m").month_name(), value=v)
+                        for v in range(8, 12)
+                    ],
+                    value=10,
+                    clearable=False,
                 ),
                 html.Br(),
-                html.Label("Opacity:"),
-                dcc.Slider(
-                    id="opacity",
-                    min=0.25,
-                    max=1.0,
-                    step=0.05,
-                    marks={0.25: "25%", 0.5: "50%", 0.75: "75%", 1: "100%"},
-                    value=0.5,
+                html.Label("Year:"),
+                daq.Slider(
+                    id="year",
+                    min=1982,
+                    max=2020,
+                    value=2020,
+                    handleLabel={"showCurrentValue": True, "label": " "},
+                    marks={1990: "1990", 2000: "2000", 2010: "2010", 2020: "2020"},
+                    step=1,
                 ),
                 html.Br(),
-                html.Label("Regions:"),
-                dcc.Checklist(
-                    id="regions",
-                    options=[dict(label=v, value=v) for v in regions],
-                    value=regions,
-                    labelStyle={"display": "block"},
-                ),
-                html.Br(),
-                html.Label("Expansion:"),
-                dcc.Checklist(
-                    id="expansions",
-                    options=[dict(label=v, value=v) for v in expansions],
-                    value=expansions,
-                    labelStyle={"display": "block"},
-                ),
-                html.Br(),
-                html.Label("Point:"),
-                html.Div(id="text", style={"margin": "3px"}),
             ],
             id="info",
             className="info",
@@ -161,7 +152,7 @@ app.layout = html.Div(
                 "right": "10px",
                 "z-index": "1000",
                 "height": "80%",
-                "width": "300px",
+                "width": "600px",
                 "pointer-events": "auto",
                 "padding-left": "25px",
                 "padding-right": "25px",
@@ -174,52 +165,23 @@ app.layout = html.Div(
 # Callbacks
 
 
-@app.callback(Output("text", "children"), [Input("points", "hover_feature")])
-def info_hover(feature):
-    rs = []
-    if feature is not None and not feature["properties"]["cluster"]:
-        cs = feature["geometry"]["coordinates"]
-        rs.append(html.B("Lon"))
-        rs.append(": ")
-        rs.append(str(round(cs[0], 3)))
-        rs.append(", ")
-        rs.append(html.B("Lat"))
-        rs.append(": ")
-        rs.append(str(round(cs[1], 3)))
-        rs.append(html.Br())
-        for k, v in feature["properties"].items():
-            if v is not None and k not in ("cluster", "tooltip"):
-                rs.append(html.B(k.capitalize()))
-                rs.append(": ")
-                rs.append(v)
-                rs.append(html.Br())
-        time.sleep(1)
-    else:
-        rs.append(html.I("Hover over a marker."))
-    return rs
-
-
-@app.callback(Output("img", "url"), [Input("crops", "value")])
-def update1(crop):
-    return f"/datalibrary/{crop}"
-
-
-@app.callback(
-    [Output("img", "opacity"), Output("colorbar", "opacity")],
-    [Input("opacity", "value")],
-)
-def update2(opacity):
-    return opacity, opacity
-
-
-@app.callback(
-    Output("points", "data"), [Input("regions", "value"), Input("expansions", "value")]
-)
-def update3(regions, expansions):
-    return filtered_data(df, regions, expansions)
-
-
 # Endpoints
+
+
+@server.route(f"/tiles/<dataset>/<z>/<x>/<y>")
+def tiles(dataset, z, x, y):
+    print(f"*** tiles: {dataset=!r}, {z=!r}, {x=!r}, {y=!r}")
+    # im = Image.new("RGB", (256, 256), (255, 255, 255, 0))
+    im = Image.open("bath432-256x256.png").convert("RGB")
+    draw = ImageDraw.Draw(im)
+    draw.rectangle((0, 0) + im.size, outline=(0, 0, 255))
+    draw.line((0, 0) + im.size, fill=(0, 0, 255))
+    draw.line((0, im.size[1], im.size[0], 0), fill=(0, 0, 255))
+    draw.text((128, 128), f"{z},{x},{y}", (255, 0, 0))
+    f_out = BytesIO()
+    im.save(f_out, "PNG", transparency=(255, 255, 255))
+    f_out.seek(0)
+    return flask.send_file(f_out, mimetype="image/png")
 
 
 @server.route(f"/datalibrary/<crop>")
