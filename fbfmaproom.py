@@ -2,6 +2,7 @@ import sys
 import os
 import json
 import time
+import math
 import datetime
 from io import BytesIO
 
@@ -24,6 +25,17 @@ from dash.dependencies import Output, Input
 import pyaconf
 import queuepool
 
+# import cartopy
+import cartopy.crs as crs
+
+# import matplotlib
+import matplotlib.pyplot as plt
+
+
+# import matplotlib.pyplot as plt
+from matplotlib.backends.backend_agg import FigureCanvasAgg
+from matplotlib.figure import Figure
+
 
 def from_months_since(x, year_since=1960):
     int_x = int(x)
@@ -39,6 +51,9 @@ CONFIG = pyaconf.load(os.environ["CONFIG"])
 
 
 # Data
+
+bath = xr.open_dataset("bath432.nc", decode_times=False)
+print(bath)
 
 rain = xr.open_dataset("rain.nc", decode_times=False)
 print(rain)
@@ -95,7 +110,7 @@ map = dl.Map(
                 ),
                 dl.Overlay(
                     dl.TileLayer(
-                        url="/tiles/rain11/{z}/{x}/{y}",
+                        url="/tiles/rain35/{z}/{x}/{y}",
                         opacity=0.25,
                     ),
                     name="rain",
@@ -106,11 +121,11 @@ map = dl.Map(
         ),
         dl.ScaleControl(imperial=False),
     ],
-    center=(8, 40),
-    zoom=6,
+    # center=(8, 40),
+    zoom=0,
     style={"width": "100%", "height": "100%", "position": "absolute"},
     # crs="EPSG3857",
-    crs="EPSG4326",
+    # crs="EPSG4326",
     # crs="Simple",
 )
 
@@ -168,20 +183,94 @@ app.layout = html.Div(
 # Endpoints
 
 
-@server.route(f"/tiles/<dataset>/<z>/<x>/<y>")
+def tile_to_x(x, z):
+    return x / 2 ** z * 360 - 180
+
+
+def tile_to_y(y, z):
+    return y / 2 ** z * 180 - 90
+
+
+def tile_to_y_3857(y, z):
+    n = math.pi - 2 * math.pi * y / 2 ** z
+    return 180 / math.pi * math.atan(0.5 * (math.exp(n) - math.exp(-n)))
+
+
+def tile_to_slice_x(x, z):
+    r1 = tile_to_x(x, z)
+    r2 = tile_to_x(x + 1, z)
+
+    if r2 % 360 == -180:
+        r1 = r1 % 360 + 360
+        r2 = r2 % 360 + 360
+    elif r1 == 180:
+        r1 -= 360
+        r2 -= 360
+    elif r2 % 360 == 180 and r2 != 180:
+        r1 = r1 % 360
+        r2 = r2 % 360
+    return slice(r1, r2)
+
+
+def tile_to_slice_y(y, z):
+    r1 = tile_to_y_3857(y, z)
+    r2 = tile_to_y_3857(y + 1, z)
+    return slice(r2, r1)
+
+
+
+
+DPI = 100
+
+
+@server.route(f"/tiles/<dataset>/<int:z>/<int:x>/<int:y>")
 def tiles(dataset, z, x, y):
-    print(f"*** tiles: {dataset=!r}, {z=!r}, {x=!r}, {y=!r}")
-    # im = Image.new("RGB", (256, 256), (255, 255, 255, 0))
-    im = Image.open("bath432-256x256.png").convert("RGB")
+    slice_x = tile_to_slice_x(x, z)
+    slice_y = tile_to_slice_y(y, z)
+    print(
+        f"*** tiles: {dataset=!r}, {z=!r}, {x=!r}, {y=!r}, "
+        f"{slice_x=!r}, {slice_y=!r}"
+    )
+    da = bath["bath"].sel(X=slice_x, Y=slice_y)
+    print(da)
+
+
+    ts = np.fromiter((x / 256.0 for x in range(257)), np.double)
+    vs = np.fromiter((tile_to_y_3857(y + d, z) for d in ts), np.double)
+    fig, ax = plt.subplots()
+    ax.plot(ts, vs)
+    ax.grid()
+    fig.savefig("test.pdf")
+
+
+    fig = Figure(figsize=(256 / DPI, 256 / DPI), dpi=DPI)
+    FigureCanvasAgg(fig)
+    ax = fig.add_axes([0, 0, 1, 1], projection=crs.Mercator())
+    ax.set_xmargin(0)
+    ax.set_ymargin(0)
+    ax.set_frame_on(False)
+    # ax.set_axis_off()
+    # ax.set_extent((slice_x.start, slice_x.stop, slice_y.start, slice_y.stop))
+    da.plot.imshow(ax=ax, add_colorbar=False, transform=crs.PlateCarree())
+
+    f_out = BytesIO()
+    fig.savefig("fig.png", format="png")
+    fig.savefig(f_out, format="png")
+    f_out.seek(0)
+
+    im = Image.open(f_out).convert("RGB")
     draw = ImageDraw.Draw(im)
     draw.rectangle((0, 0) + im.size, outline=(0, 0, 255))
     draw.line((0, 0) + im.size, fill=(0, 0, 255))
     draw.line((0, im.size[1], im.size[0], 0), fill=(0, 0, 255))
     draw.text((128, 128), f"{z},{x},{y}", (255, 0, 0))
-    f_out = BytesIO()
+    f_out.seek(0)
     im.save(f_out, "PNG", transparency=(255, 255, 255))
     f_out.seek(0)
-    return flask.send_file(f_out, mimetype="image/png")
+
+    resp = flask.send_file(f_out, mimetype="image/png")
+    resp.headers["Cache-Control"] = "private, max-age=0, no-cache, no-store"
+    return resp
 
 
 @server.route(f"/datalibrary/<crop>")
