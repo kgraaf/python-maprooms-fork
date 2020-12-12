@@ -53,6 +53,15 @@ CONFIG = pyaconf.load(os.environ["CONFIG"])
 # Data
 
 bath = xr.open_dataset("bath432.nc", decode_times=False)
+xs = np.fromiter(
+    ((-180 + 0.41570438799076215) + i * 0.8314087759815243 for i in range(433)),
+    np.double,
+)
+ys = np.fromiter(
+    ((-90 + 0.4147465437788018) + i * 0.8294930875576036 for i in range(217)), np.double
+)
+bath = bath.assign_coords(X=xs, Y=ys)
+
 print(bath)
 
 rain = xr.open_dataset("rain.nc", decode_times=False)
@@ -111,7 +120,7 @@ map = dl.Map(
                 dl.Overlay(
                     dl.TileLayer(
                         url="/tiles/rain35/{z}/{x}/{y}",
-                        opacity=0.25,
+                        opacity=0.5,
                     ),
                     name="rain",
                     checked=True,
@@ -218,8 +227,6 @@ def tile_to_slice_y(y, z):
     return slice(r2, r1)
 
 
-
-
 DPI = 100
 
 
@@ -234,7 +241,7 @@ def tiles(dataset, z, x, y):
     da = bath["bath"].sel(X=slice_x, Y=slice_y)
     print(da)
 
-
+    """
     ts = np.fromiter((x / 256.0 for x in range(257)), np.double)
     vs = np.fromiter((tile_to_y_3857(y + d, z) for d in ts), np.double)
     fig, ax = plt.subplots()
@@ -252,20 +259,27 @@ def tiles(dataset, z, x, y):
     # ax.set_axis_off()
     # ax.set_extent((slice_x.start, slice_x.stop, slice_y.start, slice_y.stop))
     da.plot.imshow(ax=ax, add_colorbar=False, transform=crs.PlateCarree())
+    """
 
-    f_out = BytesIO()
-    fig.savefig("fig.png", format="png")
-    fig.savefig(f_out, format="png")
-    f_out.seek(0)
+    im = Image.fromarray(da.values).convert("RGB")
+    im = ImageOps.flip(im)
+    imnp = np.array(im)
+    imnp[:, :, 0] = 0
+    imnp[:, :, 2] = 0
+    im = Image.fromarray(np.uint8(imnp))
 
-    im = Image.open(f_out).convert("RGB")
+    im = im.resize((512, 256), resample=Image.BICUBIC, box=None, reducing_gap=None)
+    # im = im.transform((256, 256), Image.MESH, deformer.getmesh(image), resample)
+
     draw = ImageDraw.Draw(im)
     draw.rectangle((0, 0) + im.size, outline=(0, 0, 255))
     draw.line((0, 0) + im.size, fill=(0, 0, 255))
     draw.line((0, im.size[1], im.size[0], 0), fill=(0, 0, 255))
-    draw.text((128, 128), f"{z},{x},{y}", (255, 0, 0))
-    f_out.seek(0)
-    im.save(f_out, "PNG", transparency=(255, 255, 255))
+    draw.text((im.size[0] / 2, im.size[1] / 2), f"{z},{x},{y}", (255, 0, 0))
+
+    f_out = BytesIO()
+    im.save(f_out, "PNG", transparency=(0, 0, 0))
+    im.save(f"figs/fig-{z}-{x}-{y}.png", format="png")
     f_out.seek(0)
 
     resp = flask.send_file(f_out, mimetype="image/png")
