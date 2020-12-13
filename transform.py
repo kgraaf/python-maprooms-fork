@@ -1,17 +1,55 @@
+from typing import Any, Dict, Tuple, List, Literal, Optional, Union
+from typing import NamedTuple
 import math
 import numpy as np
 import xarray as xr
 from PIL import Image, ImageOps, ImageDraw
 
 
-def extent(ds, coord_name):
-    coord = ds[coord_name]
-    point_width = coord.values[1] - coord.values[0]
-    return (
-        coord.values[0] - point_width / 2,
-        coord.values[-1] + point_width / 2,
-        point_width,
-    )
+class Extent(NamedTuple):
+    dim: str
+    left: Optional[float]
+    right: Optional[float]
+    point_width: Optional[float]
+
+
+def extent(da: xr.DataArray, dim: str, default: Optional[Extent] = None) -> Extent:
+    if default is None:
+        default = Extent(dim, None, None, None)
+    coord = da[dim]
+    n = len(coord.values)
+    if n == 0:
+        res = Extent(dim, None, None, default.point_width)
+    elif n == 1:
+        res = Extent(
+            dim,
+            coord.values[0] - default.point_width / 2,
+            coord.values[0] + default.point_width / 2,
+            default.point_width,
+        )
+    else:
+        point_width = coord.values[1] - coord.values[0]
+        res = Extent(
+            dim,
+            coord.values[0] - point_width / 2,
+            coord.values[-1] + point_width / 2,
+            point_width,
+        )
+    return res
+
+
+def extents(da: xr.DataArray, defaults: Optional[List[Extent]] = None) -> List[Extent]:
+    if defaults is None:
+        defaults = [None for _ in da.dims]
+    return [extent(da, k, defaults[i]) for i, k in enumerate(da.dims)]
+
+
+def pad_to_extents(
+    da: xr.DataArray,
+    extents: List[Extent],
+    default_point_widths: Optional[List[Optional[float]]] = None,
+):
+    pass
 
 
 def g_lon(tx, tz):
@@ -38,11 +76,12 @@ def tile_extents(g, tx, tz, n=1):
 
 def produce_tile(ds, tx, ty, tz, tile_width=256, tile_height=256) -> Image:
 
-    ds_ex = extent(ds, "X")
-    ds_ey = extent(ds, "Y")
-    print(ds_ex, ds_ey)
-    es = tile_extents(g_lat_3857, tx, tz, 9)
-    print(list(es))
+    ds_es = extents(ds)
+    print(ds_es, ds.dims)
+    ex = list(tile_extents(g_lon, tx, tz, 10))
+    ey = list(tile_extents(g_lat, tx, tz, 10))
+    print(ex[0][0], ex[-1][-1])
+    print(ey[0][0], ey[-1][-1])
 
     return None
     target_pixel_width = 1.0 / tile_width
@@ -82,7 +121,7 @@ def produce_tile(ds, tx, ty, tz, tile_width=256, tile_height=256) -> Image:
 
 
 def main():
-    bath = xr.open_dataset("bath432.nc", decode_times=False)
+    bath = xr.open_dataset("bath432.nc", decode_times=False)["bath"].transpose("Y", "X")
     xs = np.fromiter(
         ((-180 + 0.41570438799076215) + i * 0.8314087759815243 for i in range(433)),
         np.double,
@@ -92,11 +131,24 @@ def main():
         np.double,
     )
     bath = bath.assign_coords(X=xs, Y=ys)
-    lon_start, lon_stop, lon_point_width = extent(bath, "X")
-    lat_start, lat_stop, lat_point_width = extent(bath, "Y")
+
+    bath_es = extents(bath)
     print(bath)
-    print(lon_start, lon_stop, lon_point_width)
-    print(lat_start, lat_stop, lat_point_width)
+    print("*** bath es:", bath_es, bath.dims)
+
+    da = bath.sel(X=slice(179, 179.1), Y=slice(88, 89.1)).transpose("Y", "X")
+    print(da)
+
+    es = extents(da, bath_es)
+    print("*** es:", es, da.dims)
+
+    values = da.values
+    print(values.shape)
+    values = np.pad(
+        values, ((10, 0),), mode="constant", constant_values=((np.nan, np.nan),)
+    )
+    print(values.shape)
+    print(values)
 
     # z = 0
     # print([(tile_to_lon(i, z), tile_to_lat(i, z), tile_to_lat_3857(i, z)) for i in range(0, 2 ** z)])
