@@ -166,7 +166,7 @@ def produce_tile(
 
 def produce_test_tile(w: int = 256, h: int = 256, text: str = "") -> np.ndarray:
     line_thickness = 1
-    line_type = cv2.LINE_4  # cv2.LINE_4 | cv2.LINE_8 | cv2.LINE_AA
+    line_type = cv2.LINE_AA  # cv2.LINE_4 | cv2.LINE_8 | cv2.LINE_AA
     red_color = (0, 0, 255, 255)
     green_color = (0, 255, 0, 255)
     blue_color = (255, 0, 0, 255)
@@ -290,7 +290,7 @@ map = dl.Map(
     [
         dl.LayersControl(
             [
-                dl.Overlay(
+                dl.BaseLayer(
                     dl.TileLayer(
                         url="https://cartodb-basemaps-{s}.global.ssl.fastly.net/light_all/{z}/{x}/{y}.png",
                     ),
@@ -317,12 +317,9 @@ map = dl.Map(
         ),
         dl.ScaleControl(imperial=False),
     ],
-    # center=(8, 40),
-    zoom=0,
+    center=(-14, 34),
+    zoom=7,
     style={"width": "100%", "height": "100%", "position": "absolute"},
-    # crs="EPSG3857",
-    # crs="EPSG4326",
-    # crs="Simple",
 )
 
 
