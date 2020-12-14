@@ -101,10 +101,14 @@ def extent(da: xr.DataArray, dim: str, default: Optional[Extent] = None) -> Exte
     return res
 
 
-def extents(da: xr.DataArray, defaults: Optional[List[Extent]] = None) -> List[Extent]:
+def extents(
+    da: xr.DataArray, dims: List[str] = None, defaults: Optional[List[Extent]] = None
+) -> List[Extent]:
+    if dims is None:
+        dims = da.dims
     if defaults is None:
-        defaults = [Extent(dim, np.nan, np.nan, np.nan) for dim in da.dims]
-    return [extent(da, k, defaults[i]) for i, k in enumerate(da.dims)]
+        defaults = [Extent(dim, np.nan, np.nan, np.nan) for dim in dims]
+    return [extent(da, k, defaults[i]) for i, k in enumerate(dims)]
 
 
 def g_lon(tx: int, tz: int) -> float:
@@ -116,7 +120,7 @@ def g_lat(tx: int, tz: int) -> float:
 
 
 def g_lat_3857(tx: int, tz: int) -> float:
-    a = 2 * math.pi * tx / 2 ** tz - math.pi
+    a = math.pi - 2 * math.pi * tx / 2 ** tz
     return 180 / math.pi * math.atan(0.5 * (math.exp(a) - math.exp(-a)))
 
 
@@ -135,7 +139,7 @@ def create_interp2d(
     x = da[dims[1]].values
     y = da[dims[0]].values
     z = da.values
-    f = interpolate.interp2d(x, y, z, kind="linear", copy=False, bounds_error=True)
+    f = interpolate.interp2d(x, y, z, kind="linear", copy=False, bounds_error=False)
     return f
 
 
@@ -152,9 +156,10 @@ def produce_tile(
         np.double,
     )
     y = np.fromiter(
-        (a + (b - a) / 2.0 for a, b in tile_extents(g_lat_3857, tx, tz, tile_height)),
+        (a + (b - a) / 2.0 for a, b in tile_extents(g_lat_3857, ty, tz, tile_height)),
         np.double,
     )
+    print("*** produce_tile:", tz, tx, ty, x[0], x[-1], y[0], y[-1])
     z = interp2d(x, y)
     return z
 
@@ -215,28 +220,36 @@ def produce_test_tile(w: int = 256, h: int = 256, text: str = "") -> np.ndarray:
 # DataArrays
 
 
+def correct_coord(da: xr.DataArray, coord_name: str) -> xr.DataArray:
+    coord = da[coord_name]
+    values = coord.values
+    min_val = values[0]
+    max_val = values[-1]
+    n = len(values)
+    point_width = (max_val - min_val) / n
+    vs = np.fromiter(
+        ((min_val + point_width / 2.0) + i * point_width for i in range(n)), np.double
+    )
+    return da.assign_coords({coord_name: vs})
+
+
 def open_data_arrays():
     rs = {}
     bath = xr.open_dataset("bath432.nc", decode_times=False)["bath"].transpose("Y", "X")
-    xs = np.fromiter(
-        ((-180 + 0.41570438799076215) + i * 0.8314087759815243 for i in range(433)),
-        np.double,
-    )
-    ys = np.fromiter(
-        ((-90 + 0.4147465437788018) + i * 0.8294930875576036 for i in range(217)),
-        np.double,
-    )
-    bath = bath.assign_coords(X=xs, Y=ys)
+    bath = correct_coord(bath, "Y")
+    bath = correct_coord(bath, "X")
+
+    bath = xr.where(bath < 0.0, 0.0, bath)
     rs["bath"] = DataArrayEntry(
-        "bath", bath, create_interp2d(bath, bath.dims), -9964.0, 7964.0
+        "bath", bath, create_interp2d(bath, bath.dims), 0.0, 7964.0
     )
-    print(bath)
+    print(bath, extents(bath))
 
     rain = xr.open_dataset("rain.nc", decode_times=False)["prcp_est"].transpose(
         "Y", "X", ...
     )
     rs["rain"] = DataArrayEntry("rain", rain, None, None, None)
-    print(rain)
+    print(rain, extents(rain, ["Y", "X"]))
     # print(from_months_since_v(rain["T"].values))
 
     pnep = xr.open_dataset("pnep.nc", decode_times=False)["pne"].transpose(
@@ -244,7 +257,7 @@ def open_data_arrays():
     )
     pnep["T"] = pnep["S"] + pnep["L"]
     rs["pnep"] = DataArrayEntry("pnep", pnep, None, None, None)
-    print(pnep)
+    print(pnep, extents(pnep, ["Y", "X"]))
     # print(from_months_since_v(pnep["S"].values))
     # print(from_months_since_v(pnep["T"].values))
     # print(pnep.sel(S=274, L=2.5).values)
@@ -277,7 +290,7 @@ map = dl.Map(
     [
         dl.LayersControl(
             [
-                dl.BaseLayer(
+                dl.Overlay(
                     dl.TileLayer(
                         url="https://cartodb-basemaps-{s}.global.ssl.fastly.net/light_all/{z}/{x}/{y}.png",
                     ),
@@ -294,7 +307,7 @@ map = dl.Map(
                 dl.Overlay(
                     dl.TileLayer(
                         url="/tiles/bath/{z}/{x}/{y}",
-                        opacity=0.3,
+                        opacity=0.6,
                     ),
                     name="rain",
                     checked=True,
@@ -368,10 +381,12 @@ app.layout = html.Div(
 
 @server.route(f"/tiles/<data_array>/<int:tz>/<int:tx>/<int:ty>")
 def tiles(data_array, tz, tx, ty):
-    # dae = DATA_ARRAYS[data_array]
-    # z = produce_tile(dae.interp2d, tx, ty, tz, 256, 256)
-    # im = cv2.flip((z - dae.min_val) * 255 / (dae.max_val - dae.min_val), 0)
-    im = produce_test_tile(256, 256, f"{tz},{tx},{ty}")
+    dae = DATA_ARRAYS[data_array]
+    z = produce_tile(dae.interp2d, tx, ty, tz, 256, 256)
+    im = cv2.flip((z - dae.min_val) * 255 / (dae.max_val - dae.min_val), 0)
+    im2 = produce_test_tile(256, 256, f"{tx},{ty}x{tz}")
+    im += np.max(im2, axis=2)
+    cv2.imwrite(f"tiles/{tx},{ty}x{tz}.png", im)
     cv2_imencode_success, buffer = cv2.imencode(".png", im)
     assert cv2_imencode_success
     io_buf = io.BytesIO(buffer)
