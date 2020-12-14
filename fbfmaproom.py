@@ -159,6 +159,52 @@ def produce_tile(
     return z
 
 
+import cv2
+import numpy as np
+
+
+def produce_test_tile(w: int = 256, h: int = 256) -> np.ndarray:
+    line_thickness = 1
+    line_type = cv2.LINE_4  # cv2.LINE_4 | cv2.LINE_8 | cv2.LINE_AA
+    red_color = (0, 0, 255, 255)
+    green_color = (0, 255, 0, 255)
+    blue_color = (255, 0, 0, 255)
+
+    layer1 = np.zeros((h, w, 4), np.uint8)
+    layer2 = np.zeros((h, w, 4), np.uint8)
+    layer3 = np.zeros((h, w, 4), np.uint8)
+
+    cv2.ellipse(
+        layer1,
+        (w // 2, h // 2),
+        (w // 3, h // 3),
+        0,
+        0,
+        360,
+        red_color,
+        line_thickness,
+        lineType=line_type,
+    )
+
+    cv2.rectangle(
+        layer2, (0, 0), (w - 1, h - 1), green_color, line_thickness, lineType=line_type
+    )
+    cv2.line(
+        layer3, (0, 0), (w - 1, h - 1), blue_color, line_thickness, lineType=line_type
+    )
+    cv2.line(
+        layer3, (0, h - 1), (w - 1, 0), blue_color, line_thickness, lineType=line_type
+    )
+
+    res = layer1[:]
+    cnd = layer2[:, :, 3] > 0
+    res[cnd] = layer2[cnd]
+    cnd = layer3[:, :, 3] > 0
+    res[cnd] = layer3[cnd]
+
+    return res
+
+
 # DataArrays
 
 
@@ -315,9 +361,10 @@ app.layout = html.Div(
 
 @server.route(f"/tiles/<data_array>/<int:tz>/<int:tx>/<int:ty>")
 def tiles(data_array, tz, tx, ty):
-    dae = DATA_ARRAYS[data_array]
-    z = produce_tile(dae.interp2d, tx, ty, tz, 256, 256)
-    im = cv2.flip((z - dae.min_val) * 255 / (dae.max_val - dae.min_val), 0)
+    # dae = DATA_ARRAYS[data_array]
+    # z = produce_tile(dae.interp2d, tx, ty, tz, 256, 256)
+    # im = cv2.flip((z - dae.min_val) * 255 / (dae.max_val - dae.min_val), 0)
+    im = produce_test_tile(256, 256)
     cv2_imencode_success, buffer = cv2.imencode(".png", im)
     assert cv2_imencode_success
     io_buf = io.BytesIO(buffer)
