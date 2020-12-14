@@ -1,25 +1,26 @@
-from typing import Any, Dict, Tuple, List, Literal, Optional, Union
+from typing import Any, Dict, Tuple, List, Literal, Optional, Union, Callable, Hashable
 from typing import NamedTuple
 import math
 import numpy as np
 import xarray as xr
-from PIL import Image, ImageOps, ImageDraw
+from scipy import interpolate
+import cv2
 
 
 class Extent(NamedTuple):
     dim: str
-    left: Optional[float]
-    right: Optional[float]
-    point_width: Optional[float]
+    left: float
+    right: float
+    point_width: float
 
 
 def extent(da: xr.DataArray, dim: str, default: Optional[Extent] = None) -> Extent:
     if default is None:
-        default = Extent(dim, None, None, None)
+        default = Extent(dim, np.nan, np.nan, np.nan)
     coord = da[dim]
     n = len(coord.values)
     if n == 0:
-        res = Extent(dim, None, None, default.point_width)
+        res = Extent(dim, np.nan, np.nan, default.point_width)
     elif n == 1:
         res = Extent(
             dim,
@@ -40,32 +41,24 @@ def extent(da: xr.DataArray, dim: str, default: Optional[Extent] = None) -> Exte
 
 def extents(da: xr.DataArray, defaults: Optional[List[Extent]] = None) -> List[Extent]:
     if defaults is None:
-        defaults = [None for _ in da.dims]
+        defaults = [Extent(dim, np.nan, np.nan, np.nan) for dim in da.dims]
     return [extent(da, k, defaults[i]) for i, k in enumerate(da.dims)]
 
 
-def pad_to_extents(
-    da: xr.DataArray,
-    extents: List[Extent],
-    default_point_widths: Optional[List[Optional[float]]] = None,
-):
-    pass
-
-
-def g_lon(tx, tz):
+def g_lon(tx: int, tz: int) -> float:
     return tx * 360 / 2 ** tz - 180
 
 
-def g_lat(tx, tz):
+def g_lat(tx: int, tz: int) -> float:
     return tx * 180 / 2 ** tz - 90
 
 
-def g_lat_3857(tx, tz):
+def g_lat_3857(tx: int, tz: int) -> float:
     a = 2 * math.pi * tx / 2 ** tz - math.pi
     return 180 / math.pi * math.atan(0.5 * (math.exp(a) - math.exp(-a)))
 
 
-def tile_extents(g, tx, tz, n=1):
+def tile_extents(g: Callable[[int, int], float], tx: int, tz: int, n: int = 1):
     assert n >= 1 and tz >= 0 and 0 <= tx < 2 ** tz
     a = g(tx, tz)
     for i in range(1, n + 1):
@@ -74,50 +67,27 @@ def tile_extents(g, tx, tz, n=1):
         a = b
 
 
-def produce_tile(ds, tx, ty, tz, tile_width=256, tile_height=256) -> Image:
+def create_interp2d(
+    da: xr.DataArray, dims: Tuple[str, str]
+) -> Callable[[np.ndarray, np.ndarray], np.ndarray]:
+    x = da[dims[1]].values
+    y = da[dims[0]].values
+    z = da.values
+    f = interpolate.interp2d(x, y, z, kind="linear", copy=False, bounds_error=True)
+    return f
 
-    ds_es = extents(ds)
-    print(ds_es, ds.dims)
-    ex = list(tile_extents(g_lon, tx, tz, 10))
-    ey = list(tile_extents(g_lat, tx, tz, 10))
-    print(ex[0][0], ex[-1][-1])
-    print(ey[0][0], ey[-1][-1])
-
-    return None
-    target_pixel_width = 1.0 / tile_width
-    target_pixel_height = 1.0 / tile_height
-
-    xs = np.fromiter((i / tile_width for i in range(tile_width + 1)), np.double)
-
-    ys = np.fromiter((j / tile_height for j in range(tile_height + 1)), np.double)
-
-    ts = np.fromiter((x / target_size[1] for x in range(target_size[1] + 1)), np.double)
-    vs = np.fromiter((tile_to_y_3857(y + d, z) for d in ts), np.double)
-
-    def _destination_rectangle(i):
-        return (0, i, 256, i + 1)
-
-    def _source_quadrilateral(i):
-        return (
-            0,
-            vs[i],
-            0,
-            vs[i + 1],
-            source_size[0] + 1,
-            vs[i + 1],
-            source_size[0] + 1,
-            vs[i],
-        )
-
-    mesh = [
-        (
-            _destination_rectangle(i, j),
-            _source_quadrilateral(i, j),
-        )
-        for i in range(256)
-    ]
-    im = image.transform(image.size, Image.MESH, mesh, Image.BILINEAR)
-    return im
+def produce_tile(
+    interp2d: Callable[[np.ndarray, np.ndarray], np.ndarray],
+    tx: int,
+    ty: int,
+    tz: int,
+    tile_width: int = 256,
+    tile_height: int = 256,
+) -> np.ndarray:
+    x = np.fromiter((a + (b - a) / 2.0 for a, b in tile_extents(g_lon, tx, tz, tile_width)), np.double)
+    y = np.fromiter((a + (b - a) / 2.0 for a, b in tile_extents(g_lat_3857, tx, tz, tile_height)), np.double)
+    z = interp2d(x, y)
+    return z
 
 
 def main():
@@ -131,30 +101,10 @@ def main():
         np.double,
     )
     bath = bath.assign_coords(X=xs, Y=ys)
-
-    bath_es = extents(bath)
-    print(bath)
-    print("*** bath es:", bath_es, bath.dims)
-
-    da = bath.sel(X=slice(179, 179.1), Y=slice(88, 89.1)).transpose("Y", "X")
-    print(da)
-
-    es = extents(da, bath_es)
-    print("*** es:", es, da.dims)
-
-    values = da.values
-    print(values.shape)
-    values = np.pad(
-        values, ((10, 0),), mode="constant", constant_values=((np.nan, np.nan),)
-    )
-    print(values.shape)
-    print(values)
-
-    # z = 0
-    # print([(tile_to_lon(i, z), tile_to_lat(i, z), tile_to_lat_3857(i, z)) for i in range(0, 2 ** z)])
-
-    im = produce_tile(bath, tx=1, ty=1, tz=2)
-    # im.save(f"figs/fig-{z}-{x}-{y}.png", format="png")
-
+    print("*** bath:", bath)
+    print("*** bath.dims:", bath.dims)
+    interp2d = create_interp2d(bath, bath.dims)
+    z = produce_tile(interp2d, tx=0, ty=0, tz=0, tile_width=256, tile_height=256)
+    print(z)
 
 main()
