@@ -159,11 +159,7 @@ def produce_tile(
     return z
 
 
-import cv2
-import numpy as np
-
-
-def produce_test_tile(w: int = 256, h: int = 256) -> np.ndarray:
+def produce_test_tile(w: int = 256, h: int = 256, text: str = "") -> np.ndarray:
     line_thickness = 1
     line_type = cv2.LINE_4  # cv2.LINE_4 | cv2.LINE_8 | cv2.LINE_AA
     red_color = (0, 0, 255, 255)
@@ -183,6 +179,17 @@ def produce_test_tile(w: int = 256, h: int = 256) -> np.ndarray:
         360,
         red_color,
         line_thickness,
+        lineType=line_type,
+    )
+
+    cv2.putText(
+        layer1,
+        text,
+        (w // 2, h // 2),
+        fontFace=cv2.FONT_HERSHEY_SIMPLEX,
+        fontScale=0.5,
+        color=red_color,
+        thickness=1,
         lineType=line_type,
     )
 
@@ -364,7 +371,7 @@ def tiles(data_array, tz, tx, ty):
     # dae = DATA_ARRAYS[data_array]
     # z = produce_tile(dae.interp2d, tx, ty, tz, 256, 256)
     # im = cv2.flip((z - dae.min_val) * 255 / (dae.max_val - dae.min_val), 0)
-    im = produce_test_tile(256, 256)
+    im = produce_test_tile(256, 256, f"{tz},{tx},{ty}")
     cv2_imencode_success, buffer = cv2.imencode(".png", im)
     assert cv2_imencode_success
     io_buf = io.BytesIO(buffer)
