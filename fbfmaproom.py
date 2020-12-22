@@ -57,6 +57,7 @@ class DataArrayEntry(NamedTuple):
     interp2d: Optional[FuncInterp2d]
     min_val: Optional[float]
     max_val: Optional[float]
+    colormap: Optional[np.ndarray]
 
 
 class Extent(NamedTuple):
@@ -64,6 +65,19 @@ class Extent(NamedTuple):
     left: float
     right: float
     point_width: float
+
+
+class RGB(NamedTuple):
+    red: int
+    green: int
+    blue: int
+
+
+class RGBA(NamedTuple):
+    red: int
+    green: int
+    blue: int
+    alpha: int
 
 
 def from_months_since(x, year_since=1960):
@@ -233,22 +247,48 @@ def correct_coord(da: xr.DataArray, coord_name: str) -> xr.DataArray:
     return da.assign_coords({coord_name: vs})
 
 
+def parse_colormap(s: str) -> np.ndarray:
+    cm = [
+        RGBA(0, 0, 0, 0)
+        if x == "null"
+        else RGBA(int(x) >> 16 & 0xFF, int(x) >> 8 & 0xFF, int(x) >> 0 & 0xFF, 255)
+        for x in s[1:-1].split(" ")
+    ]
+    return np.array([cm[int(i / 256.0 * len(cm))] for i in range(0, 256)], np.uint8)
+
+
+def apply_colormap(im: np.ndarray, colormap: np.ndarray) -> np.ndarray:
+    im = im.astype(np.uint8)
+    im = cv2.merge(
+        [
+            cv2.LUT(im, colormap[:, 2]),
+            cv2.LUT(im, colormap[:, 1]),
+            cv2.LUT(im, colormap[:, 0]),
+            cv2.LUT(im, colormap[:, 3]),
+        ]
+    )
+    return im
+
+
 def open_data_arrays():
     rs = {}
     bath = xr.open_dataset("bath432.nc", decode_times=False)["bath"].transpose("Y", "X")
-    bath = correct_coord(bath, "Y")
-    bath = correct_coord(bath, "X")
+    # bath = correct_coord(bath, "Y")
+    # bath = correct_coord(bath, "X")
 
     bath = xr.where(bath < 0.0, 0.0, bath)
     rs["bath"] = DataArrayEntry(
-        "bath", bath, create_interp2d(bath, bath.dims), 0.0, 7964.0
+        "bath", bath, create_interp2d(bath, bath.dims), 0.0, 7964.0, None
     )
     print(bath, extents(bath))
 
     rain = xr.open_dataset("rain.nc", decode_times=False)["prcp_est"].transpose(
         "Y", "X", ...
     )
-    rs["rain"] = DataArrayEntry("rain", rain, None, None, None)
+    rs["rain"] = DataArrayEntry(
+        "rain", rain, None, None, None, parse_colormap(rain.attrs["colormap"])
+    )
+    print("*** colormap:", rs["rain"].colormap, rs["rain"].colormap.shape)
     print(rain, extents(rain, ["Y", "X"]))
     # print(from_months_since_v(rain["T"].values))
 
@@ -256,7 +296,7 @@ def open_data_arrays():
         "Y", "X", ...
     )
     pnep["T"] = pnep["S"] + pnep["L"]
-    rs["pnep"] = DataArrayEntry("pnep", pnep, None, None, None)
+    rs["pnep"] = DataArrayEntry("pnep", pnep, None, None, None, None)
     print(pnep, extents(pnep, ["Y", "X"]))
     # print(from_months_since_v(pnep["S"].values))
     # print(from_months_since_v(pnep["T"].values))
@@ -382,8 +422,17 @@ def tiles(data_array, tz, tx, ty):
     z = produce_tile(dae.interp2d, tx, ty, tz, 256, 256)
     im = cv2.flip((z - dae.min_val) * 255 / (dae.max_val - dae.min_val), 0)
     im2 = produce_test_tile(256, 256, f"{tx},{ty}x{tz}")
-    im += np.max(im2, axis=2)
-    cv2.imwrite(f"tiles/{tx},{ty}x{tz}.png", im)
+    # im += np.max(im2, axis=2)
+    # cv2.imwrite(f"tiles/{tx},{ty}x{tz}.png", cv2.LUT(im.astype(np.uint8), np.fromiter(range(255, -1, -1), np.uint8)))
+
+    print(
+        "*** im:",
+        im.shape,
+        DATA_ARRAYS["rain"].colormap.shape,
+        np.max(im),
+        np.min(im),
+    )
+    im = apply_colormap(im, DATA_ARRAYS["rain"].colormap)
     cv2_imencode_success, buffer = cv2.imencode(".png", im)
     assert cv2_imencode_success
     io_buf = io.BytesIO(buffer)
