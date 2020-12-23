@@ -310,12 +310,12 @@ DATA_ARRAYS: Dict[str, DataArrayEntry] = open_data_arrays()
 
 # Server
 
-
+PFX = "/fbfmaproom"
 server = flask.Flask(__name__)
 app = dash.Dash(
     __name__,
     server=server,
-    url_base_pathname="/fbfmaproom/",
+    url_base_pathname=f"{PFX}/",
     meta_tags=[
         {"name": "description", "content": "content description 1234"},
         {"name": "viewport", "content": "width=device-width, initial-scale=1.0"},
@@ -326,91 +326,278 @@ app = dash.Dash(
 # Layout
 
 
-map = dl.Map(
-    [
-        dl.LayersControl(
-            [
-                dl.BaseLayer(
-                    dl.TileLayer(
-                        url="https://cartodb-basemaps-{s}.global.ssl.fastly.net/light_all/{z}/{x}/{y}.png",
+def map_layout():
+    return dl.Map(
+        [
+            dl.LayersControl(
+                [
+                    dl.BaseLayer(
+                        dl.TileLayer(
+                            url="https://cartodb-basemaps-{s}.global.ssl.fastly.net/light_all/{z}/{x}/{y}.png",
+                        ),
+                        name="street",
+                        checked=True,
                     ),
-                    name="street",
-                    checked=True,
-                ),
-                dl.BaseLayer(
-                    dl.TileLayer(
-                        url="https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png"
+                    dl.BaseLayer(
+                        dl.TileLayer(
+                            url="https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png"
+                        ),
+                        name="topo",
+                        checked=False,
                     ),
-                    name="topo",
-                    checked=False,
-                ),
-                dl.Overlay(
-                    dl.TileLayer(
-                        url="/tiles/bath/{z}/{x}/{y}",
-                        opacity=0.6,
+                    dl.Overlay(
+                        dl.TileLayer(
+                            url="/tiles/bath/{z}/{x}/{y}",
+                            opacity=0.6,
+                        ),
+                        name="rain",
+                        checked=True,
                     ),
-                    name="rain",
-                    checked=True,
-                ),
-            ],
-            position="topleft",
-        ),
-        dl.ScaleControl(imperial=False),
-    ],
-    center=(-14, 34),
-    zoom=7,
-    style={"width": "100%", "height": "100%", "position": "absolute"},
-)
+                ],
+                position="topleft",
+            ),
+            dl.ScaleControl(imperial=False),
+        ],
+        center=(-14, 34),
+        zoom=7,
+        style={"width": "100%", "height": "100%", "position": "absolute"},
+    )
 
 
-app.layout = html.Div(
-    [
-        map,
-        html.Div(
-            [
-                html.H2("FBF—Maproom"),
-                html.Label("Issue month:"),
-                dcc.Dropdown(
-                    id="issue_month",
-                    options=[
-                        dict(label=pd.to_datetime(v, format="%m").month_name(), value=v)
-                        for v in range(8, 12)
-                    ],
-                    value=10,
-                    clearable=False,
-                ),
-                html.Br(),
-                html.Label("Year:"),
-                daq.Slider(
-                    id="year",
-                    min=1982,
-                    max=2020,
-                    value=2020,
-                    handleLabel={"showCurrentValue": True, "label": " "},
-                    marks={1990: "1990", 2000: "2000", 2010: "2010", 2020: "2020"},
-                    step=1,
-                ),
-                html.Br(),
-            ],
-            id="info",
-            className="info",
-            style={
-                "position": "absolute",
-                "top": "10px",
-                "right": "10px",
-                "z-index": "1000",
-                "height": "80%",
-                "width": "600px",
-                "pointer-events": "auto",
-                "padding-left": "25px",
-                "padding-right": "25px",
-            },
-        ),
-    ]
-)
+def logo_layout():
+    return html.Div(
+        [html.H4("FBF—Maproom"), html.Img(src=f"{PFX}/assets/Malawi_IRI_98x48.png")],
+        id="logo_panel",
+        className="info",
+        style={
+            "position": "absolute",
+            "top": "10px",
+            "width": "110px",
+            "left": "90px",
+            "z-index": "1000",
+            "height": "75px",
+            "pointer-events": "auto",
+            "padding-left": "10px",
+            "padding-right": "10px",
+        },
+    )
 
+
+def command_layout():
+    return html.Div(
+        [
+            html.Div(
+                [
+                    html.Label("Issue month:"),
+                    dcc.Dropdown(
+                        id="issue_month",
+                        options=[
+                            dict(
+                                label=pd.to_datetime(v, format="%m").month_name(),
+                                value=v,
+                            )
+                            for v in range(8, 12)
+                        ],
+                        value=10,
+                        clearable=False,
+                    ),
+                ],
+                style={
+                    "width": "100px",
+                    "display": "inline-block",
+                    "padding": "10px",
+                    "vertical-align": "top",
+                },
+            ),
+            html.Div(
+                [
+                    html.Label("Leads:"),
+                    dcc.Dropdown(
+                        id="leads",
+                        options=[dict(label="DJF", value=v) for v in range(0, 1)],
+                        value=0,
+                        clearable=False,
+                    ),
+                ],
+                style={
+                    "width": "100px",
+                    "display": "inline-block",
+                    "padding": "10px",
+                    "vertical-align": "top",
+                },
+            ),
+            html.Div(
+                [
+                    html.Label("Year:"),
+                    dcc.Input(
+                        id="year",
+                        type="number",
+                        min=1982,
+                        max=2020,
+                        value=2020,
+                        step=1,
+                        style={
+                            "height": "32px",
+                            "width": "95%",
+                            "border-color": "rgb(200, 200, 200)",
+                            "border-width": "1px",
+                            "border-style": "solid",
+                            "border-radius": "4px",
+                            "text-indent": "8px",
+                        },
+                    ),
+                ],
+                style={
+                    "width": "100px",
+                    "display": "inline-block",
+                    "padding": "10px",
+                    "vertical-align": "top",
+                },
+            ),
+            html.Div(
+                [
+                    html.Label("Mode:"),
+                    dcc.Dropdown(
+                        id="mode",
+                        options=[
+                            dict(
+                                label=["Pixel", "District", "Regional", "National"][v],
+                                value=v,
+                            )
+                            for v in range(0, 4)
+                        ],
+                        value=0,
+                        clearable=False,
+                    ),
+                ],
+                style={
+                    "width": "100px",
+                    "display": "inline-block",
+                    "padding": "10px",
+                    "vertical-align": "top",
+                },
+            ),
+            html.Div(
+                [
+                    html.Label("Frequency of triggered forecasts:"),
+                    dcc.RangeSlider(
+                        id="freq",
+                        min=5,
+                        max=95,
+                        step=10,
+                        value=[15, 30],
+                        marks={k: dict(label=f"{k}%") for k in range(5, 96, 10)},
+                        pushable=5,
+                        included=False,
+                    ),
+                ],
+                style={
+                    "width": "400px",
+                    "display": "inline-block",
+                    "padding": "10px",
+                    "vertical-align": "top",
+                },
+            ),
+        ],
+        id="command_panel",
+        className="info",
+        style={
+            "position": "absolute",
+            "top": "10px",
+            "right": "10px",
+            "left": "230px",
+            "z-index": "1000",
+            "height": "75px",
+            "pointer-events": "auto",
+            "padding-left": "10px",
+            "padding-right": "10px",
+        },
+    )
+
+
+def generate_table(year):
+    time.sleep(1)
+    return html.Table(
+        [
+            html.Thead(
+                [
+                    html.Tr(
+                        [html.Th([f"{x}:"], style={"color": "#4166B2"})]
+                        + [html.Th([str(year)]) for _ in range(4)]
+                    )
+                    for x in [
+                        "Worthy-action",
+                        "Act-in-vain",
+                        "Fail-to-act",
+                        "Worthy-Inaction",
+                        "Rate",
+                    ]
+                ]
+                + [
+                    html.Tr(
+                        [
+                            html.Th(
+                                [x],
+                                style={"background-color": "rgb(240, 240, 240)"},
+                            )
+                            for x in [
+                                "Year",
+                                "ENSO State",
+                                "Forecast, %",
+                                "Rain Rank",
+                                "Farmers' reported Bad Years",
+                            ]
+                        ]
+                    )
+                ]
+            ),
+            html.Tbody(
+                [
+                    html.Tr([html.Td([y])] + [html.Td() for _ in range(4)])
+                    for y in range(2020, 1999, -1)
+                ]
+            ),
+        ],
+    )
+
+
+def table_layout():
+    return html.Div(
+        [dcc.Loading([], id="table_panel", type="dot")],
+        className="info",
+        style={
+            "position": "absolute",
+            "top": "110px",
+            "right": "10px",
+            "z-index": "1000",
+            "height": "80%",
+            "width": "600px",
+            "pointer-events": "auto",
+            "padding-left": "10px",
+            "padding-right": "10px",
+        },
+    )
+
+
+def app_layout():
+    return html.Div(
+        [
+            map_layout(),
+            logo_layout(),
+            command_layout(),
+            table_layout(),
+        ]
+    )
+
+
+app.layout = app_layout()
 
 # Callbacks
+
+
+@app.callback(Output("table_panel", "children"), [Input("year", "value")])
+def update1(year):
+    return [generate_table(year)]
 
 
 # Endpoints
