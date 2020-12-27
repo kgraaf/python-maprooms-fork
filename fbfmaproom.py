@@ -283,9 +283,9 @@ def open_data_arrays():
     )
     print(bath, extents(bath))
 
-    rain = xr.open_dataset("rain-madagascar.nc", decode_times=False)["prcp_est"].transpose(
-        "Y", "X", ...
-    )
+    rain = xr.open_dataset("rain-madagascar.nc", decode_times=False)[
+        "prcp_est"
+    ].transpose("Y", "X", ...)
     rs["rain"] = DataArrayEntry(
         "rain", rain, None, None, None, parse_colormap(rain.attrs["colormap"])
     )
@@ -359,8 +359,7 @@ def map_layout():
             ),
             dl.ScaleControl(imperial=False),
         ],
-        center=(-14, 34),
-        zoom=7,
+        id="map",
         style={"width": "100%", "height": "100%", "position": "absolute"},
     )
 
@@ -414,9 +413,9 @@ def command_layout():
                 [
                     html.Label("Leads:"),
                     dcc.Dropdown(
-                        id="leads",
-                        options=[dict(label="DJF", value=v) for v in range(0, 1)],
-                        value=0,
+                        id="season",
+                        options=[dict(label="DJF", value=v) for v in range(1, 2)],
+                        value=1,
                         clearable=False,
                     ),
                 ],
@@ -600,12 +599,19 @@ app.layout = app_layout()
 
 # Callbacks
 
+
 def country(pathname: str) -> str:
     return pathname.split("/")[2]
 
-@app.callback(Output("logo", "src"), [Input("location", "pathname")])
+
+@app.callback(
+    [Output("logo", "src"), Output("map", "center"), Output("map", "zoom")],
+    [Input("location", "pathname")],
+)
 def c1(pathname):
-    return f"{PFX}/assets/{CS[country(pathname)]['logo']}"
+    c = CS[country(pathname)]
+    return [f"{PFX}/assets/{c['logo']}", c["center"], c["zoom"]]
+
 
 @app.callback(Output("table_panel", "children"), [Input("year", "value")])
 def c2(year):
