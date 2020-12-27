@@ -37,3 +37,71 @@ dbpool:
     max_open_time: 600 # (seconds)
     max_usage_count: 1000
     recycle_interval: 60 # (seconds) set to null to disable recycler thread
+
+countries:
+   malawi:
+      logo: Malawi_IRI_98x48.png
+      adm0_name: Malawi
+      adm0_code: 152
+      is_clip: true
+      clip_path: MalawiBorderPath.js
+      #pne_dataset: /home/.remic/.IRI/.FD/.NMME_Seasonal_HFcast_Combined/.nonexceed/.prob
+      pne_dataset: /home/.remic/.IRI/.FD/.NMME_Seasonal_HFcast_Combined/.malawi/.nonexceed/.prob
+      rain_dataset: /SOURCES/.NOAA/.NCEP/.CPC/.Merged_Analysis/.monthly/.latest/.ver2/.prcp_est/X/0/1.0/359/GRID/Y/-86/1.0/86/GRID
+      resolution: [1, 1]
+      osm_filter: grayscale(100%) # https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/filter
+      center: [34, -14]
+      zoom: 7
+      rotation: 0
+      pixel:  [34, -14]
+      season: [0, 2021]  # [month's index 0-Jan, 1-Feb, etc., year]
+      init_issue_month: 1  # 0..3
+
+   ethiopia:
+      logo: Ethiopia_IRI_98x48.png
+      adm0_name: Ethiopia
+      adm0_code: 79
+      is_clip: true
+      clip_path: EthiopiaBorderPath.js
+      pne_dataset: /home/.remic/.IRI/.FD/.NMME_Seasonal_HFcast_Combined/.nonexceed/.prob
+      #pne_dataset: /home/.remic/.IRI/.FD/.NMME_Seasonal_HFcast_Combined/.ethiopia/.nonexceed/.prob
+      rain_dataset: /SOURCES/.NOAA/.NCEP/.CPC/.Merged_Analysis/.monthly/.latest/.ver2/.prcp_est/X/0/1.0/359/GRID/Y/-86/1.0/86/GRID
+      resolution: [1, 1]
+      osm_filter: saturate(30%) hue-rotate(-120deg) blur(0px)
+      center: [40, 6]
+      zoom: 6
+      rotation: 0
+      pixel:  [40, 6]
+      season: [5, 2019]  # [month's index 0-Jan, 1-Feb, etc., year]
+      init_issue_month: 0  # 0..3
+
+   senegal:
+      logo: Senegal_IRI_98x48.png
+      adm0_name: Senegal
+      is_clip: true
+      clip_path: SenegalBorderPath.js
+      pne_dataset: /home/.remic/.IRI/.FD/.NMME_Seasonal_HFcast_Combined/.nonexceed/.prob
+      rain_dataset: /SOURCES/.NOAA/.NCEP/.CPC/.Merged_Analysis/.monthly/.latest/.ver2/.prcp_est/X/0/1.0/359/GRID/Y/-86/1.0/86/GRID
+      resolution: [1, 1]
+      osm_filter: saturate(30%) hue-rotate(-120deg) blur(0px)
+      center: [-15, 14]
+      zoom: 7.5
+      rotation: 0
+      pixel:  [40, 6]
+      season: [5, 2019]  # [month's index 0-Jan, 1-Feb, etc., year]
+      init_issue_month: 0  # 0..3
+
+   madagascar:
+      logo: Madagascar_IRI_98x48.png
+      adm0_name: Madagascar
+      is_clip: false
+      pne_dataset: /IRIONLY/home/.aaron/.madagascar/.prob
+      rain_dataset: /home/.rijaf/.Madagascar_v3/.ALL/.dekadal/.rainfall/.rfe/T/(Dec-Feb)/seasonalAverage/9/mul//name/(prcp_est)/def
+      resolution: [.0375, .0375]
+      #osm_filter: saturate(30%) hue-rotate(-120deg) blur(0px)
+      center: [45.5, -24]
+      zoom: 8
+      rotation: 0
+      pixel: [45, -24]
+      season: [0, 2020]  # [month's index 0-Jan, 1-Feb, etc., year]
+      init_issue_month: 0  # 0..3

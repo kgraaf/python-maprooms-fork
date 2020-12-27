@@ -43,6 +43,7 @@ from matplotlib.figure import Figure
 
 
 CONFIG = pyaconf.load(os.environ["CONFIG"])
+CS = CONFIG["countries"]
 
 
 # Functions and definitions
@@ -282,7 +283,7 @@ def open_data_arrays():
     )
     print(bath, extents(bath))
 
-    rain = xr.open_dataset("rain.nc", decode_times=False)["prcp_est"].transpose(
+    rain = xr.open_dataset("rain-madagascar.nc", decode_times=False)["prcp_est"].transpose(
         "Y", "X", ...
     )
     rs["rain"] = DataArrayEntry(
@@ -292,7 +293,7 @@ def open_data_arrays():
     print(rain, extents(rain, ["Y", "X"]))
     # print(from_months_since_v(rain["T"].values))
 
-    pnep = xr.open_dataset("pnep.nc", decode_times=False)["pne"].transpose(
+    pnep = xr.open_dataset("pnep-malawi.nc", decode_times=False)["prob"].transpose(
         "Y", "X", ...
     )
     pnep["T"] = pnep["S"] + pnep["L"]
@@ -366,7 +367,7 @@ def map_layout():
 
 def logo_layout():
     return html.Div(
-        [html.H4("FBF—Maproom"), html.Img(src=f"{PFX}/assets/Malawi_IRI_98x48.png")],
+        [html.H4("FBF—Maproom"), html.Img(id="logo")],
         id="logo_panel",
         className="info",
         style={
@@ -461,7 +462,7 @@ def command_layout():
                         id="mode",
                         options=[
                             dict(
-                                label=["Pixel", "District", "Regional", "National"][v],
+                                label=["District", "Regional", "National", "Pixel"][v],
                                 value=v,
                             )
                             for v in range(0, 4)
@@ -517,6 +518,10 @@ def command_layout():
 
 def generate_table(year):
     time.sleep(1)
+
+    if year is None:
+        return html.Div()
+
     return html.Table(
         [
             html.Thead(
@@ -582,6 +587,7 @@ def table_layout():
 def app_layout():
     return html.Div(
         [
+            dcc.Location(id="location", refresh=False),
             map_layout(),
             logo_layout(),
             command_layout(),
@@ -594,9 +600,15 @@ app.layout = app_layout()
 
 # Callbacks
 
+def country(pathname: str) -> str:
+    return pathname.split("/")[2]
+
+@app.callback(Output("logo", "src"), [Input("location", "pathname")])
+def c1(pathname):
+    return f"{PFX}/assets/{CS[country(pathname)]['logo']}"
 
 @app.callback(Output("table_panel", "children"), [Input("year", "value")])
-def update1(year):
+def c2(year):
     return [generate_table(year)]
 
 
