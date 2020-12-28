@@ -174,7 +174,7 @@ def produce_tile(
         (a + (b - a) / 2.0 for a, b in tile_extents(g_lat_3857, ty, tz, tile_height)),
         np.double,
     )
-    print("*** produce_tile:", tz, tx, ty, x[0], x[-1], y[0], y[-1])
+    # print("*** produce_tile:", tz, tx, ty, x[0], x[-1], y[0], y[-1])
     z = interp2d(x, y)
     return z
 
@@ -360,7 +360,7 @@ LAYERS = [
 def map_layout():
     return dl.Map(
         id="map",
-        style={"width": "100%", "height": "100%", "position": "absolute"},
+        style={"width": "100%", "height": "100%", "position": "absolute", "cursor": "crosshair"},
     )
 
 
@@ -586,7 +586,7 @@ def table_layout():
 def app_layout():
     return html.Div(
         [
-            dcc.Location(id="location", refresh=False),
+            dcc.Location(id="location", refresh=True),
             map_layout(),
             logo_layout(),
             command_layout(),
@@ -605,54 +605,58 @@ def country(pathname: str) -> str:
 
 
 @app.callback(
-    [
-        Output("logo", "src"),
-        Output("map", "center"),
-        Output("map", "zoom"),
-    ],
-    [Input("location", "pathname")],
+    Output("logo", "src"),
+    Output("map", "center"),
+    Output("map", "zoom"),
+    Input("location", "pathname"),
 )
 def _(pathname):
     c = CS[country(pathname)]
-    return [
-        f"{PFX}/assets/{c['logo']}",
-        c["center"],
-        c["zoom"],
-    ]
+    print("*** callback location:", pathname)
+    return (f"{PFX}/assets/{c['logo']}", c["center"], c["zoom"])
 
 
 @app.callback(
-    [Output("map", "children")],
-    [Input("mode", "value"), Input("location", "pathname")],
+    Output("map", "children"),
+    Input("mode", "value"),
 )
-def _(mode, pathname):
+def _(mode):
+    print("*** callback mode:", mode)
+    return LAYERS + (
+        [dl.Marker(position=(0,0), draggable=True, id="marker")]
+        if mode == "Pixel"
+        else []
+    )
+
+
+@app.callback(
+    Output("year", "value"),
+    Input("marker", "position"),
+)
+def _(position):
+    print("*** callback marker:", position)
+    return 2020
+
+
+@app.callback(
+    Output("marker", "position"),
+    Input("map", "click_lat_lng"),
+    Input("location", "pathname"),
+)
+def _(position, pathname):
     c = CS[country(pathname)]
-    return [
-        LAYERS
-        + (
-            [dl.Marker(position=c["marker"], draggable=True, id="marker")]
-            if mode == "Pixel"
-            else []
-        )
-    ]
+    if position is None:
+        position = c["marker"]
+    print("*** callback click, location:", position, pathname)
+    return position
 
 
-@app.callback([Output("year", "value")], [Input("marker", "position")])
-def _(position):
-    print("*** position:", position)
-    return [2020]
-
-
-"""
-@app.callback([Input("marker", "position")], [Input("map", "click_lat_lng")])
-def _(position):
-    print("*** click:", position)
-    return [position]
-"""
-
-
-@app.callback(Output("table_panel", "children"), [Input("year", "value")])
+@app.callback(
+    Output("table_panel", "children"),
+    Input("year", "value"),
+)
 def _(year):
+    print("*** callback year:", year)
     return [generate_table(year)]
 
 
@@ -668,6 +672,7 @@ def tiles(data_array, tz, tx, ty):
     # im += np.max(im2, axis=2)
     # cv2.imwrite(f"tiles/{tx},{ty}x{tz}.png", cv2.LUT(im.astype(np.uint8), np.fromiter(range(255, -1, -1), np.uint8)))
 
+    """
     print(
         "*** im:",
         im.shape,
@@ -675,6 +680,7 @@ def tiles(data_array, tz, tx, ty):
         np.max(im),
         np.min(im),
     )
+    """
     im = apply_colormap(im, DATA_ARRAYS["rain"].colormap)
     cv2_imencode_success, buffer = cv2.imencode(".png", im)
     assert cv2_imencode_success
