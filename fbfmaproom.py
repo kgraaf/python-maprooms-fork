@@ -360,7 +360,12 @@ LAYERS = [
 def map_layout():
     return dl.Map(
         id="map",
-        style={"width": "100%", "height": "100%", "position": "absolute", "cursor": "crosshair"},
+        style={
+            "width": "100%",
+            "height": "100%",
+            "position": "absolute",
+            "cursor": "default",
+        },
     )
 
 
@@ -567,7 +572,11 @@ def generate_table(year):
 
 def table_layout():
     return html.Div(
-        [dcc.Loading([], id="table_panel", type="dot")],
+        [
+            dcc.Loading(
+                [], id="table_panel", type="dot", parent_style={"height": "100%"}, style={"opacity": 0.2}
+            )
+        ],
         className="info",
         style={
             "position": "absolute",
@@ -612,7 +621,6 @@ def country(pathname: str) -> str:
 )
 def _(pathname):
     c = CS[country(pathname)]
-    print("*** callback location:", pathname)
     return (f"{PFX}/assets/{c['logo']}", c["center"], c["zoom"])
 
 
@@ -621,9 +629,19 @@ def _(pathname):
     Input("mode", "value"),
 )
 def _(mode):
-    print("*** callback mode:", mode)
     return LAYERS + (
-        [dl.Marker(position=(0,0), draggable=True, id="marker")]
+        [
+            dl.Rectangle(
+                [
+                    dl.Tooltip("Marker tooltip"),
+                    dl.Popup([html.H1("Marker popup"), html.P("with inline html")]),
+                ],
+                bounds=[[0, 0], [0, 0]],
+                color="#ff7800",
+                weight=2,
+                id="pixel",
+            ),
+        ]
         if mode == "Pixel"
         else []
     )
@@ -631,24 +649,26 @@ def _(mode):
 
 @app.callback(
     Output("year", "value"),
-    Input("marker", "position"),
+    Input("pixel", "bounds"),
 )
-def _(position):
-    print("*** callback marker:", position)
+def _(bounds):
+    print("*** callback marker:", bounds)
     return 2020
 
 
 @app.callback(
-    Output("marker", "position"),
+    Output("pixel", "bounds"),
     Input("map", "click_lat_lng"),
     Input("location", "pathname"),
 )
-def _(position, pathname):
+def _(click_lat_lng, pathname):
     c = CS[country(pathname)]
-    if position is None:
-        position = c["marker"]
-    print("*** callback click, location:", position, pathname)
-    return position
+    if click_lat_lng is None:
+        bounds = c["pixel"]
+    else:
+        bounds = [click_lat_lng, list(map(lambda x: x + 1, click_lat_lng))]
+    print("*** callback click, location:", click_lat_lng, pathname)
+    return bounds
 
 
 @app.callback(
