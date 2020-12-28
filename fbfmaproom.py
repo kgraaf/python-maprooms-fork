@@ -326,39 +326,39 @@ app = dash.Dash(
 
 # Layout
 
+LAYERS = [
+    dl.LayersControl(
+        [
+            dl.BaseLayer(
+                dl.TileLayer(
+                    url="https://cartodb-basemaps-{s}.global.ssl.fastly.net/light_all/{z}/{x}/{y}.png",
+                ),
+                name="street",
+                checked=True,
+                id="street",
+            ),
+            dl.BaseLayer(
+                dl.TileLayer(url="https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png"),
+                name="topo",
+                checked=False,
+            ),
+            dl.Overlay(
+                dl.TileLayer(
+                    url="/tiles/bath/{z}/{x}/{y}",
+                    opacity=0.6,
+                ),
+                name="rain",
+                checked=True,
+            ),
+        ],
+        position="topleft",
+    ),
+    dl.ScaleControl(imperial=False),
+]
+
 
 def map_layout():
     return dl.Map(
-        [
-            dl.LayersControl(
-                [
-                    dl.BaseLayer(
-                        dl.TileLayer(
-                            url="https://cartodb-basemaps-{s}.global.ssl.fastly.net/light_all/{z}/{x}/{y}.png",
-                        ),
-                        name="street",
-                        checked=True,
-                    ),
-                    dl.BaseLayer(
-                        dl.TileLayer(
-                            url="https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png"
-                        ),
-                        name="topo",
-                        checked=False,
-                    ),
-                    dl.Overlay(
-                        dl.TileLayer(
-                            url="/tiles/bath/{z}/{x}/{y}",
-                            opacity=0.6,
-                        ),
-                        name="rain",
-                        checked=True,
-                    ),
-                ],
-                position="topleft",
-            ),
-            dl.ScaleControl(imperial=False),
-        ],
         id="map",
         style={"width": "100%", "height": "100%", "position": "absolute"},
     )
@@ -461,12 +461,12 @@ def command_layout():
                         id="mode",
                         options=[
                             dict(
-                                label=["District", "Regional", "National", "Pixel"][v],
+                                label=v,
                                 value=v,
                             )
-                            for v in range(0, 4)
+                            for v in ["District", "Regional", "National", "Pixel"]
                         ],
-                        value=0,
+                        value="District",
                         clearable=False,
                     ),
                 ],
@@ -605,16 +605,54 @@ def country(pathname: str) -> str:
 
 
 @app.callback(
-    [Output("logo", "src"), Output("map", "center"), Output("map", "zoom")],
+    [
+        Output("logo", "src"),
+        Output("map", "center"),
+        Output("map", "zoom"),
+    ],
     [Input("location", "pathname")],
 )
-def c1(pathname):
+def _(pathname):
     c = CS[country(pathname)]
-    return [f"{PFX}/assets/{c['logo']}", c["center"], c["zoom"]]
+    return [
+        f"{PFX}/assets/{c['logo']}",
+        c["center"],
+        c["zoom"],
+    ]
+
+
+@app.callback(
+    [Output("map", "children")],
+    [Input("mode", "value"), Input("location", "pathname")],
+)
+def _(mode, pathname):
+    c = CS[country(pathname)]
+    return [
+        LAYERS
+        + (
+            [dl.Marker(position=c["marker"], draggable=True, id="marker")]
+            if mode == "Pixel"
+            else []
+        )
+    ]
+
+
+@app.callback([Output("year", "value")], [Input("marker", "position")])
+def _(position):
+    print("*** position:", position)
+    return [2020]
+
+
+"""
+@app.callback([Input("marker", "position")], [Input("map", "click_lat_lng")])
+def _(position):
+    print("*** click:", position)
+    return [position]
+"""
 
 
 @app.callback(Output("table_panel", "children"), [Input("year", "value")])
-def c2(year):
+def _(year):
     return [generate_table(year)]
 
 

@@ -52,7 +52,7 @@ countries:
       center: [-13, 37.5]
       zoom: 7
       rotation: 0
-      pixel: [-14, 34]
+      marker: [-14, 34]
       season: [0, 2021]  # [month's index 0-Jan, 1-Feb, etc., year]
       init_issue_month: 1  # 0..3
 
@@ -70,7 +70,7 @@ countries:
       center: [10, 46.5]
       zoom: 6
       rotation: 0
-      pixel: [6, 40]
+      marker: [6, 40]
       season: [5, 2019]  # [month's index 0-Jan, 1-Feb, etc., year]
       init_issue_month: 0  # 0..3
 
@@ -86,7 +86,7 @@ countries:
       center: [15, -11.5]
       zoom: 7
       rotation: 0
-      pixel: [14, -15]
+      marker: [14, -15]
       season: [5, 2019]  # [month's index 0-Jan, 1-Feb, etc., year]
       init_issue_month: 0  # 0..3
 
@@ -101,6 +101,6 @@ countries:
       center: [-23, 49]
       zoom: 7
       rotation: 0
-      pixel: [-24, 45.5]
+      marker: [-24, 45.5]
       season: [0, 2020]  # [month's index 0-Jan, 1-Feb, etc., year]
       init_issue_month: 0  # 0..3
