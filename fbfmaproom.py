@@ -574,7 +574,11 @@ def table_layout():
     return html.Div(
         [
             dcc.Loading(
-                [], id="table_panel", type="dot", parent_style={"height": "100%"}, style={"opacity": 0.2}
+                [],
+                id="table_panel",
+                type="dot",
+                parent_style={"height": "100%"},
+                style={"opacity": 0.2},
             )
         ],
         className="info",
@@ -607,6 +611,11 @@ def app_layout():
 app.layout = app_layout()
 
 # Callbacks
+
+def calculate_bounds(pt, res):
+    x, y = pt
+    dx, dy = res
+    return [[x // dx * dx, y // dy * dy], [x // dx * dx + dx, y // dy * dy + dy]]
 
 
 def country(pathname: str) -> str:
@@ -664,9 +673,9 @@ def _(bounds):
 def _(click_lat_lng, pathname):
     c = CS[country(pathname)]
     if click_lat_lng is None:
-        bounds = c["pixel"]
-    else:
-        bounds = [click_lat_lng, list(map(lambda x: x + 1, click_lat_lng))]
+        click_lat_lng = c["pixel"]
+    
+    bounds = calculate_bounds(click_lat_lng, c["resolution"])
     print("*** callback click, location:", click_lat_lng, pathname)
     return bounds
 
