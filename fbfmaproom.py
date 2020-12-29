@@ -25,7 +25,7 @@ import dash_html_components as html
 import dash_daq as daq
 import dash_leaflet as dl
 import dash_leaflet.express as dlx
-from dash.dependencies import Output, Input
+from dash.dependencies import Output, Input, State, ALL
 
 import pyaconf
 import queuepool
@@ -298,7 +298,13 @@ def open_data_arrays():
     )
     pnep["T"] = pnep["S"] + pnep["L"]
     rs["pnep"] = DataArrayEntry("pnep", pnep, None, None, None, None)
-    print(pnep, extents(pnep, ["Y", "X"]))
+    print(
+        pnep,
+        extents(pnep, ["Y", "X"]),
+        pnep["S"].values.shape,
+        pnep["L"].values.shape,
+        pnep["T"].values.shape,
+    )
     # print(from_months_since_v(pnep["S"].values))
     # print(from_months_since_v(pnep["T"].values))
     # print(pnep.sel(S=274, L=2.5).values)
@@ -326,39 +332,55 @@ app = dash.Dash(
 
 # Layout
 
-LAYERS = [
-    dl.LayersControl(
-        [
-            dl.BaseLayer(
-                dl.TileLayer(
-                    url="https://cartodb-basemaps-{s}.global.ssl.fastly.net/light_all/{z}/{x}/{y}.png",
-                ),
-                name="street",
-                checked=True,
-                id="street",
-            ),
-            dl.BaseLayer(
-                dl.TileLayer(url="https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png"),
-                name="topo",
-                checked=False,
-            ),
-            dl.Overlay(
-                dl.TileLayer(
-                    url="/tiles/bath/{z}/{x}/{y}",
-                    opacity=0.6,
-                ),
-                name="rain",
-                checked=True,
-            ),
-        ],
-        position="topleft",
-    ),
-    dl.ScaleControl(imperial=False),
-]
-
 
 def map_layout():
     return dl.Map(
+        [
+            dl.LayersControl(
+                [
+                    dl.BaseLayer(
+                        dl.TileLayer(
+                            url="https://cartodb-basemaps-{s}.global.ssl.fastly.net/light_all/{z}/{x}/{y}.png",
+                        ),
+                        name="street",
+                        checked=True,
+                        id="street",
+                    ),
+                    dl.BaseLayer(
+                        dl.TileLayer(
+                            url="https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png"
+                        ),
+                        name="topo",
+                        checked=False,
+                    ),
+                    dl.Overlay(
+                        dl.TileLayer(
+                            url="/tiles/bath/{z}/{x}/{y}",
+                            opacity=0.6,
+                        ),
+                        name="rain",
+                        checked=True,
+                    ),
+                ],
+                position="topleft",
+            ),
+            dl.LayerGroup(
+                [
+                    dl.Rectangle(
+                        bounds=((0, 0), (0, 0)),
+                        color="rgb(49, 109, 150)",
+                        fillColor="#ffffff00",
+                        weight=1,
+                        id="pixel",
+                    ),
+                    dl.Marker(
+                        position=(0, 0),
+                        id="marker",
+                    ),
+                ]
+            ),
+            dl.ScaleControl(imperial=False),
+        ],
         id="map",
         style={
             "width": "100%",
@@ -612,6 +634,7 @@ app.layout = app_layout()
 
 # Callbacks
 
+
 def calculate_bounds(pt, res):
     x, y = pt
     dx, dy = res
@@ -634,58 +657,44 @@ def _(pathname):
 
 
 @app.callback(
-    Output("map", "children"),
-    Input("mode", "value"),
-)
-def _(mode):
-    return LAYERS + (
-        [
-            dl.Rectangle(
-                [
-                    dl.Tooltip("Marker tooltip"),
-                    dl.Popup([html.H1("Marker popup"), html.P("with inline html")]),
-                ],
-                bounds=[[0, 0], [0, 0]],
-                color="#ff7800",
-                weight=2,
-                id="pixel",
-            ),
-        ]
-        if mode == "Pixel"
-        else []
-    )
-
-
-@app.callback(
-    Output("year", "value"),
-    Input("pixel", "bounds"),
-)
-def _(bounds):
-    print("*** callback marker:", bounds)
-    return 2020
-
-
-@app.callback(
+    Output("marker", "opacity"),
+    Output("marker", "position"),
+    Output("marker", "children"),
+    Output("pixel", "opacity"),
+    Output("pixel", "fillOpacity"),
     Output("pixel", "bounds"),
-    Input("map", "click_lat_lng"),
+    Output("pixel", "children"),
+    Input("mode", "value"),
     Input("location", "pathname"),
+    Input("map", "click_lat_lng"),
 )
-def _(click_lat_lng, pathname):
+def _(mode, pathname, click_lat_lng):
     c = CS[country(pathname)]
     if click_lat_lng is None:
-        click_lat_lng = c["pixel"]
-    
+        click_lat_lng = c["marker"]
     bounds = calculate_bounds(click_lat_lng, c["resolution"])
-    print("*** callback click, location:", click_lat_lng, pathname)
-    return bounds
+    position = (bounds[0][0] + bounds[1][0]) / 2, (bounds[0][1] + bounds[1][1]) / 2
+    marker_children = [
+        dl.Tooltip(f"{position}"),
+        dl.Popup([html.H1("Marker popup"), html.P(f"{position}")]),
+    ]
+    pixel_children = [
+        dl.Tooltip(f"{bounds}"),
+        dl.Popup([html.H1("Rectangle popup"), html.P(f"{bounds}")]),
+    ]
+    res = 1.0, position, marker_children, 1.0, 0.1, bounds, pixel_children
+    if mode != "Pixel":
+        res = 0.0, (10000, 10000), [], 0.0, 0.0, ((10000, 10000), (10000, 10000)), []
+    return res
 
 
 @app.callback(
     Output("table_panel", "children"),
     Input("year", "value"),
+    Input("pixel", "bounds"),
 )
-def _(year):
-    print("*** callback year:", year)
+def _(year, bounds):
+    print("*** callback year:", year, bounds)
     return [generate_table(year)]
 
 
