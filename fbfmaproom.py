@@ -336,53 +336,20 @@ app = dash.Dash(
 def map_layout():
     return dl.Map(
         [
-            dl.TileLayer(
-                url="https://cartodb-basemaps-{s}.global.ssl.fastly.net/light_all/{z}/{x}/{y}.png",
-            ),
             dl.LayersControl(
                 [
                     dl.BaseLayer(
-                        dl.LayerGroup(
-                            [
-                                dl.Rectangle(
-                                    bounds=((0, 0), (0, 0)),
-                                    color="rgb(49, 109, 150)",
-                                    fillColor="#ffffff00",
-                                    weight=1,
-                                    id="pixel",
-                                ),
-                                dl.Marker(
-                                    position=(0, 0),
-                                    id="marker",
-                                ),
-                            ]
+                        dl.TileLayer(
+                            url="https://cartodb-basemaps-{s}.global.ssl.fastly.net/light_all/{z}/{x}/{y}.png",
                         ),
-                        name="Pixel",
-                        checked=False,
-                    ),
-                    dl.BaseLayer(
-                        dl.GeoJSON(
-                            format="geobuf",
-                            id="national",
-                        ),
-                        name="National",
+                        name="Street",
                         checked=True,
                     ),
                     dl.BaseLayer(
-                        dl.GeoJSON(
-                            format="geobuf",
-                            id="regional",
+                        dl.TileLayer(
+                            url="https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png"
                         ),
-                        name="Regional",
-                        checked=False,
-                    ),
-                    dl.BaseLayer(
-                        dl.GeoJSON(
-                            format="geobuf",
-                            cluster=True,
-                            id="district",
-                        ),
-                        name="District",
+                        name="Topo",
                         checked=False,
                     ),
                     dl.Overlay(
@@ -390,11 +357,32 @@ def map_layout():
                             url="/tiles/bath/{z}/{x}/{y}",
                             opacity=0.6,
                         ),
-                        name="rain",
+                        name="Rain",
                         checked=True,
                     ),
                 ],
                 position="topleft",
+            ),
+            dl.LayerGroup(
+                [
+                    dl.Polygon(
+                        positions=[(0, 0), (0, 0)],
+                        color="rgb(49, 109, 150)",
+                        fillColor="orange",
+                        fillOpacity=0.1,
+                        weight=1,
+                        id="feature",
+                    ),
+                    dl.Marker(
+                        [
+                            dl.Popup([html.H2("Pixel"), html.P(id="marker_text")]),
+                        ],
+                        position=(0, 0),
+                        draggable=True,
+                        id="marker",
+                    ),
+                ],
+                id="pixel_layer",
             ),
             dl.ScaleControl(imperial=False),
         ],
@@ -403,7 +391,6 @@ def map_layout():
             "width": "100%",
             "height": "100%",
             "position": "absolute",
-            "cursor": "default",
         },
     )
 
@@ -430,6 +417,29 @@ def logo_layout():
 def command_layout():
     return html.Div(
         [
+            html.Div(
+                [
+                    html.Label("Mode:"),
+                    dcc.Dropdown(
+                        id="mode",
+                        options=[
+                            dict(
+                                label=v,
+                                value=v,
+                            )
+                            for v in ["District", "Regional", "National", "Pixel"]
+                        ],
+                        value="District",
+                        clearable=False,
+                    ),
+                ],
+                style={
+                    "width": "100px",
+                    "display": "inline-block",
+                    "padding": "10px",
+                    "vertical-align": "top",
+                },
+            ),
             html.Div(
                 [
                     html.Label("Issue month:"),
@@ -635,6 +645,15 @@ def calculate_bounds(pt, res):
     return [[x // dx * dx, y // dy * dy], [x // dx * dx + dx, y // dy * dy + dy]]
 
 
+def calculate_polygon(mode, pt, res):
+    if mode == "Pixel":
+        (x0, y0), (x1, y1) = calculate_bounds(pt, res)
+        return [(x0, y0), (x1, y0), (x1, y1), (x0, y1), (x0, y0)]
+    else:
+        (x0, y0), (x1, y1) = calculate_bounds(pt, res)
+        return [(x0, y0), (x1, y0), (x1, y1), (x0, y0)]
+
+
 def country(pathname: str) -> str:
     return pathname.split("/")[2]
 
@@ -643,40 +662,25 @@ def country(pathname: str) -> str:
     Output("logo", "src"),
     Output("map", "center"),
     Output("map", "zoom"),
+    Output("marker", "position"),
     Input("location", "pathname"),
 )
 def _(pathname):
     c = CS[country(pathname)]
-    return (f"{PFX}/assets/{c['logo']}", c["center"], c["zoom"])
+    return f"{PFX}/assets/{c['logo']}", c["center"], c["zoom"], c["marker"]
 
 
 @app.callback(
-    Output("marker", "opacity"),
-    Output("marker", "position"),
-    Output("marker", "children"),
-    Output("pixel", "opacity"),
-    Output("pixel", "fillOpacity"),
-    Output("pixel", "bounds"),
-    Output("pixel", "children"),
+    Output("feature", "positions"),
+    Output("marker_text", "children"),
     Input("location", "pathname"),
-    Input("map", "click_lat_lng"),
+    Input("marker", "position"),
+    Input("mode", "value"),
 )
-def _(pathname, click_lat_lng):
+def _(pathname, position, mode):
     c = CS[country(pathname)]
-    if click_lat_lng is None:
-        click_lat_lng = c["marker"]
-    bounds = calculate_bounds(click_lat_lng, c["resolution"])
-    position = (bounds[0][0] + bounds[1][0]) / 2, (bounds[0][1] + bounds[1][1]) / 2
-    marker_children = [
-        dl.Tooltip(f"{position}"),
-        dl.Popup([html.H1("Marker popup"), html.P(f"{position}")]),
-    ]
-    pixel_children = [
-        dl.Tooltip(f"{bounds}"),
-        dl.Popup([html.H1("Rectangle popup"), html.P(f"{bounds}")]),
-    ]
-    res = 1.0, position, marker_children, 1.0, 0.1, bounds, pixel_children
-    return res
+    positions = calculate_polygon(mode, position, c["resolution"])
+    return positions, str(positions)
 
 
 @app.callback(
@@ -685,10 +689,10 @@ def _(pathname, click_lat_lng):
     Input("issue_month", "value"),
     Input("season", "value"),
     Input("freq", "value"),
-    Input("pixel", "bounds"),
+    Input("feature", "positions"),
 )
-def _(year, issue_month, season, freq, bounds):
-    print("*** callback year:", year, issue_month, season, freq, bounds)
+def _(year, issue_month, season, freq, positions):
+    print("*** callback year:", year, issue_month, season, freq, positions)
     return [generate_table(year)]
 
 
