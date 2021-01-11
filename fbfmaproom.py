@@ -362,6 +362,7 @@ def map_layout():
                     ),
                 ],
                 position="topleft",
+                id="layers_control",
             ),
             dl.LayerGroup(
                 [
@@ -599,13 +600,14 @@ def generate_table(year):
 def table_layout():
     return html.Div(
         [
+            html.Div(id="log"),
             dcc.Loading(
                 [],
                 id="table_panel",
                 type="dot",
                 parent_style={"height": "100%"},
                 style={"opacity": 0.2},
-            )
+            ),
         ],
         className="info",
         style={
@@ -694,6 +696,15 @@ def _(pathname, position, mode):
 def _(year, issue_month, season, freq, positions):
     print("*** callback year:", year, issue_month, season, freq, positions)
     return [generate_table(year)]
+
+
+@app.callback(
+    Output("log", "children"),
+    Input("layers_control", "baseLayer"),
+    Input("layers_control", "overlays"),
+)
+def log_layers(base_layer, overlays):
+    return f"baselayer: {base_layer}, overlays: [{', '.join(overlays)}]"
 
 
 # Endpoints
