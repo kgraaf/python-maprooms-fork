@@ -27,19 +27,14 @@ import dash_leaflet as dl
 import dash_leaflet.express as dlx
 from dash.dependencies import Output, Input, State, ALL
 
+from shapely import wkb
+from shapely.geometry.multipolygon import MultiPolygon
+from psycopg2 import sql
+import psycopg2.extensions
+from queuepool.pool import Pool
+from queuepool.psycopg2cm import ConnectionManagerExtended
+
 import pyaconf
-import queuepool
-
-# import cartopy
-import cartopy.crs as crs
-
-# import matplotlib
-import matplotlib.pyplot as plt
-
-
-# import matplotlib.pyplot as plt
-from matplotlib.backends.backend_agg import FigureCanvasAgg
-from matplotlib.figure import Figure
 
 
 CONFIG = pyaconf.load(os.environ["CONFIG"])
@@ -79,6 +74,68 @@ class RGBA(NamedTuple):
     green: int
     blue: int
     alpha: int
+
+
+def initDBPool(name, config):
+    dbpoolConf = config[name]
+    dbpool = Pool(
+        name=dbpoolConf["name"],
+        capacity=dbpoolConf["capacity"],
+        maxIdleTime=dbpoolConf["max_idle_time"],
+        maxOpenTime=dbpoolConf["max_open_time"],
+        maxUsageCount=dbpoolConf["max_usage_count"],
+        closeOnException=dbpoolConf["close_on_exception"],
+    )
+    for i in range(dbpool.capacity):
+        dbpool.put(
+            ConnectionManagerExtended(
+                name=dbpool.name + "-" + str(i),
+                autocommit=False,
+                isolation_level=psycopg2.extensions.ISOLATION_LEVEL_SERIALIZABLE,
+                dbname=dbpool.name,
+                host=dbpoolConf["host"],
+                port=dbpoolConf["port"],
+                user=dbpoolConf["user"],
+                password=dbpoolConf["password"],
+            )
+        )
+    if dbpoolConf["recycle_interval"] is not None:
+        dbpool.startRecycler(dbpoolConf["recycle_interval"])
+    return dbpool
+
+
+def obtain_geometry(point: Tuple[float, float], table: str) -> MultiPolygon:
+    y, x = point
+    with dbpool.take() as cm:
+        conn = cm.resource
+        with conn:  # transaction
+            df = pd.read_sql(
+                sql.SQL(
+                    """
+                    with a as(
+                        select gid, the_geom,
+                            ST_SetSRID(ST_MakePoint(%(x)s, %(y)s),4326) as pt,
+                            adm0_name, adm1_name, adm2_name
+                            from g2015_2014_2)
+                    select gid, ST_AsBinary(the_geom) as the_geom, pt,
+                        adm0_name, adm1_name, adm2_name
+                        from a
+                        where the_geom && pt and ST_Contains(the_geom, pt)
+                    """
+                ).format(sql.Identifier(table)),
+                conn,
+                params=dict(x=x, y=y),
+            )
+    print("bytes: ", sum(df.the_geom.apply(lambda x: len(x.tobytes()))), "x, y: ", x, y)
+    df["the_geom"] = df["the_geom"].apply(lambda x: wkb.loads(x.tobytes()))
+    if len(df.index) != 0:
+        res = df["the_geom"].values[0]
+        if not isinstance(res, MultiPolygon):
+            # make a MultiPolygon out of a single polygon
+            res = MultiPolygon([res])
+    else:
+        res = None
+    return res, df
 
 
 def from_months_since(x, year_since=1960):
@@ -317,6 +374,9 @@ DATA_ARRAYS: Dict[str, DataArrayEntry] = open_data_arrays()
 
 # Server
 
+
+dbpool = initDBPool("dbpool", CONFIG)
+
 PFX = "/fbfmaproom"
 server = flask.Flask(__name__)
 app = dash.Dash(
@@ -376,7 +436,7 @@ def map_layout():
                     ),
                     dl.Marker(
                         [
-                            dl.Popup([html.H2("Pixel"), html.P(id="marker_text")]),
+                            dl.Popup(id="marker_popup"),
                         ],
                         position=(0, 0),
                         draggable=True,
@@ -674,7 +734,7 @@ def _(pathname):
 
 @app.callback(
     Output("feature", "positions"),
-    Output("marker_text", "children"),
+    Output("marker_popup", "children"),
     Input("location", "pathname"),
     Input("marker", "position"),
     Input("mode", "value"),
@@ -682,7 +742,14 @@ def _(pathname):
 def _(pathname, position, mode):
     c = CS[country(pathname)]
     positions = calculate_polygon(mode, position, c["resolution"])
-    return positions, str(positions)
+    geom, df = obtain_geometry(position, "g2015_2014_2")
+    print("*** geom df: ", df)
+    if geom is not None:
+        xs, ys = geom[0].exterior.coords.xy
+        positions = list(zip(ys, xs))
+    else:
+        positions = []
+    return positions, [html.H2("Pixel"), html.P(id="marker_text")]
 
 
 @app.callback(
@@ -694,7 +761,7 @@ def _(pathname, position, mode):
     Input("feature", "positions"),
 )
 def _(year, issue_month, season, freq, positions):
-    print("*** callback year:", year, issue_month, season, freq, positions)
+    print("*** callback table:", year, issue_month, season, freq, len(positions))
     return [generate_table(year)]
 
 
@@ -718,16 +785,6 @@ def tiles(data_array, tz, tx, ty):
     im2 = produce_test_tile(256, 256, f"{tx},{ty}x{tz}")
     # im += np.max(im2, axis=2)
     # cv2.imwrite(f"tiles/{tx},{ty}x{tz}.png", cv2.LUT(im.astype(np.uint8), np.fromiter(range(255, -1, -1), np.uint8)))
-
-    """
-    print(
-        "*** im:",
-        im.shape,
-        DATA_ARRAYS["rain"].colormap.shape,
-        np.max(im),
-        np.min(im),
-    )
-    """
     im = apply_colormap(im, DATA_ARRAYS["rain"].colormap)
     cv2_imencode_success, buffer = cv2.imencode(".png", im)
     assert cv2_imencode_success
