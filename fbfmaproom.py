@@ -26,6 +26,7 @@ import dash_daq as daq
 import dash_leaflet as dl
 import dash_leaflet.express as dlx
 from dash.dependencies import Output, Input, State, ALL
+from dash.exceptions import PreventUpdate
 
 from shapely import wkb
 from shapely.geometry.multipolygon import MultiPolygon
@@ -104,7 +105,7 @@ def initDBPool(name, config):
     return dbpool
 
 
-def obtain_geometry(point: Tuple[float, float], table: str) -> MultiPolygon:
+def obtain_geometry(point: Tuple[float, float], table: str, config) -> MultiPolygon:
     y, x = point
     with dbpool.take() as cm:
         conn = cm.resource
@@ -120,22 +121,25 @@ def obtain_geometry(point: Tuple[float, float], table: str) -> MultiPolygon:
                     select gid, ST_AsBinary(the_geom) as the_geom, pt,
                         adm0_name, adm1_name, adm2_name
                         from a
-                        where the_geom && pt and ST_Contains(the_geom, pt)
+                        where the_geom && pt and ST_Contains(the_geom, pt) and
+                            adm0_name = %(adm0_name)s
                     """
                 ).format(sql.Identifier(table)),
                 conn,
-                params=dict(x=x, y=y),
+                params=config | dict(x=x, y=y),
             )
-    print("bytes: ", sum(df.the_geom.apply(lambda x: len(x.tobytes()))), "x, y: ", x, y)
+    # print("bytes: ", sum(df.the_geom.apply(lambda x: len(x.tobytes()))), "x, y: ", x, y)
     df["the_geom"] = df["the_geom"].apply(lambda x: wkb.loads(x.tobytes()))
     if len(df.index) != 0:
         res = df["the_geom"].values[0]
         if not isinstance(res, MultiPolygon):
             # make a MultiPolygon out of a single polygon
             res = MultiPolygon([res])
+        attrs = {k: vs[0] for k, vs in df.iteritems() if k not in ("the_geom", "pt")}
     else:
         res = None
-    return res, df
+        attrs = None
+    return res, attrs
 
 
 def from_months_since(x, year_since=1960):
@@ -707,15 +711,6 @@ def calculate_bounds(pt, res):
     return [[x // dx * dx, y // dy * dy], [x // dx * dx + dx, y // dy * dy + dy]]
 
 
-def calculate_polygon(mode, pt, res):
-    if mode == "Pixel":
-        (x0, y0), (x1, y1) = calculate_bounds(pt, res)
-        return [(x0, y0), (x1, y0), (x1, y1), (x0, y1), (x0, y0)]
-    else:
-        (x0, y0), (x1, y1) = calculate_bounds(pt, res)
-        return [(x0, y0), (x1, y0), (x1, y1), (x0, y0)]
-
-
 def country(pathname: str) -> str:
     return pathname.split("/")[2]
 
@@ -733,6 +728,14 @@ def _(pathname):
 
 
 @app.callback(
+    Output("log", "children"),
+    Input("map", "click_lat_lng"),
+)
+def _(position):
+    return str(position)
+
+
+@app.callback(
     Output("feature", "positions"),
     Output("marker_popup", "children"),
     Input("location", "pathname"),
@@ -741,15 +744,28 @@ def _(pathname):
 )
 def _(pathname, position, mode):
     c = CS[country(pathname)]
-    positions = calculate_polygon(mode, position, c["resolution"])
-    geom, df = obtain_geometry(position, "g2015_2014_2")
-    print("*** geom df: ", df)
-    if geom is not None:
-        xs, ys = geom[0].exterior.coords.xy
-        positions = list(zip(ys, xs))
+    title = mode
+    content = ""
+    positions = None
+    if mode == "Pixel":
+        (x0, y0), (x1, y1) = calculate_bounds(position, c["resolution"])
+        positions = [(x0, y0), (x1, y0), (x1, y1), (x0, y1), (x0, y0)]
+        title += " " + str((round((x0 + x1) / 2, 2), round((y0 + y1) / 2, 2)))
     else:
-        positions = []
-    return positions, [html.H2("Pixel"), html.P(id="marker_text")]
+        geom, attrs = obtain_geometry(position, "g2015_2014_2", c)
+        print("*** geom geom: ", attrs)
+        if geom is not None:
+            xs, ys = geom[-1].exterior.coords.xy
+            positions = list(zip(ys, xs))
+            title += " " + attrs["adm2_name"] + " " + str(len(geom))
+            content = str(
+                dict(marker=(round(position[1], 2), round(position[0], 2))) | attrs
+            )
+
+    if positions is None:
+        raise PreventUpdate
+
+    return positions, [html.H2(title), html.P(content)]
 
 
 @app.callback(
@@ -763,15 +779,6 @@ def _(pathname, position, mode):
 def _(year, issue_month, season, freq, positions):
     print("*** callback table:", year, issue_month, season, freq, len(positions))
     return [generate_table(year)]
-
-
-@app.callback(
-    Output("log", "children"),
-    Input("layers_control", "baseLayer"),
-    Input("layers_control", "overlays"),
-)
-def log_layers(base_layer, overlays):
-    return f"baselayer: {base_layer}, overlays: [{', '.join(overlays)}]"
 
 
 # Endpoints
