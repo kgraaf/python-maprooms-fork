@@ -22,6 +22,7 @@ import flask
 import dash
 import dash_core_components as dcc
 import dash_html_components as html
+import dash_table as table
 import dash_daq as daq
 import dash_leaflet as dl
 import dash_leaflet.express as dlx
@@ -126,7 +127,7 @@ def obtain_geometry(point: Tuple[float, float], table: str, config) -> MultiPoly
                     """
                 ).format(sql.Identifier(table)),
                 conn,
-                params=config | dict(x=x, y=y),
+                params=dict(x=x, y=y, adm0_name=config["adm0_name"]),
             )
     # print("bytes: ", sum(df.the_geom.apply(lambda x: len(x.tobytes()))), "x, y: ", x, y)
     df["the_geom"] = df["the_geom"].apply(lambda x: wkb.loads(x.tobytes()))
@@ -150,6 +151,10 @@ def from_months_since(x, year_since=1960):
 
 
 from_months_since_v = np.vectorize(from_months_since)
+
+
+def to_months_since(d, year_since=1960):
+    return (d.year - year_since) * 12 + (d.month - 1) + (d.day - 1) / 30.0
 
 
 def extent(da: xr.DataArray, dim: str, default: Optional[Extent] = None) -> Extent:
@@ -309,15 +314,32 @@ def correct_coord(da: xr.DataArray, coord_name: str) -> xr.DataArray:
     return da.assign_coords({coord_name: vs})
 
 
-def parse_colormap(s: str) -> np.ndarray:
-    cm = [
-        RGBA(0, 0, 0, 0)
-        if x == "null"
-        else RGBA(int(x) >> 16 & 0xFF, int(x) >> 8 & 0xFF, int(x) >> 0 & 0xFF, 255)
-        for x in s[1:-1].split(" ")
-    ]
-    return np.array([cm[int(i / 256.0 * len(cm))] for i in range(0, 256)], np.uint8)
+def parse_color(s: str) -> RGBA:
+    v = int(s)
+    return RGBA(v >> 16 & 0xFF, v >> 8 & 0xFF, v >> 0 & 0xFF, 255)
 
+
+def parse_color_item(vs: List[RGBA], s: str) -> List[RGBA]:
+    if s == "null":
+        rs = [RGBA(0, 0, 0, 0)]
+    elif s[0] == "[":
+        rs = [parse_color(s[1:])]
+    elif s[-1] == "]":
+        n = int(s[:-1])
+        assert 1 < n <= 256 and len(vs) != 0
+        rs = [vs[-1]] * (n - 1)
+    else:
+        rs = [parse_color(s)]
+    return vs + rs
+
+
+def parse_colormap(s: str) -> np.ndarray:
+    vs = []
+    for x in s[1:-1].split(" "):
+        vs = parse_color_item(vs, x)
+    # print("*** CM cm:", len(vs), [f"{v.red:02x}{v.green:02x}{v.blue:02x}" for v in vs])
+    rs = np.array([vs[int(i / 256.0 * len(vs))] for i in range(0, 256)], np.uint8)
+    return rs
 
 def apply_colormap(im: np.ndarray, colormap: np.ndarray) -> np.ndarray:
     im = im.astype(np.uint8)
@@ -344,13 +366,13 @@ def open_data_arrays():
     )
     print(bath, extents(bath))
 
-    rain = xr.open_dataset("rain-madagascar.nc", decode_times=False)[
-        "prcp_est"
-    ].transpose("Y", "X", ...)
+    rain = xr.open_dataset("rain-noaa.nc", decode_times=False)["prcp_est"].transpose(
+        "Y", "X", ...
+    )
     rs["rain"] = DataArrayEntry(
         "rain", rain, None, None, None, parse_colormap(rain.attrs["colormap"])
     )
-    print("*** colormap:", rs["rain"].colormap, rs["rain"].colormap.shape)
+    # print("*** colormap:", rs["rain"].colormap, rs["rain"].colormap.shape)
     print(rain, extents(rain, ["Y", "X"]))
     # print(from_months_since_v(rain["T"].values))
 
@@ -374,6 +396,32 @@ def open_data_arrays():
 
 
 DATA_ARRAYS: Dict[str, DataArrayEntry] = open_data_arrays()
+
+TABLE_COLUMNS = [
+    "Year",
+    "ENSO State",
+    "Forecast, %",
+    "Rain Rank",
+    "Farmers' reported Bad Years",
+]
+
+SUMMARY_ROWS = [
+    "Worthy-action",
+    "Act-in-vain",
+    "Fail-to-act",
+    "Worthy-Inaction",
+    "Rate",
+]
+
+
+def generate_table(config, year, issue_month, season, freq, positions):
+    time.sleep(1)
+    year_min, year_max = config["year_range"]
+
+    df = pd.DataFrame({k: [] for k in TABLE_COLUMNS})
+    df[df.columns[0]] = [x for x in range(year_max, year_min - 1, -1)]
+
+    return df
 
 
 # Server
@@ -551,9 +599,6 @@ def command_layout():
                     dcc.Input(
                         id="year",
                         type="number",
-                        min=1982,
-                        max=2020,
-                        value=2020,
                         step=1,
                         style={
                             "height": "32px",
@@ -611,63 +656,36 @@ def command_layout():
     )
 
 
-def generate_table(year):
-    time.sleep(1)
-
-    if year is None:
-        return html.Div()
-
-    return html.Table(
-        [
-            html.Thead(
-                [
-                    html.Tr(
-                        [html.Th([f"{x}:"], style={"color": "#4166B2"})]
-                        + [html.Th([str(year)]) for _ in range(4)]
-                    )
-                    for x in [
-                        "Worthy-action",
-                        "Act-in-vain",
-                        "Fail-to-act",
-                        "Worthy-Inaction",
-                        "Rate",
-                    ]
-                ]
-                + [
-                    html.Tr(
-                        [
-                            html.Th(
-                                [x],
-                                style={"background-color": "rgb(240, 240, 240)"},
-                            )
-                            for x in [
-                                "Year",
-                                "ENSO State",
-                                "Forecast, %",
-                                "Rain Rank",
-                                "Farmers' reported Bad Years",
-                            ]
-                        ]
-                    )
-                ]
-            ),
-            html.Tbody(
-                [
-                    html.Tr([html.Td([y])] + [html.Td() for _ in range(4)])
-                    for y in range(2020, 1999, -1)
-                ]
-            ),
-        ],
-    )
-
-
 def table_layout():
     return html.Div(
         [
             html.Div(id="log"),
             dcc.Loading(
-                [],
-                id="table_panel",
+                [
+                    table.DataTable(
+                        id="table",
+                        columns=[{"name": x, "id": x} for x in TABLE_COLUMNS],
+                        page_action="none",
+                        style_table={
+                            "height": "600px",
+                            "overflowY": "auto",
+                            "border": "1px solid rgb(240, 240, 240)",
+                        },
+                        style_header={
+                            "border": "1px solid rgb(240, 240, 240)",
+                        },
+                        style_cell={
+                            "whiteSpace": "normal",
+                            "height": "auto",
+                            "textAlign": "center",
+                            "border": "1px solid rgb(240, 240, 240)",
+                        },
+                        fixed_rows={
+                            "headers": False,
+                            "data": 0,
+                        },
+                    ),
+                ],
                 type="dot",
                 parent_style={"height": "100%"},
                 style={"opacity": 0.2},
@@ -720,11 +738,15 @@ def country(pathname: str) -> str:
     Output("map", "center"),
     Output("map", "zoom"),
     Output("marker", "position"),
+    Output("year", "min"),
+    Output("year", "max"),
+    Output("year", "value"),
     Input("location", "pathname"),
 )
 def _(pathname):
     c = CS[country(pathname)]
-    return f"{PFX}/assets/{c['logo']}", c["center"], c["zoom"], c["marker"]
+    year_min, year_max = c["year_range"]
+    return f"{PFX}/assets/{c['logo']}", c["center"], c["zoom"], c["marker"], year_min, year_max, year_max
 
 
 @app.callback(
@@ -769,16 +791,19 @@ def _(pathname, position, mode):
 
 
 @app.callback(
-    Output("table_panel", "children"),
+    Output("table", "data"),
     Input("year", "value"),
     Input("issue_month", "value"),
     Input("season", "value"),
     Input("freq", "value"),
     Input("feature", "positions"),
+    Input("location", "pathname"),
+
 )
-def _(year, issue_month, season, freq, positions):
-    print("*** callback table:", year, issue_month, season, freq, len(positions))
-    return [generate_table(year)]
+def _(year, issue_month, season, freq, positions, pathname):
+    print("*** callback table:", year, issue_month, season, freq, len(positions), pathname)
+    c = CS[country(pathname)]
+    return generate_table(c, year, issue_month, season, freq, positions).to_dict("records")
 
 
 # Endpoints
