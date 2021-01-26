@@ -341,6 +341,7 @@ def parse_colormap(s: str) -> np.ndarray:
     rs = np.array([vs[int(i / 256.0 * len(vs))] for i in range(0, 256)], np.uint8)
     return rs
 
+
 def apply_colormap(im: np.ndarray, colormap: np.ndarray) -> np.ndarray:
     im = im.astype(np.uint8)
     im = cv2.merge(
@@ -416,7 +417,8 @@ SUMMARY_ROWS = [
 
 def generate_table(config, year, issue_month, season, freq, positions):
     time.sleep(1)
-    year_min, year_max = config["year_range"]
+
+    year_min, year_max = config["seasons"][season]["year_range"]
 
     df = pd.DataFrame({k: [] for k in TABLE_COLUMNS})
     df[df.columns[0]] = [x for x in range(year_max, year_min - 1, -1)]
@@ -558,14 +560,6 @@ def command_layout():
                     html.Label("Issue month:"),
                     dcc.Dropdown(
                         id="issue_month",
-                        options=[
-                            dict(
-                                label=pd.to_datetime(v, format="%m").month_name(),
-                                value=v,
-                            )
-                            for v in range(8, 12)
-                        ],
-                        value=10,
                         clearable=False,
                     ),
                 ],
@@ -581,8 +575,6 @@ def command_layout():
                     html.Label("Leads:"),
                     dcc.Dropdown(
                         id="season",
-                        options=[dict(label="DJF", value=v) for v in range(1, 2)],
-                        value=1,
                         clearable=False,
                     ),
                 ],
@@ -738,15 +730,59 @@ def country(pathname: str) -> str:
     Output("map", "center"),
     Output("map", "zoom"),
     Output("marker", "position"),
-    Output("year", "min"),
-    Output("year", "max"),
-    Output("year", "value"),
+    Output("season", "options"),
+    Output("season", "value"),
     Input("location", "pathname"),
 )
 def _(pathname):
     c = CS[country(pathname)]
+    season_options = [
+        dict(
+            label=c["seasons"][k]["label"],
+            value=k,
+        )
+        for k in sorted(c["seasons"].keys())
+    ]
+    season_value = min(c["seasons"].keys())
+
+    return (
+        f"{PFX}/assets/{c['logo']}",
+        c["center"],
+        c["zoom"],
+        c["marker"],
+        season_options,
+        season_value,
+    )
+
+
+@app.callback(
+    Output("year", "min"),
+    Output("year", "max"),
+    Output("year", "value"),
+    Output("issue_month", "options"),
+    Output("issue_month", "value"),
+    Input("season", "value"),
+    Input("location", "pathname"),
+)
+def _(season, pathname):
+    c = CS[country(pathname)]["seasons"][season]
     year_min, year_max = c["year_range"]
-    return f"{PFX}/assets/{c['logo']}", c["center"], c["zoom"], c["marker"], year_min, year_max, year_max
+    issue_month_options = [
+        dict(
+            label=pd.to_datetime(int(v) + 1, format="%m").month_name(),
+            value=int(v) + 1,
+        )
+        for v in reversed(c["issue_months"])
+    ]
+    issue_month_value = int(c["issue_months"][-1]) + 1
+
+    return (
+        year_min,
+        year_max,
+        year_max,
+        issue_month_options,
+        issue_month_value,
+    )
 
 
 @app.callback(
@@ -794,16 +830,19 @@ def _(pathname, position, mode):
     Output("table", "data"),
     Input("year", "value"),
     Input("issue_month", "value"),
-    Input("season", "value"),
     Input("freq", "value"),
     Input("feature", "positions"),
     Input("location", "pathname"),
-
+    State("season", "value"),
 )
-def _(year, issue_month, season, freq, positions, pathname):
-    print("*** callback table:", year, issue_month, season, freq, len(positions), pathname)
+def _(year, issue_month, freq, positions, pathname, season):
+    print(
+        "*** callback table:", year, issue_month, season, freq, len(positions), pathname
+    )
     c = CS[country(pathname)]
-    return generate_table(c, year, issue_month, season, freq, positions).to_dict("records")
+    return generate_table(c, year, issue_month, season, freq, positions).to_dict(
+        "records"
+    )
 
 
 # Endpoints

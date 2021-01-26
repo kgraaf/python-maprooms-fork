@@ -1,4 +1,4 @@
-mode: prod # debug, devel or prod
+mode: prod  # debug, devel or prod
 prefix: https://iridl.ldeo.columbia.edu
 core_path: /fbfmaproom
 admin_path: /fbfmaproom/admin
@@ -29,14 +29,14 @@ dbpool:
     name: design_engine  # postgres database name
     host: localhost
     port: 5433
-    user: dero # user name
+    user: dero  # user name
     password: SNIP
-    capacity: 10 # number of connections in pool
+    capacity: 10  # number of connections in pool
     close_on_exception: true
-    max_idle_time: 60 # (seconds)
-    max_open_time: 600 # (seconds)
+    max_idle_time: 60  # (seconds)
+    max_open_time: 600  # (seconds)
     max_usage_count: 1000
-    recycle_interval: 60 # (seconds) set to null to disable recycler thread
+    recycle_interval: 60  # (seconds) set to null to disable recycler thread
 
 countries:
    malawi:
@@ -47,30 +47,19 @@ countries:
       zoom: 7
       rotation: 0
       marker: [-14, 34]
-      season: 0.5 # months since Jan 1: 0.0 <= season < 12.0
-      year_range: [1982, 2020]
-
-   ethiopia:
-      logo: Ethiopia_IRI_98x48.png
-      adm0_name: Ethiopia
-      resolution: [1, 1]
-      center: [10, 46.5]
-      zoom: 6
-      rotation: 0
-      marker: [6, 40]
-      season: 5.5 # months since Jan 1: 0.0 <= season < 12.0
-      year_range: [1982, 2020]
-
-   senegal:
-      logo: Senegal_IRI_98x48.png
-      adm0_name: Senegal
-      resolution: [1, 1]
-      center: [15, -11.5]
-      zoom: 7
-      rotation: 0
-      marker: [14, -15]
-      season: 5.5 # months since Jan 1: 0.0 <= season < 12.0
-      year_range: [1982, 2020]
+      seasons:
+         season1:
+            label: DJF
+            target_month: 0.5  # months since Jan 1: 0.0 <= season < 12.0
+            issue_months: [7, 8, 9, 10]  # months since Jan 1: 0.0 <= season < 12.0
+            leads: [5.5, 4.5, 3.5, 2.5]  # as appear in the dataset, i.e. may be dummy 0.0
+            year_range: [1982, 2020]
+         season2:
+            label: MJJ
+            target_month: 5.5  # months since Jan 1: 0.0 <= season < 12.0
+            issue_months: [3, 5]  # months since Jan 1: 0.0 <= season < 12.0
+            leads: [2.5, 0.5]  # as appear in the dataset, i.e. may be dummy 0.0
+            year_range: [2001, 2005]
 
    madagascar:
       logo: Madagascar_IRI_98x48.png
@@ -80,5 +69,10 @@ countries:
       zoom: 7
       rotation: 0
       marker: [-24, 45.5]
-      season: 0.5 # months since Jan 1: 0.0 <= season < 12.0
-      year_range: [1983, 2021]
+      seasons:
+         season1:
+            label: DJF
+            target_month: 0.5  # months since Jan 1: 0.0 <= season < 12.0
+            issue_months: [8, 9, 10]  # months since Jan 1: 0.0 <= season < 12.0
+            leads: [0.0, 0.0, 0.0]  # as appear in the dataset, i.e. may be dummy 0.0
+            year_range: [1983, 2021]
