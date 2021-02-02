@@ -226,17 +226,59 @@ def table_layout(table_columns):
             dcc.Loading(
                 [
                     table.DataTable(
+                        id="summary",
+                        columns=table_columns,
+                        page_action="none",
+                        style_table={
+                            "height": "auto",
+                            "overflowY": "scroll",
+                        },
+                        css=[
+                            {
+                                "selector": "tr:first-child",
+                                "rule": "display: none",
+                            },
+                            {
+                                "selector": "tr:not(last-child)",
+                                "rule": "font-weight: bold; background-color: rgb(255, 255, 255);",
+                            },
+                            {
+                                "selector": "tr:last-child",
+                                "rule": "font-weight: bold; background-color: rgb(241, 241, 241);",
+                            },
+                        ],
+                        style_cell={
+                            "whiteSpace": "normal",
+                            "height": "auto",
+                            "textAlign": "center",
+                            "border": "1px solid rgb(150, 150, 150)",
+                            "background-color": "rgba(255, 255, 255, 0)",
+                        },
+                        style_data_conditional=[
+                            {
+                                "if": {
+                                    "filter_query": "{year_label} != 'Year'",
+                                    "column_id": "year_label",
+                                },
+                                "color": "rgb(67, 104, 176)",
+                                "font-weight": "bold",
+                            },
+                        ],
+                    ),
+                    table.DataTable(
                         id="table",
                         columns=table_columns,
                         page_action="none",
                         style_table={
-                            "height": "600px",
-                            "overflowY": "auto",
+                            "height": "400px",
+                            "overflowY": "scroll",
                         },
-                        style_header={
-                            "border": "1px solid rgb(150, 150, 150)",
-                            "backgroundColor": "rgb(241, 241, 241)",
-                        },
+                        css=[
+                            {
+                                "selector": "tr:first-child",
+                                "rule": "display: none",
+                            },
+                        ],
                         style_cell={
                             "whiteSpace": "normal",
                             "height": "auto",

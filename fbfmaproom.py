@@ -33,11 +33,11 @@ TABLE_COLUMNS = [
 ]
 
 SUMMARY_ROWS = [
-    "Worthy-action",
-    "Act-in-vain",
-    "Fail-to-act",
-    "Worthy-Inaction",
-    "Rate",
+    "Worthy-action:",
+    "Act-in-vain:",
+    "Fail-to-act:",
+    "Worthy-Inaction:",
+    "Rate:"
 ]
 
 PFX = "/fbfmaproom"
@@ -153,13 +153,8 @@ def retrieve_geometry(
 
 
 def generate_table(config, table_columns, year, issue_month, season, freq, positions):
-    time.sleep(1)
-
     year_min, year_max = config["seasons"][season]["year_range"]
-
     df2 = DF[DF["adm0_name"] == config["adm0_name"]]
-    print(df2)
-
     df = pd.DataFrame({c["id"]: [] for c in table_columns})
     df["year"] = df2["year"]
     df["year_label"] = df2["label"]
@@ -169,7 +164,15 @@ def generate_table(config, table_columns, year, issue_month, season, freq, posit
     df["forecast"] = df2["month"]
     df = df[(df["year"] >= year_min) & (df["year"] <= year_max)]
     df = df[::-1]
+    return df
 
+
+def generate_summary(config, table_columns, year, issue_month, season, freq, positions):
+    year_min, year_max = config["seasons"][season]["year_range"]
+    df = pd.DataFrame({c["id"]: [] for c in table_columns})
+    df["year_label"] = SUMMARY_ROWS
+    df2 = pd.DataFrame({c["id"]: [c["name"]] for c in table_columns})
+    df = df.append(df2)
     return df
 
 
@@ -286,6 +289,7 @@ def _(pathname, position, mode):
 
 @APP.callback(
     Output("table", "data"),
+    Output("summary", "data"),
     Input("year", "value"),
     Input("issue_month", "value"),
     Input("freq", "value"),
@@ -298,9 +302,10 @@ def _(year, issue_month, freq, positions, pathname, season):
         "*** callback table:", year, issue_month, season, freq, len(positions), pathname
     )
     c = CS[country(pathname)]
-    return generate_table(
-        c, TABLE_COLUMNS, year, issue_month, season, freq, positions
-    ).to_dict("records")
+    dft = generate_table(c, TABLE_COLUMNS, year, issue_month, season, freq, positions)
+    dfs = generate_summary(c, TABLE_COLUMNS, year, issue_month, season, freq, positions)
+
+    return dft.to_dict("records"), dfs.to_dict("records")
 
 
 # Endpoints
