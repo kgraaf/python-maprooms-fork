@@ -25,11 +25,11 @@ CS = CONFIG["countries"]
 DBPOOL = pingrid.init_dbpool("dbpool", CONFIG)
 
 TABLE_COLUMNS = [
-    "Year",
-    "ENSO State",
-    "Forecast, %",
-    "Rain Rank",
-    "Farmers' reported Bad Years",
+    dict(id="year_label", name="Year"),
+    dict(id="enso_state", name="ENSO State"),
+    dict(id="forecast", name="Forecast, %"),
+    dict(id="rain_rank", name="Rain Rank"),
+    dict(id="bad_year", name="Farmers' reported Bad Years"),
 ]
 
 SUMMARY_ROWS = [
@@ -94,8 +94,26 @@ def open_data_arrays():
 
 DATA_ARRAYS: Dict[str, pingrid.DataArrayEntry] = open_data_arrays()
 
+SEASON_LENGTH = 3.0
 
-def obtain_geometry(
+DF = pd.read_csv("fbfmaproom.csv")
+DF["year"] = DF["month"].apply(lambda x: pingrid.from_months_since(x).year)
+DF["begin_year"] = DF["month"].apply(
+    lambda x: pingrid.from_months_since(x - SEASON_LENGTH / 2.0).year
+)
+DF["end_year"] = DF["month"].apply(
+    lambda x: pingrid.from_months_since(x + SEASON_LENGTH / 2.0).year
+)
+DF["label"] = DF.apply(
+    lambda d: str(d["begin_year"])
+    if d["begin_year"] == d["end_year"]
+    else str(d["begin_year"]) + "/" + str(d["end_year"])[-2:],
+    axis=1,
+)
+print(DF)
+
+
+def retrieve_geometry(
     dbpool, point: Tuple[float, float], table: str, config
 ) -> MultiPolygon:
     y, x = point
@@ -139,8 +157,18 @@ def generate_table(config, table_columns, year, issue_month, season, freq, posit
 
     year_min, year_max = config["seasons"][season]["year_range"]
 
-    df = pd.DataFrame({k: [] for k in table_columns})
-    df[df.columns[0]] = [x for x in range(year_max, year_min - 1, -1)]
+    df2 = DF[DF["adm0_name"] == config["adm0_name"]]
+    print(df2)
+
+    df = pd.DataFrame({c["id"]: [] for c in table_columns})
+    df["year"] = df2["year"]
+    df["year_label"] = df2["label"]
+    df["enso_state"] = df2["enso_state"]
+    df["bad_year"] = df2["bad_year"]
+    df["rain_rank"] = pingrid.from_months_since_v(df2["month"])
+    df["forecast"] = df2["month"]
+    df = df[(df["year"] >= year_min) & (df["year"] <= year_max)]
+    df = df[::-1]
 
     return df
 
@@ -240,7 +268,7 @@ def _(pathname, position, mode):
         positions = [(x0, y0), (x1, y0), (x1, y1), (x0, y1), (x0, y0)]
         title += " " + str((round((x0 + x1) / 2, 2), round((y0 + y1) / 2, 2)))
     else:
-        geom, attrs = obtain_geometry(DBPOOL, position, "g2015_2014_2", c)
+        geom, attrs = retrieve_geometry(DBPOOL, position, "g2015_2014_2", c)
         print("*** geom geom: ", attrs)
         if geom is not None:
             xs, ys = geom[-1].exterior.coords.xy

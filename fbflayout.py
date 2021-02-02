@@ -115,7 +115,7 @@ def command_layout():
                             )
                             for v in ["District", "Regional", "National", "Pixel"]
                         ],
-                        value="District",
+                        value="Pixel",
                         clearable=False,
                     ),
                 ],
@@ -227,26 +227,61 @@ def table_layout(table_columns):
                 [
                     table.DataTable(
                         id="table",
-                        columns=[{"name": x, "id": x} for x in table_columns],
+                        columns=table_columns,
                         page_action="none",
                         style_table={
                             "height": "600px",
                             "overflowY": "auto",
-                            "border": "1px solid rgb(240, 240, 240)",
                         },
                         style_header={
-                            "border": "1px solid rgb(240, 240, 240)",
+                            "border": "1px solid rgb(150, 150, 150)",
+                            "backgroundColor": "rgb(241, 241, 241)",
                         },
                         style_cell={
                             "whiteSpace": "normal",
                             "height": "auto",
                             "textAlign": "center",
-                            "border": "1px solid rgb(240, 240, 240)",
+                            "border": "1px solid rgb(150, 150, 150)",
+                            "backgroundColor": "rgb(248, 248, 248)",
                         },
                         fixed_rows={
                             "headers": False,
                             "data": 0,
                         },
+                        style_data_conditional=[
+                            {
+                                "if": {
+                                    "filter_query": "{enso_state} = 'El Niño'",
+                                    "column_id": "enso_state",
+                                },
+                                "backgroundColor": "rgb(172, 23, 25)",
+                                "color": "white",
+                            },
+                            {
+                                "if": {
+                                    "filter_query": "{enso_state} = 'La Niña'",
+                                    "column_id": "enso_state",
+                                },
+                                "backgroundColor": "rgb(24, 101, 152)",
+                                "color": "white",
+                            },
+                            {
+                                "if": {
+                                    "filter_query": "{enso_state} = 'Neutral'",
+                                    "column_id": "enso_state",
+                                },
+                                "backgroundColor": "rgb(98, 98, 98)",
+                                "color": "white",
+                            },
+                            {
+                                "if": {
+                                    "filter_query": "{bad_year} = 'Bad'",
+                                    "column_id": "bad_year",
+                                },
+                                "backgroundColor": "rgb(64, 9, 101)",
+                                "color": "white",
+                            },
+                        ],
                     ),
                 ],
                 type="dot",
