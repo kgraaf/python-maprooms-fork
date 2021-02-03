@@ -42,7 +42,7 @@ def map_layout():
                             url="/tiles/bath/{z}/{x}/{y}",
                             opacity=0.6,
                         ),
-                        name="Rain",
+                        name="PNE",
                         checked=True,
                     ),
                 ],
@@ -291,6 +291,22 @@ def table_layout(table_columns):
                             "data": 0,
                         },
                         style_data_conditional=[
+                            {
+                                "if": {
+                                    "filter_query": "{rain_rank_cat} = 1",
+                                    "column_id": "rain_rank",
+                                },
+                                "backgroundColor": "rgb(251, 177, 57)",
+                                "color": "black",
+                            },
+                            {
+                                "if": {
+                                    "filter_query": "{rain_rank_cat} = 2",
+                                    "column_id": "rain_rank",
+                                },
+                                "backgroundColor": "rgb(161, 83, 22)",
+                                "color": "white",
+                            },
                             {
                                 "if": {
                                     "filter_query": "{enso_state} = 'El Niño'",

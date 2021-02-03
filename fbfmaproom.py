@@ -37,7 +37,7 @@ SUMMARY_ROWS = [
     "Act-in-vain:",
     "Fail-to-act:",
     "Worthy-Inaction:",
-    "Rate:"
+    "Rate:",
 ]
 
 PFX = "/fbfmaproom"
@@ -99,10 +99,10 @@ SEASON_LENGTH = 3.0
 DF = pd.read_csv("fbfmaproom.csv")
 DF["year"] = DF["month"].apply(lambda x: pingrid.from_months_since(x).year)
 DF["begin_year"] = DF["month"].apply(
-    lambda x: pingrid.from_months_since(x - SEASON_LENGTH / 2.0).year
+    lambda x: pingrid.from_months_since(x - SEASON_LENGTH / 2).year
 )
 DF["end_year"] = DF["month"].apply(
-    lambda x: pingrid.from_months_since(x + SEASON_LENGTH / 2.0).year
+    lambda x: pingrid.from_months_since(x + SEASON_LENGTH / 2).year
 )
 DF["label"] = DF.apply(
     lambda d: str(d["begin_year"])
@@ -154,16 +154,56 @@ def retrieve_geometry(
 
 def generate_table(config, table_columns, year, issue_month, season, freq, positions):
     year_min, year_max = config["seasons"][season]["year_range"]
+    target_month = config["seasons"][season]["target_month"]
+    freq_min, freq_max = freq
+
     df2 = DF[DF["adm0_name"] == config["adm0_name"]]
     df = pd.DataFrame({c["id"]: [] for c in table_columns})
     df["year"] = df2["year"]
     df["year_label"] = df2["label"]
     df["enso_state"] = df2["enso_state"]
     df["bad_year"] = df2["bad_year"]
-    df["rain_rank"] = pingrid.from_months_since_v(df2["month"])
-    df["forecast"] = df2["month"]
+    df["season"] = df2["month"]
+
+    df = df.set_index("season")
+
+    da = DATA_ARRAYS["rain"].data_array
+
+    da["season"] = (
+        da["T"] - target_month + SEASON_LENGTH / 2
+    ) // SEASON_LENGTH * SEASON_LENGTH + target_month
+
+    # da["date"] = da["T"].groupby("T").map(pingrid.from_months_since_v)
+    # da["date2"] = xr.apply_ufunc(pingrid.from_months_since_v, da["T"])
+
+    da = da.groupby("season").mean() * 90
+    da = da.where(da["season"] % 12 == target_month, drop=True)
+
+    da = da.groupby("season").map(
+        lambda x: x
+    )  # we will use this to apply spatial average to each group (in this case 1 season)
+    # da = xr.apply_ufunc(lambda x: x - x + x.size, da)  # this vectorized func is applied to the whole da
+    da = da.isel(X=0, Y=0, drop=True)
+    df3 = da.to_dataframe()
+
+    df = df.join(df3, how="outer")
+
     df = df[(df["year"] >= year_min) & (df["year"] <= year_max)]
+
+    df["rain_rank"] = df["prcp_est"].rank(
+        method="first", na_option="keep", ascending=False
+    )
+
+    df["rain_rank_cat"] = (
+        df["prcp_est"]
+        .rank(method="first", na_option="keep", ascending=False, pct=True)
+        .apply(lambda x: 2 if x <= freq_min / 100 else 1 if x <= freq_max / 100 else 0)
+    )
+
+    print(df)
+
     df = df[::-1]
+
     return df
 
 
