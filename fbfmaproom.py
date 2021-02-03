@@ -80,14 +80,14 @@ def open_data_arrays():
     pnep = xr.open_dataset("pnep-malawi.nc", decode_times=False)["prob"].transpose(
         "Y", "X", ...
     )
-    pnep["T"] = pnep["S"] + pnep["L"]
+    # pnep["T"] = pnep["S"] + pnep["L"]
     rs["pnep"] = pingrid.DataArrayEntry("pnep", pnep, None, None, None, None)
     print(
         pnep,
         pingrid.extents(pnep, ["Y", "X"]),
         pnep["S"].values.shape,
         pnep["L"].values.shape,
-        pnep["T"].values.shape,
+        # pnep["T"].values.shape,
     )
     return rs
 
@@ -200,6 +200,40 @@ def generate_table(config, table_columns, year, issue_month, season, freq, posit
         .apply(lambda x: 2 if x <= freq_min / 100 else 1 if x <= freq_max / 100 else 0)
     )
 
+
+
+    da2 = DATA_ARRAYS["pnep"].data_array
+
+    da2 = da2.sel(P=freq_max, drop=True)
+
+    s = config["seasons"][season]["issue_months"][issue_month]
+    l = config["seasons"][season]["leads"][issue_month]
+
+    da2 = da2.where(da2["S"] % 12 == s, drop=True)
+    da2 = da2.sel(L=l, drop=True)
+    da2["S"] = da2["S"] + l
+
+    da2 = da2.groupby("S").map(
+        lambda x: x
+    )  # we will use this to apply spatial average to each group (in this case 1 season)
+    da2 = da2.isel(X=0, Y=0, drop=True)
+    
+    df4 = da2.to_dataframe()
+
+    df = df.join(df4, on="season", how="outer")
+    df["forecast"] = df['prob'].apply(lambda x: f"{x:.2f}")
+
+
+    df["pnep_rank"] = df["prob"].rank(
+        method="first", na_option="keep", ascending=False
+    )
+
+    df["pnep_rank_cat"] = (
+        df["prob"]
+        .rank(method="first", na_option="keep", ascending=False, pct=True)
+        .apply(lambda x: 2 if x <= freq_min / 100 else 1 if x <= freq_max / 100 else 0)
+    )
+
     print(df)
 
     df = df[::-1]
@@ -271,11 +305,11 @@ def _(season, pathname):
     issue_month_options = [
         dict(
             label=pd.to_datetime(int(v) + 1, format="%m").month_name(),
-            value=int(v) + 1,
+            value=i,
         )
-        for v in reversed(c["issue_months"])
+        for i, v in reversed(list(enumerate(c["issue_months"])))
     ]
-    issue_month_value = int(c["issue_months"][-1]) + 1
+    issue_month_value = len(c["issue_months"]) - 1
 
     return (
         year_min,

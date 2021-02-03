@@ -143,7 +143,7 @@ def command_layout():
             ),
             html.Div(
                 [
-                    html.Label("Leads:"),
+                    html.Label("Season:"),
                     dcc.Dropdown(
                         id="season",
                         clearable=False,
@@ -303,6 +303,22 @@ def table_layout(table_columns):
                                 "if": {
                                     "filter_query": "{rain_rank_cat} = 2",
                                     "column_id": "rain_rank",
+                                },
+                                "backgroundColor": "rgb(161, 83, 22)",
+                                "color": "white",
+                            },
+                            {
+                                "if": {
+                                    "filter_query": "{pnep_rank_cat} = 1",
+                                    "column_id": "forecast",
+                                },
+                                "backgroundColor": "rgb(251, 177, 57)",
+                                "color": "black",
+                            },
+                            {
+                                "if": {
+                                    "filter_query": "{pnep_rank_cat} = 2",
+                                    "column_id": "forecast",
                                 },
                                 "backgroundColor": "rgb(161, 83, 22)",
                                 "color": "white",
