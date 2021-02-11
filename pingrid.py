@@ -10,6 +10,8 @@ import cv2
 import psycopg2.extensions
 from queuepool.psycopg2cm import ConnectionManagerExtended
 from queuepool.pool import Pool
+import rasterio.features
+import rasterio.transform
 
 
 def init_dbpool(name, config):
@@ -279,3 +281,70 @@ def apply_colormap(im: np.ndarray, colormap: np.ndarray) -> np.ndarray:
         ]
     )
     return im
+
+
+def trim_to_bbox(ds, s, lon_name="lon", lat_name="lat"):
+    """Given a Dataset and a shape, return the subset of the Dataset that
+    intersects the shape's bounding box.
+    """
+    lon_res = ds[lon_name].values[1] - ds[lon_name].values[0]
+    lat_res = ds[lat_name].values[1] - ds[lat_name].values[0]
+
+    lon_min, lat_min, lon_max, lat_max = s.bounds
+    # print("*** shape bounds:", lon_min, lat_min, lon_max, lat_max, file=sys.stderr)
+
+    lon_min -= 1 * lon_res
+    lon_max += 1 * lon_res
+    lat_min -= 1 * lat_res
+    lat_max += 1 * lat_res
+
+    return ds.sel(
+        {lon_name: slice(lon_min, lon_max), lat_name: slice(lat_min, lat_max)}
+    )
+
+
+def average_over(ds, s, lon_name="lon", lat_name="lat", all_touched=False):
+    """Average a Dataset over a shape"""
+    lon_res = ds[lon_name].values[1] - ds[lon_name].values[0]
+    lat_res = ds[lat_name].values[1] - ds[lat_name].values[0]
+
+    lon_min = ds[lon_name].values[0] - 0.5 * lon_res
+    lon_max = ds[lon_name].values[-1] + 0.5 * lon_res
+    lat_min = ds[lat_name].values[0] - 0.5 * lat_res
+    lat_max = ds[lat_name].values[-1] + 0.5 * lat_res
+
+    lon_size = ds.sizes[lon_name]
+    lat_size = ds.sizes[lat_name]
+
+    t = rasterio.transform.Affine(
+        (lon_max - lon_min) / lon_size,
+        0,
+        lon_min,
+        0,
+        (lat_max - lat_min) / lat_size,
+        lat_min,
+    )
+
+    r0 = rasterio.features.rasterize(
+        s, out_shape=(lat_size, lon_size), transform=t, all_touched=all_touched
+    )
+    r0 = xr.DataArray(
+        r0,
+        dims=(lat_name, lon_name),
+        coords={lat_name: ds[lat_name], lon_name: ds[lon_name]},
+    )
+    r = r0 * np.cos(np.deg2rad(ds[lat_name]))
+
+    res = (ds * r).sum([lat_name, lon_name], skipna=True)
+    res = res / (~np.isnan(ds) * r).sum([lat_name, lon_name])
+
+    res.name = ds.name
+    return res
+
+
+def average_over_trimmed(ds, s, lon_name="lon", lat_name="lat", all_touched=False):
+    ds = trim_to_bbox(ds, s, lon_name=lon_name, lat_name=lat_name)
+    res = average_over(
+        ds, s, lon_name=lon_name, lat_name=lat_name, all_touched=all_touched
+    )
+    return res

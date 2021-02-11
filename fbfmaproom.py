@@ -13,6 +13,7 @@ from dash.dependencies import Output, Input, State, ALL
 from dash.exceptions import PreventUpdate
 from shapely import wkb
 from shapely.geometry.multipolygon import MultiPolygon
+from shapely.geometry import Polygon
 from psycopg2 import sql
 import pyaconf
 import pingrid
@@ -179,11 +180,21 @@ def generate_table(config, table_columns, year, issue_month, season, freq, posit
     da = da.groupby("season").mean() * 90
     da = da.where(da["season"] % 12 == target_month, drop=True)
 
+    mpolygon = MultiPolygon([Polygon([[x, y] for y, x in positions])])
+
+    da = pingrid.average_over_trimmed(
+        da, mpolygon, lon_name="X", lat_name="Y", all_touched=True
+    )
+    print("*** average_over_trimmed rain: ", da.name, da)
+
+    """
     da = da.groupby("season").map(
         lambda x: x
     )  # we will use this to apply spatial average to each group (in this case 1 season)
     # da = xr.apply_ufunc(lambda x: x - x + x.size, da)  # this vectorized func is applied to the whole da
     da = da.isel(X=0, Y=0, drop=True)
+    """
+
     df3 = da.to_dataframe()
 
     df = df.join(df3, how="outer")
@@ -200,8 +211,6 @@ def generate_table(config, table_columns, year, issue_month, season, freq, posit
         .apply(lambda x: 2 if x <= freq_min / 100 else 1 if x <= freq_max / 100 else 0)
     )
 
-
-
     da2 = DATA_ARRAYS["pnep"].data_array
 
     da2 = da2.sel(P=freq_max, drop=True)
@@ -213,20 +222,26 @@ def generate_table(config, table_columns, year, issue_month, season, freq, posit
     da2 = da2.sel(L=l, drop=True)
     da2["S"] = da2["S"] + l
 
+    da2 = pingrid.average_over_trimmed(
+        da2, mpolygon, lon_name="X", lat_name="Y", all_touched=True
+    )
+    print("*** average_over_trimmed pnep: ", da2)
+
+    """
     da2 = da2.groupby("S").map(
         lambda x: x
     )  # we will use this to apply spatial average to each group (in this case 1 season)
     da2 = da2.isel(X=0, Y=0, drop=True)
-    
+    """
+
     df4 = da2.to_dataframe()
 
     df = df.join(df4, on="season", how="outer")
-    df["forecast"] = df['prob'].apply(lambda x: f"{x:.2f}")
+    df["forecast"] = df["prob"].apply(lambda x: f"{x:.2f}")
 
+    df = df[(df["year"] >= year_min) & (df["year"] <= year_max)]
 
-    df["pnep_rank"] = df["prob"].rank(
-        method="first", na_option="keep", ascending=False
-    )
+    df["pnep_rank"] = df["prob"].rank(method="first", na_option="keep", ascending=False)
 
     df["pnep_rank_cat"] = (
         df["prob"]
