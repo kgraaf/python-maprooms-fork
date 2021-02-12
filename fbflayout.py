@@ -188,9 +188,9 @@ def command_layout():
                         id="freq",
                         min=5,
                         max=95,
-                        step=10,
-                        value=(15, 25),
-                        marks={k: dict(label=f"{k}%") for k in range(5, 96, 10)},
+                        step=5,
+                        value=(15, 30),
+                        marks={k: dict(label=f"{k}%") for k in range(10, 91, 10)},
                         pushable=5,
                         included=False,
                     ),
@@ -240,11 +240,11 @@ def table_layout(table_columns):
                             },
                             {
                                 "selector": "tr:not(last-child)",
-                                "rule": "font-weight: bold; background-color: rgb(255, 255, 255);",
+                                "rule": "font-weight: bold; background-color: rgb(255, 255, 255); color: rgb(251, 101, 57);",
                             },
                             {
                                 "selector": "tr:last-child",
-                                "rule": "font-weight: bold; background-color: rgb(241, 241, 241);",
+                                "rule": "font-weight: bold; background-color: rgb(241, 241, 241); color: black",
                             },
                         ],
                         style_cell={

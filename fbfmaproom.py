@@ -33,14 +33,6 @@ TABLE_COLUMNS = [
     dict(id="bad_year", name="Farmers' reported Bad Years"),
 ]
 
-SUMMARY_ROWS = [
-    "Worthy-action:",
-    "Act-in-vain:",
-    "Fail-to-act:",
-    "Worthy-Inaction:",
-    "Rate:",
-]
-
 PFX = "/fbfmaproom"
 SERVER = flask.Flask(__name__)
 APP = dash.Dash(
@@ -153,7 +145,7 @@ def retrieve_geometry(
     return res, attrs
 
 
-def generate_table(config, table_columns, year, issue_month, season, freq, positions):
+def generate_tables(config, table_columns, issue_month, season, freq, positions):
     year_min, year_max = config["seasons"][season]["year_range"]
     target_month = config["seasons"][season]["target_month"]
     freq_min, freq_max = freq
@@ -253,16 +245,36 @@ def generate_table(config, table_columns, year, issue_month, season, freq, posit
 
     df = df[::-1]
 
-    return df
+    dfs = pd.DataFrame({c["id"]: [] for c in table_columns})
+    dfs["year_label"] = [
+        "Worthy-action:",
+        "Act-in-vain:",
+        "Fail-to-act:",
+        "Worthy-Inaction:",
+        "Rate:",
+    ]
+    dfs2 = pd.DataFrame({c["id"]: [c["name"]] for c in table_columns})
+    dfs = dfs.append(dfs2)
+
+    bad_year = df["bad_year"] == "Bad"
+    dfs["enso_state"][:5] = hits_and_misses(df["enso_state"] == "El Niño", bad_year)
+    dfs["forecast"][:5] = hits_and_misses(df["pnep_rank_cat"] == 1, bad_year)
+    dfs["rain_rank"][:5] = hits_and_misses(df["rain_rank_cat"] == 1, bad_year)
+
+    return df, dfs
 
 
-def generate_summary(config, table_columns, year, issue_month, season, freq, positions):
-    year_min, year_max = config["seasons"][season]["year_range"]
-    df = pd.DataFrame({c["id"]: [] for c in table_columns})
-    df["year_label"] = SUMMARY_ROWS
-    df2 = pd.DataFrame({c["id"]: [c["name"]] for c in table_columns})
-    df = df.append(df2)
-    return df
+def hits_and_misses(c1, c2):
+    h1 = (c1 & c2).sum()
+    m1 = (c1 & ~c2).sum()
+    m2 = (~c1 & c2).sum()
+    h2 = (~c1 & ~c2).sum()
+    return [h1, m1, m2, h2, f"{(h1 + h2) / (h1 + h2 + m1 + m2) * 100:.2f}%"]
+
+    # yellow_pnep = pnep[int(freq.max * N-1)] / N <= freq.max
+    # brown_pnep = pnep[int(freq.min * N-1)] / N <= freq.min
+    # yellow_rain = rain_rank / N <= freq.max
+    # brown_rain = rain_rank / N <= freq.min
 
 
 def calculate_bounds(pt, res):
@@ -294,7 +306,6 @@ def _(pathname):
         for k in sorted(c["seasons"].keys())
     ]
     season_value = min(c["seasons"].keys())
-
     return (
         f"{PFX}/assets/{c['logo']}",
         c["center"],
@@ -325,7 +336,6 @@ def _(season, pathname):
         for i, v in reversed(list(enumerate(c["issue_months"])))
     ]
     issue_month_value = len(c["issue_months"]) - 1
-
     return (
         year_min,
         year_max,
@@ -369,31 +379,24 @@ def _(pathname, position, mode):
             content = str(
                 dict(marker=(round(position[1], 2), round(position[0], 2))) | attrs
             )
-
     if positions is None:
         raise PreventUpdate
-
     return positions, [html.H2(title), html.P(content)]
 
 
 @APP.callback(
     Output("table", "data"),
     Output("summary", "data"),
-    Input("year", "value"),
     Input("issue_month", "value"),
     Input("freq", "value"),
     Input("feature", "positions"),
     Input("location", "pathname"),
     State("season", "value"),
 )
-def _(year, issue_month, freq, positions, pathname, season):
-    print(
-        "*** callback table:", year, issue_month, season, freq, len(positions), pathname
-    )
+def _(issue_month, freq, positions, pathname, season):
+    print("*** callback table:", issue_month, season, freq, len(positions), pathname)
     c = CS[country(pathname)]
-    dft = generate_table(c, TABLE_COLUMNS, year, issue_month, season, freq, positions)
-    dfs = generate_summary(c, TABLE_COLUMNS, year, issue_month, season, freq, positions)
-
+    dft, dfs = generate_tables(c, TABLE_COLUMNS, issue_month, season, freq, positions)
     return dft.to_dict("records"), dfs.to_dict("records")
 
 
