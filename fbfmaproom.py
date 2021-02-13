@@ -194,14 +194,19 @@ def generate_tables(config, table_columns, issue_month, season, freq, positions)
     df = df[(df["year"] >= year_min) & (df["year"] <= year_max)]
 
     df["rain_rank"] = df["prcp_est"].rank(
-        method="first", na_option="keep", ascending=False
+        method="first", na_option="keep", ascending=True
     )
 
     df["rain_rank_cat"] = (
         df["prcp_est"]
-        .rank(method="first", na_option="keep", ascending=False, pct=True)
+        .rank(method="first", na_option="keep", ascending=True, pct=True)
         .apply(lambda x: 2 if x <= freq_min / 100 else 1 if x <= freq_max / 100 else 0)
     )
+
+    # yellow_pnep = pnep[int(freq.max * N-1)] / N <= freq.max
+    # brown_pnep = pnep[int(freq.min * N-1)] / N <= freq.min
+    # yellow_rain = rain_rank / N <= freq.max
+    # brown_rain = rain_rank / N <= freq.min
 
     da2 = DATA_ARRAYS["pnep"].data_array
 
@@ -233,11 +238,11 @@ def generate_tables(config, table_columns, issue_month, season, freq, positions)
 
     df = df[(df["year"] >= year_min) & (df["year"] <= year_max)]
 
-    df["pnep_rank"] = df["prob"].rank(method="first", na_option="keep", ascending=False)
+    df["pnep_rank"] = df["prob"].rank(method="first", na_option="keep", ascending=True)
 
     df["pnep_rank_cat"] = (
         df["prob"]
-        .rank(method="first", na_option="keep", ascending=False, pct=True)
+        .rank(method="first", na_option="keep", ascending=True, pct=True)
         .apply(lambda x: 2 if x <= freq_min / 100 else 1 if x <= freq_max / 100 else 0)
     )
 
@@ -270,11 +275,6 @@ def hits_and_misses(c1, c2):
     m2 = (~c1 & c2).sum()
     h2 = (~c1 & ~c2).sum()
     return [h1, m1, m2, h2, f"{(h1 + h2) / (h1 + h2 + m1 + m2) * 100:.2f}%"]
-
-    # yellow_pnep = pnep[int(freq.max * N-1)] / N <= freq.max
-    # brown_pnep = pnep[int(freq.min * N-1)] / N <= freq.min
-    # yellow_rain = rain_rank / N <= freq.max
-    # brown_rain = rain_rank / N <= freq.min
 
 
 def calculate_bounds(pt, res):
