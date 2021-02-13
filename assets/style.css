@@ -7,9 +7,12 @@ body {
     font-size: 10px;
 }
 
+
 table {
     border-collapse:collapse;
     width: 100%;
+    overflow-y: auto;
+    overflow-x: hidden;
 }
 td, th {
     border-style: solid;
@@ -24,9 +27,20 @@ tr {
 /* thead, tbody { display: block; }
 */
 
-table {
-    width: 100%;
-    height: 200px;
-    overflow-y: auto;
-    overflow-x: hidden;
+.rc-slider-handle {
+    border: solid 1px;
+}
+
+.rc-slider-handle-click-focused:focus {
+    border: solid 1px red;
+}
+
+.rc-slider-handle-1, .rc-slider-handle-1:active, .rc-slider-handle-1:focus, .rc-slider-handle-1:hover  {
+    background-color: rgb(161, 83, 22);
+    border-color: rgb(161, 83, 22);
+}
+
+.rc-slider-handle-2, .rc-slider-handle-2:active, .rc-slider-handle-2:focus,  .rc-slider-handle-2:hover {
+    background-color: rgb(251, 177, 57);
+    border-color: rgb(251, 177, 57);
 }
