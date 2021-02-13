@@ -46,7 +46,7 @@ countries:
       center: [-13, 37.5]
       zoom: 7
       rotation: 0
-      marker: [-13.5, 34.5]
+      marker: [-14, 34]
       seasons:
          season1:
             label: DJF

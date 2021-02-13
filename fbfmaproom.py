@@ -280,7 +280,9 @@ def hits_and_misses(c1, c2):
 def calculate_bounds(pt, res):
     x, y = pt
     dx, dy = res
-    return [[x // dx * dx, y // dy * dy], [x // dx * dx + dx, y // dy * dy + dy]]
+    cx = (x + dx / 2) // dx * dx
+    cy = (y + dy / 2) // dy * dy
+    return [[cx - dx / 2, cy - dy / 2], [cx + dx / 2, cy + dy / 2]]
 
 
 def country(pathname: str) -> str:
