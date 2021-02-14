@@ -207,6 +207,7 @@ def generate_tables(config, table_columns, issue_month, season, freq, positions)
     )
 
     df4 = da2.to_dataframe().unstack()
+    df4.columns = df4.columns.to_flat_index()
 
     df = df.join(df4, on="season", how="outer")
 
