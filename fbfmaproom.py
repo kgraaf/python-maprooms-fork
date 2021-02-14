@@ -155,9 +155,8 @@ def generate_tables(config, table_columns, issue_month, season, freq, positions)
     df["year"] = df2["year"]
     df["year_label"] = df2["label"]
     df["enso_state"] = df2["enso_state"]
-    df["bad_year"] = df2["bad_year"]
+    df["bad_year"] = df2["bad_year"].where(~df2["bad_year"].isna(), "")
     df["season"] = df2["month"]
-
     df = df.set_index("season")
 
     da = DATA_ARRAYS["rain"].data_array
@@ -165,9 +164,6 @@ def generate_tables(config, table_columns, issue_month, season, freq, positions)
     da["season"] = (
         da["T"] - target_month + SEASON_LENGTH / 2
     ) // SEASON_LENGTH * SEASON_LENGTH + target_month
-
-    # da["date"] = da["T"].groupby("T").map(pingrid.from_months_since_v)
-    # da["date2"] = xr.apply_ufunc(pingrid.from_months_since_v, da["T"])
 
     da = da.groupby("season").mean() * 90
     da = da.where(da["season"] % 12 == target_month, drop=True)
@@ -177,15 +173,6 @@ def generate_tables(config, table_columns, issue_month, season, freq, positions)
     da = pingrid.average_over_trimmed(
         da, mpolygon, lon_name="X", lat_name="Y", all_touched=True
     )
-    print("*** average_over_trimmed rain: ", da.name, da)
-
-    """
-    da = da.groupby("season").map(
-        lambda x: x
-    )  # we will use this to apply spatial average to each group (in this case 1 season)
-    # da = xr.apply_ufunc(lambda x: x - x + x.size, da)  # this vectorized func is applied to the whole da
-    da = da.isel(X=0, Y=0, drop=True)
-    """
 
     df3 = da.to_dataframe()
 
@@ -197,20 +184,16 @@ def generate_tables(config, table_columns, issue_month, season, freq, positions)
         method="first", na_option="keep", ascending=True
     )
 
-    df["rain_rank_cat"] = (
-        df["prcp_est"]
-        .rank(method="first", na_option="keep", ascending=True, pct=True)
-        .apply(lambda x: 2 if x <= freq_min / 100 else 1 if x <= freq_max / 100 else 0)
+    rain_rank_pct = df["prcp_est"].rank(
+        method="first", na_option="keep", ascending=True, pct=True
     )
 
-    # yellow_pnep = pnep[int(freq.max * N-1)] / N <= freq.max
-    # brown_pnep = pnep[int(freq.min * N-1)] / N <= freq.min
-    # yellow_rain = rain_rank / N <= freq.max
-    # brown_rain = rain_rank / N <= freq.min
+    df["rain_yellow"] = (rain_rank_pct <= freq_max / 100).astype(int)
+    df["rain_brown"] = (rain_rank_pct <= freq_min / 100).astype(int)
 
     da2 = DATA_ARRAYS["pnep"].data_array
 
-    da2 = da2.sel(P=freq_max, drop=True)
+    da2 = da2.sel(P=[freq_min, freq_max], drop=True)
 
     s = config["seasons"][season]["issue_months"][issue_month]
     l = config["seasons"][season]["leads"][issue_month]
@@ -222,33 +205,31 @@ def generate_tables(config, table_columns, issue_month, season, freq, positions)
     da2 = pingrid.average_over_trimmed(
         da2, mpolygon, lon_name="X", lat_name="Y", all_touched=True
     )
-    print("*** average_over_trimmed pnep: ", da2)
 
-    """
-    da2 = da2.groupby("S").map(
-        lambda x: x
-    )  # we will use this to apply spatial average to each group (in this case 1 season)
-    da2 = da2.isel(X=0, Y=0, drop=True)
-    """
-
-    df4 = da2.to_dataframe()
+    df4 = da2.to_dataframe().unstack()
 
     df = df.join(df4, on="season", how="outer")
-    df["forecast"] = df["prob"].apply(lambda x: f"{x:.2f}")
 
     df = df[(df["year"] >= year_min) & (df["year"] <= year_max)]
 
-    df["pnep_rank"] = df["prob"].rank(method="first", na_option="keep", ascending=True)
+    df["forecast"] = df[("prob", freq_max)].apply(lambda x: f"{x:.2f}")
 
-    df["pnep_rank_cat"] = (
-        df["prob"]
-        .rank(method="first", na_option="keep", ascending=True, pct=True)
-        .apply(lambda x: 2 if x <= freq_min / 100 else 1 if x <= freq_max / 100 else 0)
+    pnep_max_rank_pct = df[("prob", freq_max)].rank(
+        method="first", na_option="keep", ascending=True, pct=True
     )
+    df["pnep_yellow"] = (pnep_max_rank_pct <= freq_max / 100).astype(int)
 
-    print(df)
+    pnep_min_rank_pct = df[("prob", freq_min)].rank(
+        method="first", na_option="keep", ascending=True, pct=True
+    )
+    df["pnep_brown"] = (pnep_min_rank_pct <= freq_min / 100).astype(int)
 
     df = df[::-1]
+
+    df = df[
+        [c["id"] for c in table_columns]
+        + ["rain_yellow", "rain_brown", "pnep_yellow", "pnep_brown"]
+    ]
 
     dfs = pd.DataFrame({c["id"]: [] for c in table_columns})
     dfs["year_label"] = [
@@ -263,8 +244,8 @@ def generate_tables(config, table_columns, issue_month, season, freq, positions)
 
     bad_year = df["bad_year"] == "Bad"
     dfs["enso_state"][:5] = hits_and_misses(df["enso_state"] == "El Niño", bad_year)
-    dfs["forecast"][:5] = hits_and_misses(df["pnep_rank_cat"] == 1, bad_year)
-    dfs["rain_rank"][:5] = hits_and_misses(df["rain_rank_cat"] == 1, bad_year)
+    dfs["forecast"][:5] = hits_and_misses(df["pnep_yellow"] == 1, bad_year)
+    dfs["rain_rank"][:5] = hits_and_misses(df["rain_yellow"] == 1, bad_year)
 
     return df, dfs
 
