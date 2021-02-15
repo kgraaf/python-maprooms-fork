@@ -113,7 +113,7 @@ def command_layout():
                                 label=v,
                                 value=v,
                             )
-                            for v in ["District", "Regional", "National", "Pixel"]
+                            for v in ["National", "Regional", "District", "Pixel"]
                         ],
                         value="National",
                         clearable=False,
@@ -270,7 +270,7 @@ def table_layout(table_columns):
                         columns=table_columns,
                         page_action="none",
                         style_table={
-                            "height": "400px",
+                            "height": "420px",
                             "overflowY": "scroll",
                         },
                         css=[

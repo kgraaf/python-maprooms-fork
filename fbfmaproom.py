@@ -341,12 +341,14 @@ def _(season, pathname):
     )
 
 
+"""
 @APP.callback(
     Output("log", "children"),
     Input("map", "click_lat_lng"),
 )
 def _(position):
     return str(position)
+"""
 
 
 @APP.callback(
