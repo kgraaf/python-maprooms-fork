@@ -55,10 +55,10 @@ countries:
             leads: [5.5, 4.5, 3.5, 2.5]  # as appear in the dataset, i.e. may be dummy 0.0
             year_range: [1983, 2021]
          season2:
-            label: MJJ
-            target_month: 5.5  # season center in months since Jan 1: 0.0 <= season < 12.0
-            issue_months: [3, 5]  # months since Jan 1: 0.0 <= season < 12.0
-            leads: [2.5, 0.5]  # as appear in the dataset, i.e. may be dummy 0.0
+            label: dJf
+            target_month: 0.5  # months since Jan 1: 0.0 <= season < 12.0
+            issue_months: [9, 7]  # months since Jan 1: 0.0 <= season < 12.0
+            leads: [3.5, 5.5]  # as appear in the dataset, i.e. may be dummy 0.0
             year_range: [2001, 2005]
 
    madagascar:
