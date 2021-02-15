@@ -38,10 +38,7 @@ def map_layout():
                         checked=False,
                     ),
                     dl.Overlay(
-                        dl.TileLayer(
-                            url="/tiles/bath/{z}/{x}/{y}",
-                            opacity=0.6,
-                        ),
+                        id="pne_layer",
                         name="PNE",
                         checked=True,
                     ),

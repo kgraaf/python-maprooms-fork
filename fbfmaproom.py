@@ -11,6 +11,7 @@ import dash
 import dash_html_components as html
 from dash.dependencies import Output, Input, State, ALL
 from dash.exceptions import PreventUpdate
+import dash_leaflet as dl
 from shapely import wkb
 from shapely.geometry.multipolygon import MultiPolygon
 from shapely.geometry import Polygon
@@ -398,11 +399,30 @@ def _(issue_month, freq, positions, pathname, season):
     return dft.to_dict("records"), dfs.to_dict("records")
 
 
+@APP.callback(
+    Output("pne_layer", "children"),
+    Input("year", "value"),
+    Input("issue_month", "value"),
+    Input("freq", "value"),
+    Input("location", "pathname"),
+    State("season", "value"),
+)
+def _(year, issue_month, freq, pathname, season):
+    print("*** callback pne_layer:", year, issue_month, season, freq, pathname)
+    c = CS[country(pathname)]
+    _, freq_max = freq
+    return dl.TileLayer(
+        url=f"/tiles/bath/{{z}}/{{x}}/{{y}}/{year}/{freq_max}",
+        opacity=0.6,
+    )
+
+
 # Endpoints
 
 
-@SERVER.route(f"/tiles/<data_array>/<int:tz>/<int:tx>/<int:ty>")
-def tiles(data_array, tz, tx, ty):
+@SERVER.route(f"/tiles/<data_array>/<int:tz>/<int:tx>/<int:ty>/<int:year>/<int:freq_max>")
+def tiles(data_array, tz, tx, ty, year, freq_max):
+    print("*** tile:", data_array, tz, tx, ty, year, freq_max)
     dae = DATA_ARRAYS[data_array]
     z = pingrid.produce_tile(dae.interp2d, tx, ty, tz, 256, 256)
     im = cv2.flip((z - dae.min_val) * 255 / (dae.max_val - dae.min_val), 0)
