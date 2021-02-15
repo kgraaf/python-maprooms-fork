@@ -115,7 +115,7 @@ def command_layout():
                             )
                             for v in ["District", "Regional", "National", "Pixel"]
                         ],
-                        value="District",
+                        value="National",
                         clearable=False,
                     ),
                 ],

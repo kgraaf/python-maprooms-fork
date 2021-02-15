@@ -106,10 +106,18 @@ DF["label"] = DF.apply(
 print(DF)
 
 
+SHAPE_CONF = dict(
+    District=dict(table="g2015_2014_2", label="adm2_name", geom="the_geom"),
+    Regional=dict(table="g2015_2014_1", label="adm1_name", geom="the_geom"),
+    National=dict(table="g2015_2012_0", label="adm0_name", geom="the_geom"),
+)
+
+
 def retrieve_geometry(
-    dbpool, point: Tuple[float, float], table: str, config
+    dbpool, point: Tuple[float, float], mode: str, config
 ) -> MultiPolygon:
     y, x = point
+    sc = SHAPE_CONF[mode]
     with dbpool.take() as cm:
         conn = cm.resource
         with conn:  # transaction
@@ -117,17 +125,21 @@ def retrieve_geometry(
                 sql.SQL(
                     """
                     with a as(
-                        select gid, the_geom,
+                        select gid, {geom} as the_geom,
                             ST_SetSRID(ST_MakePoint(%(x)s, %(y)s),4326) as pt,
-                            adm0_name, adm1_name, adm2_name
-                            from {})
+                            adm0_name, {label} as label
+                            from {table})
                     select gid, ST_AsBinary(the_geom) as the_geom, pt,
-                        adm0_name, adm1_name, adm2_name
+                        adm0_name, label
                         from a
                         where the_geom && pt and ST_Contains(the_geom, pt) and
                             adm0_name = %(adm0_name)s
                     """
-                ).format(sql.Identifier(table)),
+                ).format(
+                    table=sql.Identifier(sc["table"]),
+                    label=sql.Identifier(sc["label"]),
+                    geom=sql.Identifier(sc["geom"]),
+                ),
                 conn,
                 params=dict(x=x, y=y, adm0_name=config["adm0_name"]),
             )
@@ -352,14 +364,14 @@ def _(pathname, position, mode):
     if mode == "Pixel":
         (x0, y0), (x1, y1) = calculate_bounds(position, c["resolution"])
         positions = [(x0, y0), (x1, y0), (x1, y1), (x0, y1), (x0, y0)]
-        title += " " + str((round((x0 + x1) / 2, 2), round((y0 + y1) / 2, 2)))
+        title += ": " + str((round((x0 + x1) / 2, 2), round((y0 + y1) / 2, 2)))
     else:
-        geom, attrs = retrieve_geometry(DBPOOL, position, "g2015_2014_2", c)
+        geom, attrs = retrieve_geometry(DBPOOL, position, mode, c)
         print("*** geom geom: ", attrs)
         if geom is not None:
             xs, ys = geom[-1].exterior.coords.xy
             positions = list(zip(ys, xs))
-            title += " " + attrs["adm2_name"] + " " + str(len(geom))
+            title += ": " + attrs["label"]
             content = str(
                 dict(marker=(round(position[1], 2), round(position[0], 2))) | attrs
             )
