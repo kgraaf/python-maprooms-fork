@@ -38,7 +38,7 @@ def map_layout():
                         checked=False,
                     ),
                     dl.Overlay(
-                        id="pne_layer",
+                        dl.TileLayer(opacity=0.6, id="pne_layer"),
                         name="PNE",
                         checked=True,
                     ),
