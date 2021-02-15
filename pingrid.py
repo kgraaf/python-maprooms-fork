@@ -48,7 +48,7 @@ FuncInterp2d = Callable[[np.ndarray, np.ndarray], np.ndarray]
 class DataArrayEntry(NamedTuple):
     name: str
     data_array: xr.DataArray
-    interp2d: Optional[FuncInterp2d]
+    interp2d: Dict[Any, FuncInterp2d]
     min_val: Optional[float]
     max_val: Optional[float]
     colormap: Optional[np.ndarray]

@@ -2,6 +2,7 @@ from typing import Any, Dict, Tuple, List, Literal, Optional, Union, Callable, H
 import os
 import time
 import io
+import datetime
 import numpy as np
 import pandas as pd
 import xarray as xr
@@ -56,15 +57,22 @@ def open_data_arrays():
 
     bath = xr.where(bath < 0.0, 0.0, bath)
     rs["bath"] = pingrid.DataArrayEntry(
-        "bath", bath, pingrid.create_interp2d(bath, bath.dims), 0.0, 7964.0, None
+        "bath", bath, {(): pingrid.create_interp2d(bath, bath.dims)}, 0.0, 7964.0, None
     )
     print(bath, pingrid.extents(bath))
 
     rain = xr.open_dataset("rain-noaa.nc", decode_times=False)["prcp_est"].transpose(
         "Y", "X", ...
     )
+    rain_min = 0.0
+    rain_max = rain.max()
     rs["rain"] = pingrid.DataArrayEntry(
-        "rain", rain, None, None, None, pingrid.parse_colormap(rain.attrs["colormap"])
+        "rain",
+        rain,
+        {},
+        rain_min,
+        rain_max,
+        pingrid.parse_colormap(rain.attrs["colormap"]),
     )
     # print("*** colormap:", rs["rain"].colormap, rs["rain"].colormap.shape)
     print(rain, pingrid.extents(rain, ["Y", "X"]))
@@ -74,7 +82,15 @@ def open_data_arrays():
         "Y", "X", ...
     )
     # pnep["T"] = pnep["S"] + pnep["L"]
-    rs["pnep"] = pingrid.DataArrayEntry("pnep", pnep, None, None, None, None)
+    pnep_min = 0.0
+    pnep_max = 100.0
+    pnep_colormap = pingrid.parse_colormap(
+        "[null 12632256 8388608 [16711680 14] [16760576 13] [15453831 14] 13959039 "
+        "[13959039 13] 64636 [65535 25] [36095 26] [255 51] [128 51] [128 51] 2763429]"
+    )
+    rs["pnep"] = pingrid.DataArrayEntry(
+        "pnep", pnep, {}, pnep_min, pnep_max, pnep_colormap
+    )
     print(
         pnep,
         pingrid.extents(pnep, ["Y", "X"]),
@@ -398,6 +414,18 @@ def _(issue_month, freq, positions, pathname, season):
     return dft.to_dict("records"), dfs.to_dict("records")
 
 
+def slp(country, season, year, issue_month, freq_max):
+    season_config = CS[country]["seasons"][season]
+    l = season_config["leads"][issue_month]
+    s = (
+        pingrid.to_months_since(datetime.date(year, 1, 1))
+        + season_config["target_month"]
+        - l
+    )
+    p = freq_max
+    return s, l, p
+
+
 @APP.callback(
     Output("pne_layer", "url"),
     Input("year", "value"),
@@ -408,26 +436,36 @@ def _(issue_month, freq, positions, pathname, season):
 )
 def _(year, issue_month, freq, pathname, season):
     print("*** callback pne_layer:", year, issue_month, season, freq, pathname)
-    c = CS[country(pathname)]
+    country_name = country(pathname)
     _, freq_max = freq
-    return f"/tiles/bath/{{z}}/{{x}}/{{y}}/{year}/{freq_max}"
+
+    dae = DATA_ARRAYS["pnep"]
+    s, l, p = slp(country_name, season, year, issue_month, freq_max)
+    da = dae.data_array
+    da = da.sel(S=s, L=l, P=p, drop=True)
+    if (s, l, p) not in dae.interp2d:
+        dae.interp2d[(s, l, p)] = pingrid.create_interp2d(da, da.dims)
+        print("*** MISS: ", (s, l, p), len(dae.interp2d))
+
+    return f"/pnep_tiles/{{z}}/{{x}}/{{y}}/{country_name}/{season}/{year}/{issue_month}/{freq_max}"
 
 
 # Endpoints
 
 
 @SERVER.route(
-    f"/tiles/<data_array>/<int:tz>/<int:tx>/<int:ty>/<int:year>/<int:freq_max>"
+    f"/pnep_tiles/<int:tz>/<int:tx>/<int:ty>/<country>/<season>/<int:year>/<int:issue_month>/<int:freq_max>"
 )
-def tiles(data_array, tz, tx, ty, year, freq_max):
-    print("*** tile:", data_array, tz, tx, ty, year, freq_max)
-    dae = DATA_ARRAYS[data_array]
-    z = pingrid.produce_tile(dae.interp2d, tx, ty, tz, 256, 256)
+def tiles(tz, tx, ty, country, season, year, issue_month, freq_max):
+    dae = DATA_ARRAYS["pnep"]
+    s, l, p = slp(country, season, year, issue_month, freq_max)
+
+    z = pingrid.produce_tile(dae.interp2d[(s, l, p)], tx, ty, tz, 256, 256)
     im = cv2.flip((z - dae.min_val) * 255 / (dae.max_val - dae.min_val), 0)
     im2 = pingrid.produce_test_tile(256, 256, f"{tx},{ty}x{tz}")
     # im += np.max(im2, axis=2)
     # cv2.imwrite(f"tiles/{tx},{ty}x{tz}.png", cv2.LUT(im.astype(np.uint8), np.fromiter(range(255, -1, -1), np.uint8)))
-    im = pingrid.apply_colormap(im, DATA_ARRAYS["rain"].colormap)
+    im = pingrid.apply_colormap(im, dae.colormap)
     cv2_imencode_success, buffer = cv2.imencode(".png", im)
     assert cv2_imencode_success
     io_buf = io.BytesIO(buffer)
