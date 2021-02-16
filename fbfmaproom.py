@@ -18,7 +18,7 @@ from shapely.geometry import Polygon
 from psycopg2 import sql
 import pyaconf
 import pingrid
-from pingrid import RGBA
+from pingrid import BGRA
 import fbflayout
 
 
@@ -480,9 +480,10 @@ def tiles(tz, tx, ty, country, season, year, issue_month, freq_max):
 
     country_shape, country_attrs = CLIPPING[country]
     draw_attrs = pingrid.DrawAttrs(
-        RGBA(255, 0, 0, 255), RGBA(0, 0, 0, 0), 1, cv2.LINE_AA
+        BGRA(255, 0, 0, 255), BGRA(255, 0, 0, 255), 1, cv2.LINE_AA
     )
     shapes = [(country_shape, draw_attrs)]
+    print("*** im:", im.shape)
     im = pingrid.produce_shape_tile(im, shapes, tx, ty, tz, 256, 256)
 
     cv2_imencode_success, buffer = cv2.imencode(".png", im)

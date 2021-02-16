@@ -65,22 +65,22 @@ class Extent(NamedTuple):
     point_width: float
 
 
-class RGB(NamedTuple):
-    red: int
-    green: int
+class BGR(NamedTuple):
     blue: int
+    green: int
+    red: int
 
 
-class RGBA(NamedTuple):
-    red: int
-    green: int
+class BGRA(NamedTuple):
     blue: int
+    green: int
+    red: int
     alpha: int
 
 
 class DrawAttrs(NamedTuple):
-    line_color: Union[int, RGB, RGBA]
-    background_color: Union[int, RGB, RGBA]
+    line_color: Union[int, BGR, BGRA]
+    background_color: Union[int, BGR, BGRA]
     line_thickness: int
     line_type: int  # cv2.LINE_4 | cv2.LINE_8 | cv2.LINE_AA
 
@@ -219,7 +219,7 @@ def produce_shape_tile(
                 )  # TODO: apply mercator transform
                 pts = np.column_stack((xs, ys))
                 pts = pts.reshape((1,) + pts.shape)
-                print("*** pts:", pts, pts.shape, tx, ty, tz)
+                print("*** pts:", pts, pts.shape, tx, ty, tz, a.background_color)
                 cv2.fillPoly(im, pts, a.background_color)
 
     return im
@@ -228,9 +228,9 @@ def produce_shape_tile(
 def produce_test_tile(w: int = 256, h: int = 256, text: str = "") -> np.ndarray:
     line_thickness = 1
     line_type = cv2.LINE_AA  # cv2.LINE_4 | cv2.LINE_8 | cv2.LINE_AA
-    red_color = (0, 0, 255, 255)
-    green_color = (0, 255, 0, 255)
-    blue_color = (255, 0, 0, 255)
+    red_color = BGRA(0, 0, 255, 255)
+    green_color = BGRA(0, 255, 0, 255)
+    blue_color = BGRA(255, 0, 0, 255)
 
     layer1 = np.zeros((h, w, 4), np.uint8)
     layer2 = np.zeros((h, w, 4), np.uint8)
@@ -291,14 +291,14 @@ def correct_coord(da: xr.DataArray, coord_name: str) -> xr.DataArray:
     return da.assign_coords({coord_name: vs})
 
 
-def parse_color(s: str) -> RGBA:
+def parse_color(s: str) -> BGRA:
     v = int(s)
-    return RGBA(v >> 16 & 0xFF, v >> 8 & 0xFF, v >> 0 & 0xFF, 255)
+    return BGRA(v >> 0 & 0xFF, v >> 8 & 0xFF, v >> 16 & 0xFF, 255)
 
 
-def parse_color_item(vs: List[RGBA], s: str) -> List[RGBA]:
+def parse_color_item(vs: List[BGRA], s: str) -> List[BGRA]:
     if s == "null":
-        rs = [RGBA(0, 0, 0, 0)]
+        rs = [BGRA(0, 0, 0, 0)]
     elif s[0] == "[":
         rs = [parse_color(s[1:])]
     elif s[-1] == "]":
