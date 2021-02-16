@@ -61,8 +61,10 @@ def open_data_arrays():
     )
     print(bath, pingrid.extents(bath))
 
-    rain = xr.open_dataset("rain-noaa.nc", decode_times=False)["prcp_est"].transpose(
-        "Y", "X", ...
+    rain = (
+        xr.open_dataset("rain-noaa.nc", decode_times=False)["prcp_est"]
+        .pipe(pingrid.roll_to, "X", 180)
+        .transpose("Y", "X", ...)
     )
     rain_min = 0.0
     rain_max = rain.max()

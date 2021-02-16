@@ -5,6 +5,7 @@ import datetime
 import numpy as np
 import pandas as pd
 import xarray as xr
+from collections.abc import Iterable
 from scipy import interpolate
 import cv2
 import psycopg2.extensions
@@ -283,6 +284,11 @@ def apply_colormap(im: np.ndarray, colormap: np.ndarray) -> np.ndarray:
     return im
 
 
+#
+# Functions to deal with spatial averaging
+#
+
+
 def trim_to_bbox(ds, s, lon_name="lon", lat_name="lat"):
     """Given a Dataset and a shape, return the subset of the Dataset that
     intersects the shape's bounding box.
@@ -348,3 +354,99 @@ def average_over_trimmed(ds, s, lon_name="lon", lat_name="lat", all_touched=Fals
         ds, s, lon_name=lon_name, lat_name=lat_name, all_touched=all_touched
     )
     return res
+
+
+#
+# Functions to deal with periodic dimension (e.g. longitude)
+#
+
+
+def __dim_range(ds, dim, period=360.0):
+    c0, c1 = ds[dim].values[0], ds[dim].values[-1]
+    d = (period - (c1 - c0)) / 2.0
+    c0, c1 = c0 - d, c1 + d
+    return c0, c1
+
+
+def __normalize_vals(v0, vals, period=360.0, right=False):
+
+    vs = vals if isinstance(vals, Iterable) else [vals]
+
+    v1 = v0 + period
+    assert v0 <= 0.0 <= v1
+
+    vs = np.mod(vs, period)
+    if right:
+        vs[vs > v1] -= period
+    else:
+        vs[vs >= v1] -= period
+
+    vs = vs if isinstance(vals, Iterable) else vs[0]
+
+    return vs
+
+
+def __normalize_dim(ds, dim, period=360.0):
+    """Doesn't copy ds. Make a copy if necessary."""
+    c0, c1 = __dim_range(ds, dim, period)
+    if c0 > 0.0:
+        ds[dim] = ds[dim] - period
+    elif c1 < 0.0:
+        ds[dim] = ds[dim] + period
+
+
+def roll_to(ds, dim, val, period=360.0):
+    """Rolls the ds to the first dim's label that is greater or equal to
+    val, and then makes dim monitonically increasing. Assumes that dim
+    is monotonically increasing, covers exactly one period, and overlaps
+    val. If val is outside of the dim, this function does nothing.
+    """
+    a = np.argwhere(ds[dim].values >= val)
+    n = a[0, 0] if a.shape[0] != 0 else 0
+    if n != 0:
+        ds = ds.copy()
+        ds = ds.roll(**{dim: -n}, roll_coords=True)
+        ds[dim] = xr.where(ds[dim] < val, ds[dim] + period, ds[dim])
+        __normalize_dim(ds, dim, period)
+    return ds
+
+
+def sel_periodic(ds, dim, vals, period=360.0):
+    """Assumes that dim is monotonically increasing, covers exactly one period, and overlaps 0.0
+    Examples: lon: 0..360, -180..180, -90..270, -360..0, etc.
+    TODO: change API to match xarray's `sel`
+    """
+    c0, c1 = __dim_range(ds, dim, period)
+    print(f"*** sel_periodic (input): {c0}..{c1}: {vals}")
+
+    if isinstance(vals, slice):
+        if vals.step is None or vals.step >= 0:
+            s0 = __normalize_vals(c0, vals.start, period)
+            s1 = __normalize_vals(c0, vals.stop, period, True)
+        else:
+            s0 = __normalize_vals(c0, vals.stop, period)
+            s1 = __normalize_vals(c0, vals.start, period, True)
+
+        print(f"*** sel_periodic (normalized): {c0}..{c1}: {s0=}, {s1=}")
+
+        if s0 > s1:
+            ds = roll_to(ds, dim, s1, period)
+            c0, c1 = __dim_range(ds, dim, period)
+            s0 = __normalize_vals(c0, s0, period)
+            s1 = __normalize_vals(c0, s1, period, True)
+            print(f"*** sel_periodic (rolled): {c0}..{c1}: {s0=}, {s1=}")
+
+        if vals.step is None or vals.step >= 0:
+            vals = slice(s0, s1, vals.step)
+        else:
+            vals = slice(s1, s0, vals.step)
+
+        print(f"*** sel_periodic (slice): {c0}..{c1}: {vals}")
+
+    else:
+        vals = __normalize_vals(c0, vals, period=period)
+        print(f"*** sel_periodic (array): {c0}..{c1}: {vals}")
+
+    ds = ds.sel({dim: vals})
+
+    return ds
