@@ -13,6 +13,9 @@ from queuepool.psycopg2cm import ConnectionManagerExtended
 from queuepool.pool import Pool
 import rasterio.features
 import rasterio.transform
+from shapely.geometry.multipolygon import MultiPolygon
+from shapely.geometry.polygon import Polygon
+from shapely.geometry.multipoint import MultiPoint
 
 
 def init_dbpool(name, config):
@@ -73,6 +76,13 @@ class RGBA(NamedTuple):
     green: int
     blue: int
     alpha: int
+
+
+class DrawAttrs(NamedTuple):
+    line_color: Union[int, RGB, RGBA]
+    background_color: Union[int, RGB, RGBA]
+    line_thickness: int
+    line_type: int  # cv2.LINE_4 | cv2.LINE_8 | cv2.LINE_AA
 
 
 def create_interp2d(
@@ -156,7 +166,7 @@ def tile_extents(g: Callable[[int, int], float], tx: int, tz: int, n: int = 1):
         a = b
 
 
-def produce_tile(
+def produce_data_tile(
     interp2d: Callable[[np.ndarray, np.ndarray], np.ndarray],
     tx: int,
     ty: int,
@@ -172,9 +182,47 @@ def produce_tile(
         (a + (b - a) / 2.0 for a, b in tile_extents(g_lat_3857, ty, tz, tile_height)),
         np.double,
     )
-    # print("*** produce_tile:", tz, tx, ty, x[0], x[-1], y[0], y[-1])
+    # print("*** produce_data_tile:", tz, tx, ty, x[0], x[-1], y[0], y[-1])
     z = interp2d(x, y)
     return z
+
+
+def to_multipolygon(p: Union[Polygon, MultiPolygon]) -> MultiPolygon:
+    if not isinstance(p, MultiPolygon):
+        p = MultiPolygon([p])
+    return p
+
+
+def produce_shape_tile(
+    im: np.ndarray,
+    shapes: List[Tuple[MultiPolygon, DrawAttrs]],
+    tx: int,
+    ty: int,
+    tz: int,
+    tile_width: int = 256,
+    tile_height: int = 256,
+) -> np.ndarray:
+    x0, x1 = list(tile_extents(g_lon, tx, tz, 1))[0]
+    y0, y1 = list(tile_extents(g_lat_3857, ty, tz, 1))[0]
+
+    tile_bounds = (x0, y0, x1, y1)
+    tile = MultiPoint([(x0, y0), (x1, y1)]).envelope
+
+    for s, a in shapes:
+        m = to_multipolygon(s.intersection(tile))
+        for p in m:
+            if not p.is_empty:
+                xs, ys = p.exterior.coords.xy
+                xs = ((np.array(xs) - x0) / (x1 - x0) * tile_width).astype(np.int32)
+                ys = ((np.array(ys) - y0) / (y1 - y0) * tile_height).astype(
+                    np.int32
+                )  # TODO: apply mercator transform
+                pts = np.column_stack((xs, ys))
+                pts = pts.reshape((1,) + pts.shape)
+                print("*** pts:", pts, pts.shape, tx, ty, tz)
+                cv2.fillPoly(im, pts, a.background_color)
+
+    return im
 
 
 def produce_test_tile(w: int = 256, h: int = 256, text: str = "") -> np.ndarray:

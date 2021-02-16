@@ -18,6 +18,7 @@ from shapely.geometry import Polygon
 from psycopg2 import sql
 import pyaconf
 import pingrid
+from pingrid import RGBA
 import fbflayout
 
 
@@ -103,27 +104,6 @@ def open_data_arrays():
     return rs
 
 
-DATA_ARRAYS: Dict[str, pingrid.DataArrayEntry] = open_data_arrays()
-
-SEASON_LENGTH = 3.0
-
-DF = pd.read_csv("fbfmaproom.csv")
-DF["year"] = DF["month"].apply(lambda x: pingrid.from_months_since(x).year)
-DF["begin_year"] = DF["month"].apply(
-    lambda x: pingrid.from_months_since(x - SEASON_LENGTH / 2).year
-)
-DF["end_year"] = DF["month"].apply(
-    lambda x: pingrid.from_months_since(x + SEASON_LENGTH / 2).year
-)
-DF["label"] = DF.apply(
-    lambda d: str(d["begin_year"])
-    if d["begin_year"] == d["end_year"]
-    else str(d["begin_year"]) + "/" + str(d["end_year"])[-2:],
-    axis=1,
-)
-print(DF)
-
-
 SHAPE_CONF = dict(
     District=dict(table="g2015_2014_2", label="adm2_name", geom="the_geom"),
     Regional=dict(table="g2015_2014_1", label="adm1_name", geom="the_geom"),
@@ -132,7 +112,7 @@ SHAPE_CONF = dict(
 
 
 def retrieve_geometry(
-    dbpool, point: Tuple[float, float], mode: str, config
+    dbpool, point: Tuple[float, float], mode: str, adm0_name: str
 ) -> MultiPolygon:
     y, x = point
     sc = SHAPE_CONF[mode]
@@ -159,7 +139,7 @@ def retrieve_geometry(
                     geom=sql.Identifier(sc["geom"]),
                 ),
                 conn,
-                params=dict(x=x, y=y, adm0_name=config["adm0_name"]),
+                params=dict(x=x, y=y, adm0_name=adm0_name),
             )
     # print("bytes: ", sum(df.the_geom.apply(lambda x: len(x.tobytes()))), "x, y: ", x, y)
     df["the_geom"] = df["the_geom"].apply(lambda x: wkb.loads(x.tobytes()))
@@ -173,6 +153,33 @@ def retrieve_geometry(
         res = None
         attrs = None
     return res, attrs
+
+
+DATA_ARRAYS: Dict[str, pingrid.DataArrayEntry] = open_data_arrays()
+
+SEASON_LENGTH = 3.0
+
+CLIPPING = {
+    k: retrieve_geometry(DBPOOL, v["marker"], "National", v["adm0_name"])
+    for k, v in CS.items()
+}
+
+
+DF = pd.read_csv("fbfmaproom.csv")
+DF["year"] = DF["month"].apply(lambda x: pingrid.from_months_since(x).year)
+DF["begin_year"] = DF["month"].apply(
+    lambda x: pingrid.from_months_since(x - SEASON_LENGTH / 2).year
+)
+DF["end_year"] = DF["month"].apply(
+    lambda x: pingrid.from_months_since(x + SEASON_LENGTH / 2).year
+)
+DF["label"] = DF.apply(
+    lambda d: str(d["begin_year"])
+    if d["begin_year"] == d["end_year"]
+    else str(d["begin_year"]) + "/" + str(d["end_year"])[-2:],
+    axis=1,
+)
+print(DF)
 
 
 def generate_tables(config, table_columns, issue_month, season, freq, positions):
@@ -386,7 +393,7 @@ def _(pathname, position, mode):
         positions = [(x0, y0), (x1, y0), (x1, y1), (x0, y1), (x0, y0)]
         title += ": " + str((round((x0 + x1) / 2, 2), round((y0 + y1) / 2, 2)))
     else:
-        geom, attrs = retrieve_geometry(DBPOOL, position, mode, c)
+        geom, attrs = retrieve_geometry(DBPOOL, position, mode, c["adm0_name"])
         print("*** geom geom: ", attrs)
         if geom is not None:
             xs, ys = geom[-1].exterior.coords.xy
@@ -462,12 +469,22 @@ def tiles(tz, tx, ty, country, season, year, issue_month, freq_max):
     dae = DATA_ARRAYS["pnep"]
     s, l, p = slp(country, season, year, issue_month, freq_max)
 
-    z = pingrid.produce_tile(dae.interp2d[(s, l, p)], tx, ty, tz, 256, 256)
+    z = pingrid.produce_data_tile(dae.interp2d[(s, l, p)], tx, ty, tz, 256, 256)
     im = cv2.flip((z - dae.min_val) * 255 / (dae.max_val - dae.min_val), 0)
-    im2 = pingrid.produce_test_tile(256, 256, f"{tx},{ty}x{tz}")
+
+    # im2 = pingrid.produce_test_tile(256, 256, f"{tx},{ty}x{tz}")
     # im += np.max(im2, axis=2)
     # cv2.imwrite(f"tiles/{tx},{ty}x{tz}.png", cv2.LUT(im.astype(np.uint8), np.fromiter(range(255, -1, -1), np.uint8)))
+
     im = pingrid.apply_colormap(im, dae.colormap)
+
+    country_shape, country_attrs = CLIPPING[country]
+    draw_attrs = pingrid.DrawAttrs(
+        RGBA(255, 0, 0, 255), RGBA(0, 0, 0, 0), 1, cv2.LINE_AA
+    )
+    shapes = [(country_shape, draw_attrs)]
+    im = pingrid.produce_shape_tile(im, shapes, tx, ty, tz, 256, 256)
+
     cv2_imencode_success, buffer = cv2.imencode(".png", im)
     assert cv2_imencode_success
     io_buf = io.BytesIO(buffer)

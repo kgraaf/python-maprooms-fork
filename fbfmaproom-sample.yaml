@@ -47,6 +47,7 @@ countries:
       zoom: 7
       rotation: 0
       marker: [-14, 34]
+      clipping: true
       seasons:
          season1:
             label: DJF
@@ -69,6 +70,7 @@ countries:
       zoom: 7
       rotation: 0
       marker: [-24, 45.5]
+      clipping : true
       seasons:
          season1:
             label: DJF
