@@ -199,6 +199,7 @@ def produce_shape_tile(
     tx: int,
     ty: int,
     tz: int,
+    oper: Literal["intersection", "difference"] = "intersection",
     tile_width: int = 256,
     tile_height: int = 256,
 ) -> np.ndarray:
@@ -209,7 +210,9 @@ def produce_shape_tile(
     tile = MultiPoint([(x0, y0), (x1, y1)]).envelope
 
     for s, a in shapes:
-        m = to_multipolygon(s.intersection(tile))
+        m = to_multipolygon(
+            tile.difference(s) if oper == "difference" else tile.intersection(s)
+        )
         for p in m:
             if not p.is_empty:
                 xs, ys = p.exterior.coords.xy
@@ -219,9 +222,7 @@ def produce_shape_tile(
                 )  # TODO: apply mercator transform
                 pts = np.column_stack((xs, ys))
                 pts = pts.reshape((1,) + pts.shape)
-                print("*** pts:", pts, pts.shape, tx, ty, tz, a.background_color)
-                cv2.fillPoly(im, pts, a.background_color)
-
+                cv2.fillPoly(im, pts, a.background_color, a.line_type, 0)
     return im
 
 

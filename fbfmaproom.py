@@ -474,17 +474,21 @@ def tiles(tz, tx, ty, country, season, year, issue_month, freq_max):
 
     # im2 = pingrid.produce_test_tile(256, 256, f"{tx},{ty}x{tz}")
     # im += np.max(im2, axis=2)
-    # cv2.imwrite(f"tiles/{tx},{ty}x{tz}.png", cv2.LUT(im.astype(np.uint8), np.fromiter(range(255, -1, -1), np.uint8)))
+    # cv2.imwrite(
+    #     f"tiles/{tx},{ty}x{tz}.png",
+    #     cv2.LUT(im.astype(np.uint8), np.fromiter(range(255, -1, -1), np.uint8)),
+    # )
 
     im = pingrid.apply_colormap(im, dae.colormap)
 
     country_shape, country_attrs = CLIPPING[country]
     draw_attrs = pingrid.DrawAttrs(
-        BGRA(255, 0, 0, 255), BGRA(255, 0, 0, 255), 1, cv2.LINE_AA
+        BGRA(255, 0, 0, 255), BGRA(0, 0, 0, 0), 1, cv2.LINE_4
     )
     shapes = [(country_shape, draw_attrs)]
-    print("*** im:", im.shape)
-    im = pingrid.produce_shape_tile(im, shapes, tx, ty, tz, 256, 256)
+    im = pingrid.produce_shape_tile(
+        im, shapes, tx, ty, tz, oper="difference", tile_width=256, tile_height=256
+    )
 
     cv2_imencode_success, buffer = cv2.imencode(".png", im)
     assert cv2_imencode_success
