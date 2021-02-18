@@ -224,6 +224,7 @@ def generate_tables(config, table_columns, issue_month, season, freq, positions)
     rain_rank_pct = df["prcp_est"].rank(
         method="first", na_option="keep", ascending=True, pct=True
     )
+    df["rain_rank_pct"] = rain_rank_pct
 
     df["rain_yellow"] = (rain_rank_pct <= freq_max / 100).astype(int)
     df["rain_brown"] = (rain_rank_pct <= freq_min / 100).astype(int)
@@ -255,14 +256,18 @@ def generate_tables(config, table_columns, issue_month, season, freq, positions)
     pnep_max_rank_pct = df[("prob", freq_max)].rank(
         method="first", na_option="keep", ascending=True, pct=True
     )
+    df["pnep_max_rank_pct"] = pnep_max_rank_pct
     df["pnep_yellow"] = (pnep_max_rank_pct <= freq_max / 100).astype(int)
 
     pnep_min_rank_pct = df[("prob", freq_min)].rank(
         method="first", na_option="keep", ascending=True, pct=True
     )
+    df["pnep_min_rank_pct"] = pnep_min_rank_pct
     df["pnep_brown"] = (pnep_min_rank_pct <= freq_min / 100).astype(int)
 
     df = df[::-1]
+
+    # df.to_csv("df.csv")
 
     df = df[
         [c["id"] for c in table_columns]
@@ -472,13 +477,6 @@ def tiles(tz, tx, ty, country, season, year, issue_month, freq_max):
     z = pingrid.produce_data_tile(dae.interp2d[(s, l, p)], tx, ty, tz, 256, 256)
     im = cv2.flip((z - dae.min_val) * 255 / (dae.max_val - dae.min_val), 0)
 
-    # im2 = pingrid.produce_test_tile(256, 256, f"{tx},{ty}x{tz}")
-    # im += np.max(im2, axis=2)
-    # cv2.imwrite(
-    #     f"tiles/{tx},{ty}x{tz}.png",
-    #     cv2.LUT(im.astype(np.uint8), np.fromiter(range(255, -1, -1), np.uint8)),
-    # )
-
     im = pingrid.apply_colormap(im, dae.colormap)
 
     country_shape, country_attrs = CLIPPING[country]
@@ -489,6 +487,13 @@ def tiles(tz, tx, ty, country, season, year, issue_month, freq_max):
     im = pingrid.produce_shape_tile(
         im, shapes, tx, ty, tz, oper="difference", tile_width=256, tile_height=256
     )
+
+    im = pingrid.produce_test_tile(im, f"{tz}x{tx},{ty}")
+
+    # cv2.imwrite(
+    #    f"tiles/{tx},{ty}x{tz}.png",
+    #    cv2.LUT(im.astype(np.uint8), np.fromiter(range(255, -1, -1), np.uint8)),
+    # )
 
     cv2_imencode_success, buffer = cv2.imencode(".png", im)
     assert cv2_imencode_success

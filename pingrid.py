@@ -226,57 +226,45 @@ def produce_shape_tile(
     return im
 
 
-def produce_test_tile(w: int = 256, h: int = 256, text: str = "") -> np.ndarray:
-    line_thickness = 1
-    line_type = cv2.LINE_AA  # cv2.LINE_4 | cv2.LINE_8 | cv2.LINE_AA
-    red_color = BGRA(0, 0, 255, 255)
-    green_color = BGRA(0, 255, 0, 255)
-    blue_color = BGRA(255, 0, 0, 255)
-
-    layer1 = np.zeros((h, w, 4), np.uint8)
-    layer2 = np.zeros((h, w, 4), np.uint8)
-    layer3 = np.zeros((h, w, 4), np.uint8)
+def produce_test_tile(
+    im: np.ndarray,
+    text: str = "",
+    color: BGRA = BGRA(0, 255, 0, 255),
+    line_thickness: int = 1,
+    line_type: int = cv2.LINE_AA,  # cv2.LINE_4 | cv2.LINE_8 | cv2.LINE_AA
+) -> np.ndarray:
+    h = im.shape[0]
+    w = im.shape[1]
 
     cv2.ellipse(
-        layer1,
+        im,
         (w // 2, h // 2),
         (w // 3, h // 3),
         0,
         0,
         360,
-        red_color,
+        color,
         line_thickness,
         lineType=line_type,
     )
 
     cv2.putText(
-        layer1,
+        im,
         text,
         (w // 2, h // 2),
         fontFace=cv2.FONT_HERSHEY_SIMPLEX,
         fontScale=0.5,
-        color=red_color,
+        color=color,
         thickness=1,
         lineType=line_type,
     )
 
-    cv2.rectangle(
-        layer2, (0, 0), (w - 1, h - 1), green_color, line_thickness, lineType=line_type
-    )
-    cv2.line(
-        layer3, (0, 0), (w - 1, h - 1), blue_color, line_thickness, lineType=line_type
-    )
-    cv2.line(
-        layer3, (0, h - 1), (w - 1, 0), blue_color, line_thickness, lineType=line_type
-    )
+    cv2.rectangle(im, (0, 0), (w, h), color, line_thickness, lineType=line_type)
 
-    res = layer1[:]
-    cnd = layer2[:, :, 3] > 0
-    res[cnd] = layer2[cnd]
-    cnd = layer3[:, :, 3] > 0
-    res[cnd] = layer3[cnd]
+    cv2.line(im, (0, 0), (w - 1, h - 1), color, line_thickness, lineType=line_type)
+    cv2.line(im, (0, h - 1), (w - 1, 0), color, line_thickness, lineType=line_type)
 
-    return res
+    return im
 
 
 def correct_coord(da: xr.DataArray, coord_name: str) -> xr.DataArray:
