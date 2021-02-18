@@ -16,6 +16,7 @@ import rasterio.transform
 from shapely.geometry.multipolygon import MultiPolygon
 from shapely.geometry.polygon import Polygon
 from shapely.geometry.multipoint import MultiPoint
+from shapely.geometry.polygon import LinearRing
 
 
 def init_dbpool(name, config):
@@ -193,6 +194,25 @@ def to_multipolygon(p: Union[Polygon, MultiPolygon]) -> MultiPolygon:
     return p
 
 
+def rasterize_linearring(
+    im: np.ndarray,
+    ring: LinearRing,
+    fxs: Callable[[np.ndarray], np.ndarray] = lambda xs: xs,
+    fys: Callable[[np.ndarray], np.ndarray] = lambda ys: ys,
+    line_type: int = cv2.LINE_AA,  # cv2.LINE_4 | cv2.LINE_8 | cv2.LINE_AA,
+    color: BGRA = BGRA(255, 255, 255, 255),
+    shift: int = 0,
+) -> np.ndarray:
+    if not ring.is_empty:
+        xs, ys = ring.coords.xy
+        xs = fxs(np.array(xs)).astype(np.int32)
+        ys = fys(np.array(ys)).astype(np.int32)
+        pts = np.column_stack((xs, ys))
+        pts = pts.reshape((1,) + pts.shape)
+        cv2.fillPoly(im, pts, color, line_type, shift)
+    return im
+
+
 def produce_shape_tile(
     im: np.ndarray,
     shapes: List[Tuple[MultiPolygon, DrawAttrs]],
@@ -200,9 +220,10 @@ def produce_shape_tile(
     ty: int,
     tz: int,
     oper: Literal["intersection", "difference"] = "intersection",
-    tile_width: int = 256,
-    tile_height: int = 256,
 ) -> np.ndarray:
+    tile_height = im.shape[0]
+    tile_width = im.shape[1]
+
     x0, x1 = list(tile_extents(g_lon, tx, tz, 1))[0]
     y0, y1 = list(tile_extents(g_lat_3857, ty, tz, 1))[0]
 
@@ -215,14 +236,25 @@ def produce_shape_tile(
         )
         for p in m:
             if not p.is_empty:
-                xs, ys = p.exterior.coords.xy
-                xs = ((np.array(xs) - x0) / (x1 - x0) * tile_width).astype(np.int32)
-                ys = ((np.array(ys) - y0) / (y1 - y0) * tile_height).astype(
-                    np.int32
-                )  # TODO: apply mercator transform
-                pts = np.column_stack((xs, ys))
-                pts = pts.reshape((1,) + pts.shape)
-                cv2.fillPoly(im, pts, a.background_color, a.line_type, 0)
+                rasterize_linearring(
+                    im,
+                    p.exterior,
+                    lambda xs: (xs - x0) / (x1 - x0) * tile_width,
+                    lambda ys: (ys - y0) / (y1 - y0) * tile_width,
+                    a.line_type,
+                    a.background_color,
+                    0,
+                )
+                for q in p.interiors:
+                    rasterize_linearring(
+                        im,
+                        q,
+                        lambda xs: (xs - x0) / (x1 - x0) * tile_width,
+                        lambda ys: (ys - y0) / (y1 - y0) * tile_width,
+                        a.line_type,
+                        BGRA(0, 0, 0, 0),
+                        0,
+                    )
     return im
 
 

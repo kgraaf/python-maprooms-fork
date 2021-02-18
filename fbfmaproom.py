@@ -484,9 +484,7 @@ def tiles(tz, tx, ty, country, season, year, issue_month, freq_max):
         BGRA(255, 0, 0, 255), BGRA(0, 0, 0, 0), 1, cv2.LINE_4
     )
     shapes = [(country_shape, draw_attrs)]
-    im = pingrid.produce_shape_tile(
-        im, shapes, tx, ty, tz, oper="difference", tile_width=256, tile_height=256
-    )
+    im = pingrid.produce_shape_tile(im, shapes, tx, ty, tz, oper="difference")
 
     im = pingrid.produce_test_tile(im, f"{tz}x{tx},{ty}")
 
