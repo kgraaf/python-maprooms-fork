@@ -254,13 +254,13 @@ def generate_tables(config, table_columns, issue_month, season, freq, positions)
     df["forecast"] = df[("prob", freq_max)].apply(lambda x: f"{x:.2f}")
 
     pnep_max_rank_pct = df[("prob", freq_max)].rank(
-        method="first", na_option="keep", ascending=True, pct=True
+        method="first", na_option="keep", ascending=False, pct=True
     )
     df["pnep_max_rank_pct"] = pnep_max_rank_pct
     df["pnep_yellow"] = (pnep_max_rank_pct <= freq_max / 100).astype(int)
 
     pnep_min_rank_pct = df[("prob", freq_min)].rank(
-        method="first", na_option="keep", ascending=True, pct=True
+        method="first", na_option="keep", ascending=False, pct=True
     )
     df["pnep_min_rank_pct"] = pnep_min_rank_pct
     df["pnep_brown"] = (pnep_min_rank_pct <= freq_min / 100).astype(int)
