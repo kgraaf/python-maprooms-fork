@@ -213,6 +213,37 @@ def rasterize_linearring(
     return im
 
 
+def rasterize_multipolygon(
+    im: np.ndarray,
+    m: MultiPolygon,
+    fxs: Callable[[np.ndarray], np.ndarray] = lambda xs: xs,
+    fys: Callable[[np.ndarray], np.ndarray] = lambda ys: ys,
+    line_type: int = cv2.LINE_AA,  # cv2.LINE_4 | cv2.LINE_8 | cv2.LINE_AA,
+    color: BGRA = BGRA(255, 255, 255, 255),
+    shift: int = 0,
+) -> np.ndarray:
+    for p in m:
+        if not p.is_empty:
+            rasterize_linearring(im, p.exterior, fxs, fys, line_type, color, shift)
+            for q in p.interiors:
+                rasterize_linearring(
+                    im, q, fxs, fys, line_type, BGRA(0, 0, 0, 0), shift
+                )
+
+
+def flatten(im_fg: np.ndarray, im_bg: np.ndarray) -> np.ndarray:
+    im_fg = im_fg.astype(np.float64) / 255.0
+    im_bg = im_bg.astype(np.float64) / 255.0
+    c_fg = im_fg[:, :, :3]
+    a_fg = im_fg[:, :, 3:]
+    c_bg = im_bg[:, :, :3]
+    a_bg = im_bg[:, :, 3:]
+    a_comp = a_fg + (1.0 - a_fg) * a_bg
+    c_comp = (a_fg * c_fg + (1.0 - a_fg) * a_bg * c_bg) / a_comp
+    im_comp = np.concatenate((c_comp, a_comp), axis=2) * 255.0
+    return im_comp.astype(np.uint8)
+
+
 def produce_shape_tile(
     im: np.ndarray,
     shapes: List[Tuple[MultiPolygon, DrawAttrs]],
@@ -230,31 +261,15 @@ def produce_shape_tile(
     tile_bounds = (x0, y0, x1, y1)
     tile = MultiPoint([(x0, y0), (x1, y1)]).envelope
 
+    im2 = np.zeros(im.shape, np.uint8)
     for s, a in shapes:
         m = to_multipolygon(
             tile.difference(s) if oper == "difference" else tile.intersection(s)
         )
-        for p in m:
-            if not p.is_empty:
-                rasterize_linearring(
-                    im,
-                    p.exterior,
-                    lambda xs: (xs - x0) / (x1 - x0) * tile_width,
-                    lambda ys: (ys - y0) / (y1 - y0) * tile_width,
-                    a.line_type,
-                    a.background_color,
-                    0,
-                )
-                for q in p.interiors:
-                    rasterize_linearring(
-                        im,
-                        q,
-                        lambda xs: (xs - x0) / (x1 - x0) * tile_width,
-                        lambda ys: (ys - y0) / (y1 - y0) * tile_width,
-                        a.line_type,
-                        BGRA(0, 0, 0, 0),
-                        0,
-                    )
+        fxs = lambda xs: (xs - x0) / (x1 - x0) * tile_width
+        fys = lambda ys: (ys - y0) / (y1 - y0) * tile_width
+        rasterize_multipolygon(im2, m, fxs, fys, a.line_type, a.background_color, 0)
+    im = flatten(im2, im)
     return im
 
 
