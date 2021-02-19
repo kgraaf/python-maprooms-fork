@@ -200,7 +200,7 @@ def rasterize_linearring(
     fxs: Callable[[np.ndarray], np.ndarray] = lambda xs: xs,
     fys: Callable[[np.ndarray], np.ndarray] = lambda ys: ys,
     line_type: int = cv2.LINE_AA,  # cv2.LINE_4 | cv2.LINE_8 | cv2.LINE_AA,
-    color: BGRA = BGRA(255, 255, 255, 255),
+    color: Union[int, BGRA] = 255,
     shift: int = 0,
 ) -> np.ndarray:
     if not ring.is_empty:
@@ -215,20 +215,19 @@ def rasterize_linearring(
 
 def rasterize_multipolygon(
     im: np.ndarray,
-    m: MultiPolygon,
+    mp: MultiPolygon,
     fxs: Callable[[np.ndarray], np.ndarray] = lambda xs: xs,
     fys: Callable[[np.ndarray], np.ndarray] = lambda ys: ys,
     line_type: int = cv2.LINE_AA,  # cv2.LINE_4 | cv2.LINE_8 | cv2.LINE_AA,
-    color: BGRA = BGRA(255, 255, 255, 255),
+    fg_color: Union[int, BGRA] = 255,
+    bg_color: Union[int, BGRA] = 0,
     shift: int = 0,
 ) -> np.ndarray:
-    for p in m:
+    for p in mp:
         if not p.is_empty:
-            rasterize_linearring(im, p.exterior, fxs, fys, line_type, color, shift)
+            rasterize_linearring(im, p.exterior, fxs, fys, line_type, fg_color, shift)
             for q in p.interiors:
-                rasterize_linearring(
-                    im, q, fxs, fys, line_type, BGRA(0, 0, 0, 0), shift
-                )
+                rasterize_linearring(im, q, fxs, fys, line_type, bg_color, shift)
 
 
 def flatten(im_fg: np.ndarray, im_bg: np.ndarray) -> np.ndarray:
@@ -242,6 +241,19 @@ def flatten(im_fg: np.ndarray, im_bg: np.ndarray) -> np.ndarray:
     c_comp = (a_fg * c_fg + (1.0 - a_fg) * a_bg * c_bg) / a_comp
     im_comp = np.concatenate((c_comp, a_comp), axis=2) * 255.0
     return im_comp.astype(np.uint8)
+
+
+def apply_mask(
+    im: np.ndarray, mask: np.ndarray, mask_color: BGRA = BGRA(0, 0, 0, 0)
+) -> np.ndarray:
+    h = im.shape[0]
+    w = im.shape[1]
+    mask = mask.reshape(mask.shape + (1,)).astype(np.float64) / 255
+    mask_color = np.array(mask_color, np.float64).reshape((1, 1, 4))
+    im_fg = mask_color * mask
+    im_bg = im * (1.0 - mask)
+    im_comp = flatten(im_fg, im_bg)
+    return im_comp
 
 
 def produce_shape_tile(
@@ -261,15 +273,16 @@ def produce_shape_tile(
     tile_bounds = (x0, y0, x1, y1)
     tile = MultiPoint([(x0, y0), (x1, y1)]).envelope
 
-    im2 = np.zeros(im.shape, np.uint8)
     for s, a in shapes:
-        m = to_multipolygon(
+        mask = np.zeros(im.shape[:2], np.uint8)
+        mp = to_multipolygon(
             tile.difference(s) if oper == "difference" else tile.intersection(s)
         )
         fxs = lambda xs: (xs - x0) / (x1 - x0) * tile_width
         fys = lambda ys: (ys - y0) / (y1 - y0) * tile_width
-        rasterize_multipolygon(im2, m, fxs, fys, a.line_type, a.background_color, 0)
-    im = flatten(im2, im)
+        rasterize_multipolygon(mask, mp, fxs, fys, a.line_type, 255, 0)
+        im = apply_mask(im, mask, a.background_color)
+
     return im
 
 

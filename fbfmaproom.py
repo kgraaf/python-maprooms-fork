@@ -481,7 +481,7 @@ def tiles(tz, tx, ty, country, season, year, issue_month, freq_max):
 
     country_shape, country_attrs = CLIPPING[country]
     draw_attrs = pingrid.DrawAttrs(
-        BGRA(255, 0, 0, 255), BGRA(0, 0, 0, 127), 1, cv2.LINE_4
+        BGRA(255, 0, 0, 255), BGRA(0, 0, 0, 0), 1, cv2.LINE_AA
     )
     shapes = [(country_shape, draw_attrs)]
     im = pingrid.produce_shape_tile(im, shapes, tx, ty, tz, oper="difference")
