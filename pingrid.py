@@ -86,6 +86,22 @@ class DrawAttrs(NamedTuple):
     line_type: int  # cv2.LINE_4 | cv2.LINE_8 | cv2.LINE_AA
 
 
+def from_mercator_rad(lats: float) -> float:
+    return np.arctan(0.5 * (np.exp(lats) - np.exp(-lats)))
+
+
+def from_mercator_deg(lats: float) -> float:
+    return np.rad2deg(from_mercator_rad(np.deg2rad(lats)))
+
+
+def to_mercator_rad(lats: float) -> float:
+    return np.log(np.tan(np.pi / 4 + lats / 2))
+
+
+def to_mercator_deg(lats: float) -> float:
+    return np.rad2deg(to_mercator_rad(np.deg2rad(lats)))
+
+
 def create_interp2d(
     da: xr.DataArray, dims: Tuple[str, str]
 ) -> Callable[[np.ndarray, np.ndarray], np.ndarray]:
@@ -153,9 +169,9 @@ def g_lat(tx: int, tz: int) -> float:
     return tx * 180 / 2 ** tz - 90
 
 
-def g_lat_3857(tx: int, tz: int) -> float:
-    a = math.pi - 2 * math.pi * tx / 2 ** tz
-    return 180 / math.pi * math.atan(0.5 * (math.exp(a) - math.exp(-a)))
+def g_lat_3857(ty: int, tz: int) -> float:
+    a = math.pi - 2 * math.pi * ty / 2 ** tz
+    return np.rad2deg(from_mercator_rad(a))
 
 
 def tile_extents(g: Callable[[int, int], float], tx: int, tz: int, n: int = 1):
