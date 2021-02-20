@@ -286,6 +286,10 @@ def produce_shape_tile(
     x0, x1 = list(tile_extents(g_lon, tx, tz, 1))[0]
     y0, y1 = list(tile_extents(g_lat_3857, ty, tz, 1))[0]
 
+    x_ratio = tile_width / (x1 - x0)
+    y0_mercator = to_mercator_deg(y0)
+    y_ratio_mercator = tile_height / (to_mercator_deg(y1) - y0_mercator)
+
     tile_bounds = (x0, y0, x1, y1)
     tile = MultiPoint([(x0, y0), (x1, y1)]).envelope
 
@@ -294,8 +298,8 @@ def produce_shape_tile(
         mp = to_multipolygon(
             tile.difference(s) if oper == "difference" else tile.intersection(s)
         )
-        fxs = lambda xs: (xs - x0) / (x1 - x0) * tile_width
-        fys = lambda ys: (ys - y0) / (y1 - y0) * tile_width
+        fxs = lambda xs: (xs - x0) * x_ratio
+        fys = lambda ys: (to_mercator_deg(ys) - y0_mercator) * y_ratio_mercator
         rasterize_multipolygon(mask, mp, fxs, fys, a.line_type, 255, 0)
         im = apply_mask(im, mask, a.background_color)
 
