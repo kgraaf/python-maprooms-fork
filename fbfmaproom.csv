@@ -1,4 +1,4 @@
-adm0_code,adm0_name,month,enso_state,bad_year
+adm0_code,adm0_name,month_since_01011960,enso_state,bad_year
 152,Malawi,276.5,El Niño,
 152,Malawi,288.5,Neutral,Bad
 152,Malawi,300.5,La Niña,

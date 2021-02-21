@@ -142,11 +142,11 @@ CLIPPING = {
 }
 
 DF = pd.read_csv("fbfmaproom.csv")
-DF["year"] = DF["month"].apply(lambda x: pingrid.from_months_since(x).year)
-DF["begin_year"] = DF["month"].apply(
+DF["year"] = DF["month_since_01011960"].apply(lambda x: pingrid.from_months_since(x).year)
+DF["begin_year"] = DF["month_since_01011960"].apply(
     lambda x: pingrid.from_months_since(x - SEASON_LENGTH / 2).year
 )
-DF["end_year"] = DF["month"].apply(
+DF["end_year"] = DF["month_since_01011960"].apply(
     lambda x: pingrid.from_months_since(x + SEASON_LENGTH / 2).year
 )
 DF["label"] = DF.apply(
@@ -171,7 +171,7 @@ def generate_tables(
     df["year_label"] = df2["label"]
     df["enso_state"] = df2["enso_state"]
     df["bad_year"] = df2["bad_year"].where(~df2["bad_year"].isna(), "")
-    df["season"] = df2["month"]
+    df["season"] = df2["month_since_01011960"]
     df = df.set_index("season")
 
     da = DATA_ARRAYS[country_key]["rain"].data_array
