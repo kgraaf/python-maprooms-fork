@@ -424,7 +424,7 @@ def slp(country_key, season, year, issue_month, freq_max):
 
 
 @APP.callback(
-    Output("pne_layer", "url"),
+    Output("pnep_layer", "url"),
     Input("year", "value"),
     Input("issue_month", "value"),
     Input("freq", "value"),
@@ -432,7 +432,7 @@ def slp(country_key, season, year, issue_month, freq_max):
     State("season", "value"),
 )
 def _(year, issue_month, freq, pathname, season):
-    print("*** callback pne_layer:", year, issue_month, season, freq, pathname)
+    print("*** callback pnep_layer:", year, issue_month, season, freq, pathname)
     country_key = country(pathname)
     config = CS[country_key]
     _, freq_max = freq

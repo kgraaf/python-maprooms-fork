@@ -38,9 +38,19 @@ def map_layout():
                         checked=False,
                     ),
                     dl.Overlay(
-                        dl.TileLayer(opacity=0.6, id="pne_layer"),
-                        name="PNE",
+                        dl.TileLayer(opacity=0.6, id="pnep_layer"),
+                        name="Forecast",
                         checked=True,
+                    ),
+                    dl.Overlay(
+                        dl.TileLayer(opacity=0.6, id="rain_layer"),
+                        name="Precipitation",
+                        checked=False,
+                    ),
+                    dl.Overlay(
+                        dl.TileLayer(opacity=0.6, id="vuln_layer"),
+                        name="Vulnerability",
+                        checked=False,
                     ),
                 ],
                 position="topleft",
