@@ -1,118 +1,118 @@
-adm0_name,month,enso_state,bad_year
-Malawi,276.5,El Niño,
-Malawi,288.5,Neutral,Bad
-Malawi,300.5,La Niña,
-Malawi,312.5,Neutral,
-Malawi,324.5,El Niño,Bad
-Malawi,336.5,El Niño,
-Malawi,348.5,La Niña,
-Malawi,360.5,Neutral,
-Malawi,372.5,Neutral,
-Malawi,384.5,El Niño,Bad
-Malawi,396.5,Neutral,
-Malawi,408.5,Neutral,
-Malawi,420.5,El Niño,Bad
-Malawi,432.5,La Niña,
-Malawi,444.5,Neutral,
-Malawi,456.5,El Niño,
-Malawi,468.5,La Niña,
-Malawi,480.5,La Niña,
-Malawi,492.5,La Niña,
-Malawi,504.5,Neutral,Bad
-Malawi,516.5,El Niño,
-Malawi,528.5,Neutral,
-Malawi,540.5,El Niño,Bad
-Malawi,552.5,Neutral,
-Malawi,564.5,Neutral,
-Malawi,576.5,La Niña,
-Malawi,588.5,Neutral,
-Malawi,600.5,El Niño,Bad
-Malawi,612.5,La Niña,
-Malawi,624.5,La Niña,
-Malawi,636.5,Neutral,
-Malawi,648.5,Neutral,
-Malawi,660.5,El Niño,
-Malawi,672.5,El Niño,Bad
-Malawi,684.5,Neutral,
-Malawi,696.5,Neutral,Bad
-Malawi,708.5,La Niña,
-Malawi,720.5,El Niño,Bad
-Malawi,732.5,La Niña,
-Ethiopia,269.5,El Niño,
-Ethiopia,281.5,Neutral,
-Ethiopia,293.5,La Niña,Bad
-Ethiopia,305.5,Neutral,
-Ethiopia,317.5,El Niño,
-Ethiopia,329.5,El Niño,Bad
-Ethiopia,341.5,La Niña,
-Ethiopia,353.5,Neutral,
-Ethiopia,365.5,Neutral,Bad
-Ethiopia,377.5,El Niño,Bad
-Ethiopia,389.5,Neutral,
-Ethiopia,401.5,Neutral,
-Ethiopia,413.5,El Niño,
-Ethiopia,425.5,La Niña,
-Ethiopia,437.5,Neutral,
-Ethiopia,449.5,El Niño,
-Ethiopia,461.5,La Niña,
-Ethiopia,473.5,La Niña,Bad
-Ethiopia,485.5,La Niña,
-Ethiopia,497.5,Neutral,
-Ethiopia,509.5,El Niño,Bad
-Ethiopia,521.5,Neutral,
-Ethiopia,533.5,El Niño,Bad
-Ethiopia,545.5,Neutral,
-Ethiopia,557.5,Neutral,
-Ethiopia,569.5,La Niña,
-Ethiopia,581.5,Neutral,Bad
-Ethiopia,593.5,El Niño,Bad
-Ethiopia,605.5,La Niña,
-Ethiopia,617.5,La Niña,Bad
-Ethiopia,629.5,Neutral,
-Ethiopia,641.5,Neutral,
-Ethiopia,653.5,El Niño,
-Ethiopia,665.5,El Niño,Bad
-Ethiopia,677.5,Neutral,
-Ethiopia,689.5,Neutral,
-Ethiopia,701.5,La Niña,
-Ethiopia,713.5,El Niño,
-Ethiopia,725.5,La Niña,
-Madagascar,276.5,El Niño,Bad
-Madagascar,288.5,Neutral,
-Madagascar,300.5,La Niña,
-Madagascar,312.5,Neutral,Bad
-Madagascar,324.5,El Niño,
-Madagascar,336.5,El Niño,
-Madagascar,348.5,La Niña,
-Madagascar,360.5,Neutral,
-Madagascar,372.5,Neutral,Bad
-Madagascar,384.5,El Niño,Bad
-Madagascar,396.5,Neutral,
-Madagascar,408.5,Neutral,
-Madagascar,420.5,El Niño,
-Madagascar,432.5,La Niña,
-Madagascar,444.5,Neutral,
-Madagascar,456.5,El Niño,
-Madagascar,468.5,La Niña,
-Madagascar,480.5,La Niña,
-Madagascar,492.5,La Niña,
-Madagascar,504.5,Neutral,
-Madagascar,516.5,El Niño,
-Madagascar,528.5,Neutral,
-Madagascar,540.5,El Niño,
-Madagascar,552.5,Neutral,Bad
-Madagascar,564.5,Neutral,
-Madagascar,576.5,La Niña,
-Madagascar,588.5,Neutral,Bad
-Madagascar,600.5,El Niño,Bad
-Madagascar,612.5,La Niña,
-Madagascar,624.5,La Niña,
-Madagascar,636.5,Neutral,
-Madagascar,648.5,Neutral,
-Madagascar,660.5,El Niño,
-Madagascar,672.5,El Niño,Bad
-Madagascar,684.5,Neutral,Bad
-Madagascar,696.5,Neutral,Bad
-Madagascar,708.5,La Niña,
-Madagascar,720.5,El Niño,
-Madagascar,732.5,La Niña,
+adm0_code,adm0_name,month,enso_state,bad_year
+152,Malawi,276.5,El Niño,
+152,Malawi,288.5,Neutral,Bad
+152,Malawi,300.5,La Niña,
+152,Malawi,312.5,Neutral,
+152,Malawi,324.5,El Niño,Bad
+152,Malawi,336.5,El Niño,
+152,Malawi,348.5,La Niña,
+152,Malawi,360.5,Neutral,
+152,Malawi,372.5,Neutral,
+152,Malawi,384.5,El Niño,Bad
+152,Malawi,396.5,Neutral,
+152,Malawi,408.5,Neutral,
+152,Malawi,420.5,El Niño,Bad
+152,Malawi,432.5,La Niña,
+152,Malawi,444.5,Neutral,
+152,Malawi,456.5,El Niño,
+152,Malawi,468.5,La Niña,
+152,Malawi,480.5,La Niña,
+152,Malawi,492.5,La Niña,
+152,Malawi,504.5,Neutral,Bad
+152,Malawi,516.5,El Niño,
+152,Malawi,528.5,Neutral,
+152,Malawi,540.5,El Niño,Bad
+152,Malawi,552.5,Neutral,
+152,Malawi,564.5,Neutral,
+152,Malawi,576.5,La Niña,
+152,Malawi,588.5,Neutral,
+152,Malawi,600.5,El Niño,Bad
+152,Malawi,612.5,La Niña,
+152,Malawi,624.5,La Niña,
+152,Malawi,636.5,Neutral,
+152,Malawi,648.5,Neutral,
+152,Malawi,660.5,El Niño,
+152,Malawi,672.5,El Niño,Bad
+152,Malawi,684.5,Neutral,
+152,Malawi,696.5,Neutral,Bad
+152,Malawi,708.5,La Niña,
+152,Malawi,720.5,El Niño,Bad
+152,Malawi,732.5,La Niña,
+79,Ethiopia,269.5,El Niño,
+79,Ethiopia,281.5,Neutral,
+79,Ethiopia,293.5,La Niña,Bad
+79,Ethiopia,305.5,Neutral,
+79,Ethiopia,317.5,El Niño,
+79,Ethiopia,329.5,El Niño,Bad
+79,Ethiopia,341.5,La Niña,
+79,Ethiopia,353.5,Neutral,
+79,Ethiopia,365.5,Neutral,Bad
+79,Ethiopia,377.5,El Niño,Bad
+79,Ethiopia,389.5,Neutral,
+79,Ethiopia,401.5,Neutral,
+79,Ethiopia,413.5,El Niño,
+79,Ethiopia,425.5,La Niña,
+79,Ethiopia,437.5,Neutral,
+79,Ethiopia,449.5,El Niño,
+79,Ethiopia,461.5,La Niña,
+79,Ethiopia,473.5,La Niña,Bad
+79,Ethiopia,485.5,La Niña,
+79,Ethiopia,497.5,Neutral,
+79,Ethiopia,509.5,El Niño,Bad
+79,Ethiopia,521.5,Neutral,
+79,Ethiopia,533.5,El Niño,Bad
+79,Ethiopia,545.5,Neutral,
+79,Ethiopia,557.5,Neutral,
+79,Ethiopia,569.5,La Niña,
+79,Ethiopia,581.5,Neutral,Bad
+79,Ethiopia,593.5,El Niño,Bad
+79,Ethiopia,605.5,La Niña,
+79,Ethiopia,617.5,La Niña,Bad
+79,Ethiopia,629.5,Neutral,
+79,Ethiopia,641.5,Neutral,
+79,Ethiopia,653.5,El Niño,
+79,Ethiopia,665.5,El Niño,Bad
+79,Ethiopia,677.5,Neutral,
+79,Ethiopia,689.5,Neutral,
+79,Ethiopia,701.5,La Niña,
+79,Ethiopia,713.5,El Niño,
+79,Ethiopia,725.5,La Niña,
+150,Madagascar,276.5,El Niño,Bad
+150,Madagascar,288.5,Neutral,
+150,Madagascar,300.5,La Niña,
+150,Madagascar,312.5,Neutral,Bad
+150,Madagascar,324.5,El Niño,
+150,Madagascar,336.5,El Niño,
+150,Madagascar,348.5,La Niña,
+150,Madagascar,360.5,Neutral,
+150,Madagascar,372.5,Neutral,Bad
+150,Madagascar,384.5,El Niño,Bad
+150,Madagascar,396.5,Neutral,
+150,Madagascar,408.5,Neutral,
+150,Madagascar,420.5,El Niño,
+150,Madagascar,432.5,La Niña,
+150,Madagascar,444.5,Neutral,
+150,Madagascar,456.5,El Niño,
+150,Madagascar,468.5,La Niña,
+150,Madagascar,480.5,La Niña,
+150,Madagascar,492.5,La Niña,
+150,Madagascar,504.5,Neutral,
+150,Madagascar,516.5,El Niño,
+150,Madagascar,528.5,Neutral,
+150,Madagascar,540.5,El Niño,
+150,Madagascar,552.5,Neutral,Bad
+150,Madagascar,564.5,Neutral,
+150,Madagascar,576.5,La Niña,
+150,Madagascar,588.5,Neutral,Bad
+150,Madagascar,600.5,El Niño,Bad
+150,Madagascar,612.5,La Niña,
+150,Madagascar,624.5,La Niña,
+150,Madagascar,636.5,Neutral,
+150,Madagascar,648.5,Neutral,
+150,Madagascar,660.5,El Niño,
+150,Madagascar,672.5,El Niño,Bad
+150,Madagascar,684.5,Neutral,Bad
+150,Madagascar,696.5,Neutral,Bad
+150,Madagascar,708.5,La Niña,
+150,Madagascar,720.5,El Niño,
+150,Madagascar,732.5,La Niña,
