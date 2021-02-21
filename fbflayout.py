@@ -118,11 +118,11 @@ def command_layout():
                         options=[
                             dict(
                                 label=v,
-                                value=v,
+                                value=v.lower(),
                             )
                             for v in ["National", "Regional", "District", "Pixel"]
                         ],
-                        value="National",
+                        value="national",
                         clearable=False,
                     ),
                 ],

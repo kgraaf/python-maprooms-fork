@@ -81,18 +81,52 @@ def open_data_arrays(country_key, config):
     return rs
 
 
-SHAPE_CONF = dict(
-    District=dict(table="g2015_2014_2", label="adm2_name", geom="the_geom"),
-    Regional=dict(table="g2015_2014_1", label="adm1_name", geom="the_geom"),
-    National=dict(table="g2015_2012_0", label="adm0_name", geom="the_geom"),
-)
+def open_data_frames(config, dbpool, season_length):
+    rs = {}
+
+    dc = config["enso"]
+    with dbpool.take() as cm:
+        conn = cm.resource
+        with conn:  # transaction
+            df = pd.read_sql(
+                sql.SQL(
+                    """
+                    select adm0_code, adm0_name, month_since_01011960,
+                        enso_state, bad_year 
+                    from {schema}.{table}
+                    """
+                ).format(
+                    schema=sql.Identifier(dc["schema"]),
+                    table=sql.Identifier(dc["table"]),
+                ),
+                conn,
+            )
+
+    df["year"] = df["month_since_01011960"].apply(
+        lambda x: pingrid.from_months_since(x).year
+    )
+    df["begin_year"] = df["month_since_01011960"].apply(
+        lambda x: pingrid.from_months_since(x - season_length / 2).year
+    )
+    df["end_year"] = df["month_since_01011960"].apply(
+        lambda x: pingrid.from_months_since(x + season_length / 2).year
+    )
+    df["label"] = df.apply(
+        lambda d: str(d["begin_year"])
+        if d["begin_year"] == d["end_year"]
+        else str(d["begin_year"]) + "/" + str(d["end_year"])[-2:],
+        axis=1,
+    )
+    rs["enso"] = df
+
+    return rs
 
 
 def retrieve_geometry(
-    dbpool, point: Tuple[float, float], mode: str, adm0_name: str
+    config, dbpool, point: Tuple[float, float], mode: str, adm0_name: str
 ) -> MultiPolygon:
     y, x = point
-    sc = SHAPE_CONF[mode]
+    sc = config[mode]
     with dbpool.take() as cm:
         conn = cm.resource
         with conn:  # transaction
@@ -103,7 +137,7 @@ def retrieve_geometry(
                         select gid, {geom} as the_geom,
                             ST_SetSRID(ST_MakePoint(%(x)s, %(y)s),4326) as pt,
                             adm0_name, {label} as label
-                            from {table})
+                            from {schema}.{table})
                     select gid, ST_AsBinary(the_geom) as the_geom, pt,
                         adm0_name, label
                         from a
@@ -111,6 +145,7 @@ def retrieve_geometry(
                             adm0_name = %(adm0_name)s
                     """
                 ).format(
+                    schema=sql.Identifier(sc["schema"]),
                     table=sql.Identifier(sc["table"]),
                     label=sql.Identifier(sc["label"]),
                     geom=sql.Identifier(sc["geom"]),
@@ -137,25 +172,13 @@ SEASON_LENGTH = 3.0
 DATA_ARRAYS = {k: open_data_arrays(k, v) for k, v in CS.items()}
 
 CLIPPING = {
-    k: retrieve_geometry(DBPOOL, v["marker"], "National", v["adm0_name"])
+    k: retrieve_geometry(
+        CONFIG["shapes"], DBPOOL, v["marker"], "national", v["adm0_name"]
+    )
     for k, v in CS.items()
 }
 
-DF = pd.read_csv("fbf_maproom.csv")
-DF["year"] = DF["month_since_01011960"].apply(lambda x: pingrid.from_months_since(x).year)
-DF["begin_year"] = DF["month_since_01011960"].apply(
-    lambda x: pingrid.from_months_since(x - SEASON_LENGTH / 2).year
-)
-DF["end_year"] = DF["month_since_01011960"].apply(
-    lambda x: pingrid.from_months_since(x + SEASON_LENGTH / 2).year
-)
-DF["label"] = DF.apply(
-    lambda d: str(d["begin_year"])
-    if d["begin_year"] == d["end_year"]
-    else str(d["begin_year"]) + "/" + str(d["end_year"])[-2:],
-    axis=1,
-)
-print(DF)
+DATA_FRAMES = open_data_frames(CONFIG["dataframes"], DBPOOL, SEASON_LENGTH)
 
 
 def generate_tables(
@@ -165,7 +188,9 @@ def generate_tables(
     target_month = config["seasons"][season]["target_month"]
     freq_min, freq_max = freq
 
-    df2 = DF[DF["adm0_name"] == config["adm0_name"]]
+    df2 = DATA_FRAMES["enso"]
+    df2 = df2[df2["adm0_name"] == config["adm0_name"]]
+
     df = pd.DataFrame({c["id"]: [] for c in table_columns})
     df["year"] = df2["year"]
     df["year_label"] = df2["label"]
@@ -373,12 +398,14 @@ def _(pathname, position, mode):
     title = mode
     content = ""
     positions = None
-    if mode == "Pixel":
+    if mode == "pixel":
         (x0, y0), (x1, y1) = calculate_bounds(position, c["resolution"])
         positions = [(x0, y0), (x1, y0), (x1, y1), (x0, y1), (x0, y0)]
         title += ": " + str((round((x0 + x1) / 2, 2), round((y0 + y1) / 2, 2)))
     else:
-        geom, attrs = retrieve_geometry(DBPOOL, position, mode, c["adm0_name"])
+        geom, attrs = retrieve_geometry(
+            CONFIG["shapes"], DBPOOL, position, mode, c["adm0_name"]
+        )
         print("*** geom geom: ", attrs)
         if geom is not None:
             xs, ys = geom[-1].exterior.coords.xy
@@ -466,17 +493,12 @@ def tiles(tz, tx, ty, country_key, season, year, issue_month, freq_max):
 
     country_shape, country_attrs = CLIPPING[country_key]
     draw_attrs = pingrid.DrawAttrs(
-        BGRA(255, 0, 0, 255), BGRA(0, 0, 0, 0), 1, cv2.LINE_AA
+        BGRA(0, 0, 255, 255), BGRA(0, 0, 0, 0), 1, cv2.LINE_AA
     )
     shapes = [(country_shape, draw_attrs)]
     im = pingrid.produce_shape_tile(im, shapes, tx, ty, tz, oper="difference")
 
-    im = pingrid.produce_test_tile(im, f"{tz}x{tx},{ty}")
-
-    # cv2.imwrite(
-    #    f"tiles/{tx},{ty}x{tz}.png",
-    #    cv2.LUT(im.astype(np.uint8), np.fromiter(range(255, -1, -1), np.uint8)),
-    # )
+    # im = pingrid.produce_test_tile(im, f"{tz}x{tx},{ty}")
 
     cv2_imencode_success, buffer = cv2.imencode(".png", im)
     assert cv2_imencode_success
