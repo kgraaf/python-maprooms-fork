@@ -141,7 +141,7 @@ CLIPPING = {
     for k, v in CS.items()
 }
 
-DF = pd.read_csv("fbfmaproom.csv")
+DF = pd.read_csv("fbf_maproom.csv")
 DF["year"] = DF["month_since_01011960"].apply(lambda x: pingrid.from_months_since(x).year)
 DF["begin_year"] = DF["month_since_01011960"].apply(
     lambda x: pingrid.from_months_since(x - SEASON_LENGTH / 2).year
