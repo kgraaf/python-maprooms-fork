@@ -414,7 +414,7 @@ def trim_to_bbox(ds, s, lon_name="lon", lat_name="lat"):
     lat_res = ds[lat_name].values[1] - ds[lat_name].values[0]
 
     lon_min, lat_min, lon_max, lat_max = s.bounds
-    # print("*** shape bounds:", lon_min, lat_min, lon_max, lat_max, file=sys.stderr)
+    # print("*** shape bounds:", lon_min, lat_min, lon_max, lat_max)
 
     lon_min -= 1 * lon_res
     lon_max += 1 * lon_res

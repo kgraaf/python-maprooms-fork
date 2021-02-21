@@ -50,56 +50,33 @@ APP = dash.Dash(
 APP.layout = fbflayout.app_layout(TABLE_COLUMNS)
 
 
-def open_data_arrays():
-    rs = {}
-    bath = xr.open_dataset("bath432.nc", decode_times=False)["bath"].transpose("Y", "X")
-    # bath = pingrid.correct_coord(bath, "Y")
-    # bath = pingrid.correct_coord(bath, "X")
-
-    bath = xr.where(bath < 0.0, 0.0, bath)
-    rs["bath"] = pingrid.DataArrayEntry(
-        "bath", bath, {(): pingrid.create_interp2d(bath, bath.dims)}, 0.0, 7964.0, None
+def open_data_array(
+    country_key, config, dataset_key, var_key, val_min=None, val_max=None
+):
+    cfg = config["datasets"][dataset_key]
+    ns = cfg["var_names"]
+    da = xr.open_dataset(cfg["path"], decode_times=False)[ns[var_key]].transpose(
+        ns["lat"], ns["lon"], ...
     )
-    print(bath, pingrid.extents(bath))
-
-    rain = (
-        xr.open_dataset("rain-noaa.nc", decode_times=False)["prcp_est"]
-        .pipe(pingrid.roll_to, "X", 180)
-        .transpose("Y", "X", ...)
-    )
-    rain_min = 0.0
-    rain_max = rain.max()
-    rs["rain"] = pingrid.DataArrayEntry(
-        "rain",
-        rain,
-        {},
-        rain_min,
-        rain_max,
-        pingrid.parse_colormap(rain.attrs["colormap"]),
-    )
-    # print("*** colormap:", rs["rain"].colormap, rs["rain"].colormap.shape)
-    print(rain, pingrid.extents(rain, ["Y", "X"]))
-    # print(pingrid.from_months_since_v(rain["T"].values))
-
-    pnep = xr.open_dataset("pnep-malawi.nc", decode_times=False)["prob"].transpose(
-        "Y", "X", ...
-    )
-    # pnep["T"] = pnep["S"] + pnep["L"]
-    pnep_min = 0.0
-    pnep_max = 100.0
-    pnep_colormap = pingrid.parse_colormap(
-        "[null 12632256 8388608 [16711680 14] [16760576 13] [15453831 14] 13959039 "
-        "[13959039 13] 64636 [65535 25] [36095 26] [255 51] [128 51] [128 51] 2763429]"
-    )
-    rs["pnep"] = pingrid.DataArrayEntry(
-        "pnep", pnep, {}, pnep_min, pnep_max, pnep_colormap
-    )
+    if val_min is None:
+        val_min = da.min()
+    if val_max is None:
+        val_max = da.max()
+    colormap = pingrid.parse_colormap(cfg["colormap"])
+    e = pingrid.DataArrayEntry(dataset_key, da, {}, val_min, val_max, colormap)
     print(
-        pnep,
-        pingrid.extents(pnep, ["Y", "X"]),
-        pnep["S"].values.shape,
-        pnep["L"].values.shape,
-        # pnep["T"].values.shape,
+        f"*** country={country_key!r} dataset={dataset_key!r}:",
+        da,
+        pingrid.extents(da, [ns["lat"], ns["lon"]]),
+    )
+    return e
+
+
+def open_data_arrays(country_key, config):
+    rs = {}
+    rs["rain"] = open_data_array(country_key, config, "rain", "rain", val_min=0.0)
+    rs["pnep"] = open_data_array(
+        country_key, config, "pnep", "pnep", val_min=0.0, val_max=100.0
     )
     return rs
 
@@ -155,15 +132,14 @@ def retrieve_geometry(
     return res, attrs
 
 
-DATA_ARRAYS: Dict[str, pingrid.DataArrayEntry] = open_data_arrays()
-
 SEASON_LENGTH = 3.0
+
+DATA_ARRAYS = {k: open_data_arrays(k, v) for k, v in CS.items()}
 
 CLIPPING = {
     k: retrieve_geometry(DBPOOL, v["marker"], "National", v["adm0_name"])
     for k, v in CS.items()
 }
-
 
 DF = pd.read_csv("fbfmaproom.csv")
 DF["year"] = DF["month"].apply(lambda x: pingrid.from_months_since(x).year)
@@ -182,7 +158,9 @@ DF["label"] = DF.apply(
 print(DF)
 
 
-def generate_tables(config, table_columns, issue_month, season, freq, positions):
+def generate_tables(
+    country_key, config, table_columns, issue_month, season, freq, positions
+):
     year_min, year_max = config["seasons"][season]["year_range"]
     target_month = config["seasons"][season]["target_month"]
     freq_min, freq_max = freq
@@ -196,10 +174,11 @@ def generate_tables(config, table_columns, issue_month, season, freq, positions)
     df["season"] = df2["month"]
     df = df.set_index("season")
 
-    da = DATA_ARRAYS["rain"].data_array
+    da = DATA_ARRAYS[country_key]["rain"].data_array
+    ns = config["datasets"]["rain"]["var_names"]
 
     da["season"] = (
-        da["T"] - target_month + SEASON_LENGTH / 2
+        da[ns["time"]] - target_month + SEASON_LENGTH / 2
     ) // SEASON_LENGTH * SEASON_LENGTH + target_month
 
     da = da.groupby("season").mean() * 90
@@ -208,7 +187,7 @@ def generate_tables(config, table_columns, issue_month, season, freq, positions)
     mpolygon = MultiPolygon([Polygon([[x, y] for y, x in positions])])
 
     da = pingrid.average_over_trimmed(
-        da, mpolygon, lon_name="X", lat_name="Y", all_touched=True
+        da, mpolygon, lon_name=ns["lon"], lat_name=ns["lat"], all_touched=True
     )
 
     df3 = da.to_dataframe()
@@ -217,11 +196,11 @@ def generate_tables(config, table_columns, issue_month, season, freq, positions)
 
     df = df[(df["year"] >= year_min) & (df["year"] <= year_max)]
 
-    df["rain_rank"] = df["prcp_est"].rank(
+    df["rain_rank"] = df[ns["rain"]].rank(
         method="first", na_option="keep", ascending=True
     )
 
-    rain_rank_pct = df["prcp_est"].rank(
+    rain_rank_pct = df[ns["rain"]].rank(
         method="first", na_option="keep", ascending=True, pct=True
     )
     df["rain_rank_pct"] = rain_rank_pct
@@ -229,19 +208,20 @@ def generate_tables(config, table_columns, issue_month, season, freq, positions)
     df["rain_yellow"] = (rain_rank_pct <= freq_max / 100).astype(int)
     df["rain_brown"] = (rain_rank_pct <= freq_min / 100).astype(int)
 
-    da2 = DATA_ARRAYS["pnep"].data_array
+    da2 = DATA_ARRAYS[country_key]["pnep"].data_array
+    ns = config["datasets"]["pnep"]["var_names"]
 
-    da2 = da2.sel(P=[freq_min, freq_max], drop=True)
+    da2 = da2.sel({ns["pct"]: [freq_min, freq_max]}, drop=True)
 
     s = config["seasons"][season]["issue_months"][issue_month]
     l = config["seasons"][season]["leads"][issue_month]
 
-    da2 = da2.where(da2["S"] % 12 == s, drop=True)
-    da2 = da2.sel(L=l, drop=True)
-    da2["S"] = da2["S"] + l
+    da2 = da2.where(da2[ns["issue"]] % 12 == s, drop=True)
+    da2 = da2.sel({ns["lead"]: l}, drop=True)
+    da2[ns["issue"]] = da2[ns["issue"]] + l
 
     da2 = pingrid.average_over_trimmed(
-        da2, mpolygon, lon_name="X", lat_name="Y", all_touched=True
+        da2, mpolygon, lon_name=ns["lon"], lat_name=ns["lat"], all_touched=True
     )
 
     df4 = da2.to_dataframe().unstack()
@@ -251,15 +231,15 @@ def generate_tables(config, table_columns, issue_month, season, freq, positions)
 
     df = df[(df["year"] >= year_min) & (df["year"] <= year_max)]
 
-    df["forecast"] = df[("prob", freq_max)].apply(lambda x: f"{x:.2f}")
+    df["forecast"] = df[(ns["pnep"], freq_max)].apply(lambda x: f"{x:.2f}")
 
-    pnep_max_rank_pct = df[("prob", freq_max)].rank(
+    pnep_max_rank_pct = df[(ns["pnep"], freq_max)].rank(
         method="first", na_option="keep", ascending=False, pct=True
     )
     df["pnep_max_rank_pct"] = pnep_max_rank_pct
     df["pnep_yellow"] = (pnep_max_rank_pct <= freq_max / 100).astype(int)
 
-    pnep_min_rank_pct = df[("prob", freq_min)].rank(
+    pnep_min_rank_pct = df[(ns["pnep"], freq_min)].rank(
         method="first", na_option="keep", ascending=False, pct=True
     )
     df["pnep_min_rank_pct"] = pnep_min_rank_pct
@@ -423,13 +403,16 @@ def _(pathname, position, mode):
 )
 def _(issue_month, freq, positions, pathname, season):
     print("*** callback table:", issue_month, season, freq, len(positions), pathname)
-    c = CS[country(pathname)]
-    dft, dfs = generate_tables(c, TABLE_COLUMNS, issue_month, season, freq, positions)
+    country_key = country(pathname)
+    config = CS[country_key]
+    dft, dfs = generate_tables(
+        country_key, config, TABLE_COLUMNS, issue_month, season, freq, positions
+    )
     return dft.to_dict("records"), dfs.to_dict("records")
 
 
-def slp(country, season, year, issue_month, freq_max):
-    season_config = CS[country]["seasons"][season]
+def slp(country_key, season, year, issue_month, freq_max):
+    season_config = CS[country_key]["seasons"][season]
     l = season_config["leads"][issue_month]
     s = (
         pingrid.to_months_since(datetime.date(year, 1, 1))
@@ -450,36 +433,38 @@ def slp(country, season, year, issue_month, freq_max):
 )
 def _(year, issue_month, freq, pathname, season):
     print("*** callback pne_layer:", year, issue_month, season, freq, pathname)
-    country_name = country(pathname)
+    country_key = country(pathname)
+    config = CS[country_key]
     _, freq_max = freq
 
-    dae = DATA_ARRAYS["pnep"]
-    s, l, p = slp(country_name, season, year, issue_month, freq_max)
+    dae = DATA_ARRAYS[country_key]["pnep"]
+    s, l, p = slp(country_key, season, year, issue_month, freq_max)
     da = dae.data_array
-    da = da.sel(S=s, L=l, P=p, drop=True)
+    ns = config["datasets"]["pnep"]["var_names"]
+    da = da.sel({ns["issue"]: s, ns["lead"]: l, ns["pct"]: p}, drop=True)
     if (s, l, p) not in dae.interp2d:
         dae.interp2d[(s, l, p)] = pingrid.create_interp2d(da, da.dims)
         print("*** MISS: ", (s, l, p), len(dae.interp2d))
 
-    return f"/pnep_tiles/{{z}}/{{x}}/{{y}}/{country_name}/{season}/{year}/{issue_month}/{freq_max}"
+    return f"/pnep_tiles/{{z}}/{{x}}/{{y}}/{country_key}/{season}/{year}/{issue_month}/{freq_max}"
 
 
 # Endpoints
 
 
 @SERVER.route(
-    f"/pnep_tiles/<int:tz>/<int:tx>/<int:ty>/<country>/<season>/<int:year>/<int:issue_month>/<int:freq_max>"
+    f"/pnep_tiles/<int:tz>/<int:tx>/<int:ty>/<country_key>/<season>/<int:year>/<int:issue_month>/<int:freq_max>"
 )
-def tiles(tz, tx, ty, country, season, year, issue_month, freq_max):
-    dae = DATA_ARRAYS["pnep"]
-    s, l, p = slp(country, season, year, issue_month, freq_max)
+def tiles(tz, tx, ty, country_key, season, year, issue_month, freq_max):
+    dae = DATA_ARRAYS[country_key]["pnep"]
+    s, l, p = slp(country_key, season, year, issue_month, freq_max)
 
     z = pingrid.produce_data_tile(dae.interp2d[(s, l, p)], tx, ty, tz, 256, 256)
     im = cv2.flip((z - dae.min_val) * 255 / (dae.max_val - dae.min_val), 0)
 
     im = pingrid.apply_colormap(im, dae.colormap)
 
-    country_shape, country_attrs = CLIPPING[country]
+    country_shape, country_attrs = CLIPPING[country_key]
     draw_attrs = pingrid.DrawAttrs(
         BGRA(255, 0, 0, 255), BGRA(0, 0, 0, 0), 1, cv2.LINE_AA
     )
