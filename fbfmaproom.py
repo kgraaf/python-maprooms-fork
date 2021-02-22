@@ -59,9 +59,9 @@ def open_data_array(
         ns["lat"], ns["lon"], ...
     )
     if val_min is None:
-        val_min = da.min()
+        val_min = da.min().item()
     if val_max is None:
-        val_max = da.max()
+        val_max = da.max().item()
     colormap = pingrid.parse_colormap(cfg["colormap"])
     e = pingrid.DataArrayEntry(dataset_key, da, {}, val_min, val_max, colormap)
     print(
@@ -74,7 +74,9 @@ def open_data_array(
 
 def open_data_arrays(country_key, config):
     rs = {}
-    rs["rain"] = open_data_array(country_key, config, "rain", "rain", val_min=0.0)
+    rs["rain"] = open_data_array(
+        country_key, config, "rain", "rain", val_min=0.0, val_max=1000.0
+    )
     rs["pnep"] = open_data_array(
         country_key, config, "pnep", "pnep", val_min=0.0, val_max=100.0
     )
@@ -181,8 +183,24 @@ CLIPPING = {
 DATA_FRAMES = open_data_frames(CONFIG["dataframes"], DBPOOL, SEASON_LENGTH)
 
 
+def seasonal_average(da, ns, target_month, season_length):
+    da["season"] = (
+        da[ns["time"]] - target_month + season_length / 2
+    ) // season_length * season_length + target_month
+    da = da.groupby("season").mean()
+    da = da.where(da["season"] % 12 == target_month, drop=True)
+    return da
+
+
 def generate_tables(
-    country_key, config, table_columns, issue_month, season, freq, positions
+    country_key,
+    config,
+    season_length,
+    table_columns,
+    issue_month,
+    season,
+    freq,
+    positions,
 ):
     year_min, year_max = config["seasons"][season]["year_range"]
     target_month = config["seasons"][season]["target_month"]
@@ -201,13 +219,7 @@ def generate_tables(
 
     da = DATA_ARRAYS[country_key]["rain"].data_array
     ns = config["datasets"]["rain"]["var_names"]
-
-    da["season"] = (
-        da[ns["time"]] - target_month + SEASON_LENGTH / 2
-    ) // SEASON_LENGTH * SEASON_LENGTH + target_month
-
-    da = da.groupby("season").mean() * 90
-    da = da.where(da["season"] % 12 == target_month, drop=True)
+    da = seasonal_average(da, ns, target_month, season_length) * season_length * 30.0
 
     mpolygon = MultiPolygon([Polygon([[x, y] for y, x in positions])])
 
@@ -406,7 +418,6 @@ def _(pathname, position, mode):
         geom, attrs = retrieve_geometry(
             CONFIG["shapes"], DBPOOL, position, mode, c["adm0_name"]
         )
-        print("*** geom geom: ", attrs)
         if geom is not None:
             xs, ys = geom[-1].exterior.coords.xy
             positions = list(zip(ys, xs))
@@ -433,7 +444,14 @@ def _(issue_month, freq, positions, pathname, season):
     country_key = country(pathname)
     config = CS[country_key]
     dft, dfs = generate_tables(
-        country_key, config, TABLE_COLUMNS, issue_month, season, freq, positions
+        country_key,
+        config,
+        SEASON_LENGTH,
+        TABLE_COLUMNS,
+        issue_month,
+        season,
+        freq,
+        positions,
     )
     return dft.to_dict("records"), dfs.to_dict("records")
 
@@ -463,48 +481,92 @@ def _(year, issue_month, freq, pathname, season):
     country_key = country(pathname)
     config = CS[country_key]
     _, freq_max = freq
-
-    dae = DATA_ARRAYS[country_key]["pnep"]
     s, l, p = slp(country_key, season, year, issue_month, freq_max)
-    da = dae.data_array
-    ns = config["datasets"]["pnep"]["var_names"]
-    da = da.sel({ns["issue"]: s, ns["lead"]: l, ns["pct"]: p}, drop=True)
+    dae = DATA_ARRAYS[country_key]["pnep"]
     if (s, l, p) not in dae.interp2d:
+        ns = config["datasets"]["pnep"]["var_names"]
+        da = dae.data_array
+        da = da.sel({ns["issue"]: s, ns["lead"]: l, ns["pct"]: p}, drop=True)
         dae.interp2d[(s, l, p)] = pingrid.create_interp2d(da, da.dims)
         print("*** MISS: ", (s, l, p), len(dae.interp2d))
 
     return f"/pnep_tiles/{{z}}/{{x}}/{{y}}/{country_key}/{season}/{year}/{issue_month}/{freq_max}"
 
 
+@APP.callback(
+    Output("rain_layer", "url"),
+    Input("year", "value"),
+    Input("location", "pathname"),
+    State("season", "value"),
+)
+def _(year, pathname, season):
+    print("*** callback rain_layer:", year, season, pathname)
+    country_key = country(pathname)
+    config = CS[country_key]
+    target_month = config["seasons"][season]["target_month"]
+    t = pingrid.to_months_since(datetime.date(year, 1, 1)) + target_month
+    dae = DATA_ARRAYS[country_key]["rain"]
+    if (target_month, t) not in dae.interp2d:
+        ns = config["datasets"]["rain"]["var_names"]
+        da = dae.data_array
+        da = (
+            seasonal_average(da, ns, target_month, SEASON_LENGTH) * SEASON_LENGTH * 30.0
+        )
+        da = da.sel({"season": t}, drop=True).fillna(0.0)
+        dae.interp2d[(target_month, t)] = pingrid.create_interp2d(da, da.dims)
+        print("*** MISS: ", (target_month, t), len(dae.interp2d))
+
+    return f"/rain_tiles/{{z}}/{{x}}/{{y}}/{country_key}/{season}/{year}"
+
+
 # Endpoints
 
 
-@SERVER.route(
-    f"/pnep_tiles/<int:tz>/<int:tx>/<int:ty>/<country_key>/<season>/<int:year>/<int:issue_month>/<int:freq_max>"
-)
-def tiles(tz, tx, ty, country_key, season, year, issue_month, freq_max):
-    dae = DATA_ARRAYS[country_key]["pnep"]
-    s, l, p = slp(country_key, season, year, issue_month, freq_max)
+def tile(dae, interp2d_key, tx, ty, tz, clipping=None, test_tile=False):
+    z = pingrid.produce_data_tile(dae.interp2d[interp2d_key], tx, ty, tz, 256, 256)
 
-    z = pingrid.produce_data_tile(dae.interp2d[(s, l, p)], tx, ty, tz, 256, 256)
     im = cv2.flip((z - dae.min_val) * 255 / (dae.max_val - dae.min_val), 0)
 
     im = pingrid.apply_colormap(im, dae.colormap)
 
-    country_shape, country_attrs = CLIPPING[country_key]
-    draw_attrs = pingrid.DrawAttrs(
-        BGRA(0, 0, 255, 255), BGRA(0, 0, 0, 0), 1, cv2.LINE_AA
-    )
-    shapes = [(country_shape, draw_attrs)]
-    im = pingrid.produce_shape_tile(im, shapes, tx, ty, tz, oper="difference")
+    if clipping is not None:
+        country_shape, country_attrs = clipping
+        draw_attrs = pingrid.DrawAttrs(
+            BGRA(0, 0, 255, 255), BGRA(0, 0, 0, 0), 1, cv2.LINE_AA
+        )
+        shapes = [(country_shape, draw_attrs)]
+        im = pingrid.produce_shape_tile(im, shapes, tx, ty, tz, oper="difference")
 
-    # im = pingrid.produce_test_tile(im, f"{tz}x{tx},{ty}")
+    if test_tile:
+        im = pingrid.produce_test_tile(im, f"{tz}x{tx},{ty}")
 
     cv2_imencode_success, buffer = cv2.imencode(".png", im)
     assert cv2_imencode_success
     io_buf = io.BytesIO(buffer)
     resp = flask.send_file(io_buf, mimetype="image/png")
     resp.headers["Cache-Control"] = "private, max-age=0, no-cache, no-store"
+    return resp
+
+
+@SERVER.route(
+    f"/pnep_tiles/<int:tz>/<int:tx>/<int:ty>/<country_key>/<season>/<int:year>/<int:issue_month>/<int:freq_max>"
+)
+def pnep_tiles(tz, tx, ty, country_key, season, year, issue_month, freq_max):
+    dae = DATA_ARRAYS[country_key]["pnep"]
+    s, l, p = slp(country_key, season, year, issue_month, freq_max)
+    resp = tile(dae, (s, l, p), tx, ty, tz, CLIPPING[country_key])
+    return resp
+
+
+@SERVER.route(
+    f"/rain_tiles/<int:tz>/<int:tx>/<int:ty>/<country_key>/<season>/<int:year>"
+)
+def rain_tiles(tz, tx, ty, country_key, season, year):
+    dae = DATA_ARRAYS[country_key]["rain"]
+    config = CS[country_key]
+    target_month = config["seasons"][season]["target_month"]
+    t = pingrid.to_months_since(datetime.date(year, 1, 1)) + target_month
+    resp = tile(dae, (target_month, t), tx, ty, tz, CLIPPING[country_key])
     return resp
 
 
