@@ -128,7 +128,7 @@ def retrieve_geometry(
     config, dbpool, point: Tuple[float, float], mode: str, adm0_name: str
 ) -> MultiPolygon:
     y, x = point
-    sc = config[mode]
+    sc = config["shapes"][mode]
     with dbpool.take() as cm:
         conn = cm.resource
         with conn:  # transaction
@@ -169,18 +169,103 @@ def retrieve_geometry(
     return res, attrs
 
 
+def sql_key(fields, table=None):
+    if table is None:
+        res = sql.SQL(", ").join(sql.Identifier(k) for k in fields)
+    else:
+        res = sql.SQL(", ").join(
+            sql.SQL("{table}.{field}").format(
+                table=sql.Identifier(table), field=sql.Identifier(k)
+            )
+            for k in fields
+        )
+    return res
+
+
+def retrieve_vulnerability(
+    config, dbpool, mode: str, year: int, adm0_name: str
+) -> MultiPolygon:
+    sc = config["shapes"][mode]
+    dc = config["dataframes"]["vuln"]
+    with dbpool.take() as cm:
+        conn = cm.resource
+        with conn:  # transaction
+            s = sql.SQL(
+                """
+                with v as (
+                    select
+                        {label} as label,
+                        ({key}) as key,
+                        year,
+                        sum(vulnerability) as vulnerability
+                    from {vuln_schema}.{vuln_table}
+                    where adm0_name = %(adm0_name)s
+                    group by {label}, ({key}), year
+                ),
+                g as (
+                    select
+                        ({key}) as key,
+                        ST_AsBinary({geom}) as the_geom
+                    from {geom_schema}.{geom_table}
+                    where adm0_name = %(adm0_name)s
+                ),
+                a as (
+                    select
+                        key,
+                        avg(vulnerability) as mean,
+                        stddev_pop(vulnerability) as stddev
+                    from v
+                    group by key
+                )
+                select
+                    v.label, v.key, v.year, g.the_geom,
+                    coalesce(to_char(v.vulnerability,'999,999,999,999'),'N/A') as "Vulnerability",
+                    coalesce(to_char(a.mean,'999,999,999,999'),'N/A') as "Mean",
+                    coalesce(to_char(a.stddev,'999,999,999,999'),'N/A') as "Stddev",
+                    coalesce(to_char(v.vulnerability / a.mean,'999,990D999'),'N/A') as "Normalized"
+                from (g left outer join v using (key)) left outer join a using (key)
+                where year=%(year)s
+                """
+            ).format(
+                geom_schema=sql.Identifier(sc["schema"]),
+                geom_table=sql.Identifier(sc["table"]),
+                vuln_schema=sql.Identifier(dc["schema"]),
+                vuln_table=sql.Identifier(dc["table"]),
+                key=sql_key(sc["key"]),
+                geom=sql.Identifier(sc["geom"]),
+                label=sql.Identifier(sc["label"]),
+            )
+            print(s.as_string(conn))
+            df = pd.read_sql(
+                s,
+                conn,
+                params=dict(year=year, adm0_name=adm0_name),
+            )
+    # print("bytes: ", sum(df.the_geom.apply(lambda x: len(x.tobytes()))))
+    df["the_geom"] = df["the_geom"].apply(lambda x: wkb.loads(x.tobytes()))
+    df["the_geom"] = df["the_geom"].apply(
+        lambda x: x if isinstance(x, MultiPolygon) else MultiPolygon([x])
+    )
+    return df
+
+
 SEASON_LENGTH = 3.0
 
 DATA_ARRAYS = {k: open_data_arrays(k, v) for k, v in CS.items()}
 
 CLIPPING = {
-    k: retrieve_geometry(
-        CONFIG["shapes"], DBPOOL, v["marker"], "national", v["adm0_name"]
-    )
+    k: retrieve_geometry(CONFIG, DBPOOL, v["marker"], "national", v["adm0_name"])
     for k, v in CS.items()
 }
 
 DATA_FRAMES = open_data_frames(CONFIG["dataframes"], DBPOOL, SEASON_LENGTH)
+
+df_vuln = retrieve_vulnerability(CONFIG, DBPOOL, "national", 2020, "Malawi")
+print(df_vuln)
+df_vuln = retrieve_vulnerability(CONFIG, DBPOOL, "regional", 2020, "Malawi")
+print(df_vuln)
+df_vuln = retrieve_vulnerability(CONFIG, DBPOOL, "district", 2020, "Malawi")
+print(df_vuln)
 
 
 def seasonal_average(da, ns, target_month, season_length):
@@ -415,9 +500,7 @@ def _(pathname, position, mode):
         positions = [(x0, y0), (x1, y0), (x1, y1), (x0, y1), (x0, y0)]
         title += ": " + str((round((x0 + x1) / 2, 2), round((y0 + y1) / 2, 2)))
     else:
-        geom, attrs = retrieve_geometry(
-            CONFIG["shapes"], DBPOOL, position, mode, c["adm0_name"]
-        )
+        geom, attrs = retrieve_geometry(CONFIG, DBPOOL, position, mode, c["adm0_name"])
         if geom is not None:
             xs, ys = geom[-1].exterior.coords.xy
             positions = list(zip(ys, xs))

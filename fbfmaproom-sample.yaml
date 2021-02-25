@@ -44,20 +44,27 @@ shapes:
         table: g2015_2012_0
         label: adm0_name
         geom: the_geom
+        key: ["adm0_code"]
     regional:
         schema: iridb
         table: g2015_2014_1
         label: adm1_name
         geom: the_geom
+        key: ["adm0_code", "adm1_code"]
     district:
         schema: iridb
         table: g2015_2014_2
         label: adm2_name
         geom: the_geom
+        key: ["adm0_code", "adm1_code", "adm2_code"]
 
 dataframes:
-    enso: public.fbf_maproom
-    vuln: public.fbf_vulnerability
+    enso:
+        schema: public
+        table: fbf_maproom
+    vuln:
+        schema: public
+        table: fbf_vulnerability
 
 countries:
     malawi:
