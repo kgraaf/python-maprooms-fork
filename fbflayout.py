@@ -48,7 +48,7 @@ def map_layout():
                         checked=False,
                     ),
                     dl.Overlay(
-                        dl.TileLayer(opacity=0.6, id="vuln_layer"),
+                        dl.TileLayer(opacity=0.8, id="vuln_layer"),
                         name="Vulnerability",
                         checked=False,
                     ),

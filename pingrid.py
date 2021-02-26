@@ -183,6 +183,15 @@ def tile_extents(g: Callable[[int, int], float], tx: int, tz: int, n: int = 1):
         a = b
 
 
+def produce_bkg_tile(
+    background_color: BGRA,
+    tile_width: int = 256,
+    tile_height: int = 256,
+) -> np.ndarray:
+    im = np.zeros((tile_height, tile_width, 4), np.uint8) + background_color
+    return im
+
+
 def produce_data_tile(
     interp2d: Callable[[np.ndarray, np.ndarray], np.ndarray],
     tx: int,

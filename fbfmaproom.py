@@ -86,7 +86,7 @@ def open_data_arrays(country_key, config):
 def open_data_frames(config, dbpool, season_length):
     rs = {}
 
-    dc = config["enso"]
+    dc = config["dataframes"]["enso"]
     with dbpool.take() as cm:
         conn = cm.resource
         with conn:  # transaction
@@ -121,6 +121,7 @@ def open_data_frames(config, dbpool, season_length):
     )
     rs["enso"] = df
 
+    rs["vuln"] = {k: {} for k in CONFIG["countries"].keys()}
     return rs
 
 
@@ -219,6 +220,7 @@ def retrieve_vulnerability(
                 )
                 select
                     v.label, v.key, v.year, g.the_geom,
+                    v.vulnerability / a.mean as normalized,
                     coalesce(to_char(v.vulnerability,'999,999,999,999'),'N/A') as "Vulnerability",
                     coalesce(to_char(a.mean,'999,999,999,999'),'N/A') as "Mean",
                     coalesce(to_char(a.stddev,'999,999,999,999'),'N/A') as "Stddev",
@@ -258,14 +260,7 @@ CLIPPING = {
     for k, v in CS.items()
 }
 
-DATA_FRAMES = open_data_frames(CONFIG["dataframes"], DBPOOL, SEASON_LENGTH)
-
-df_vuln = retrieve_vulnerability(CONFIG, DBPOOL, "national", 2020, "Malawi")
-print(df_vuln)
-df_vuln = retrieve_vulnerability(CONFIG, DBPOOL, "regional", 2020, "Malawi")
-print(df_vuln)
-df_vuln = retrieve_vulnerability(CONFIG, DBPOOL, "district", 2020, "Malawi")
-print(df_vuln)
+DATA_FRAMES = open_data_frames(CONFIG, DBPOOL, SEASON_LENGTH)
 
 
 def seasonal_average(da, ns, target_month, season_length):
@@ -602,7 +597,37 @@ def _(year, pathname, season):
     return f"/rain_tiles/{{z}}/{{x}}/{{y}}/{country_key}/{season}/{year}"
 
 
+@APP.callback(
+    Output("vuln_layer", "url"),
+    Input("year", "value"),
+    Input("location", "pathname"),
+    Input("mode", "value"),
+)
+def _(year, pathname, mode):
+    print("*** callback vuln_layer:", year, pathname, mode)
+    country_key = country(pathname)
+    config = CS[country_key]
+
+    cache = DATA_FRAMES["vuln"][country_key]
+    if (mode, year) not in cache:
+        cache[(mode, year)] = retrieve_vulnerability(
+            CONFIG, DBPOOL, mode, year, config["adm0_name"]
+        )
+        print("*** MISS: ", (mode, year))
+
+    return f"/vuln_tiles/{{z}}/{{x}}/{{y}}/{country_key}/{mode}/{year}"
+
+
 # Endpoints
+
+
+def image_resp(im):
+    cv2_imencode_success, buffer = cv2.imencode(".png", im)
+    assert cv2_imencode_success
+    io_buf = io.BytesIO(buffer)
+    resp = flask.send_file(io_buf, mimetype="image/png")
+    resp.headers["Cache-Control"] = "private, max-age=0, no-cache, no-store"
+    return resp
 
 
 def tile(dae, interp2d_key, tx, ty, tz, clipping=None, test_tile=False):
@@ -623,12 +648,7 @@ def tile(dae, interp2d_key, tx, ty, tz, clipping=None, test_tile=False):
     if test_tile:
         im = pingrid.produce_test_tile(im, f"{tz}x{tx},{ty}")
 
-    cv2_imencode_success, buffer = cv2.imencode(".png", im)
-    assert cv2_imencode_success
-    io_buf = io.BytesIO(buffer)
-    resp = flask.send_file(io_buf, mimetype="image/png")
-    resp.headers["Cache-Control"] = "private, max-age=0, no-cache, no-store"
-    return resp
+    return image_resp(im)
 
 
 @SERVER.route(
@@ -651,6 +671,33 @@ def rain_tiles(tz, tx, ty, country_key, season, year):
     t = pingrid.to_months_since(datetime.date(year, 1, 1)) + target_month
     resp = tile(dae, (target_month, t), tx, ty, tz, CLIPPING[country_key])
     return resp
+
+
+@SERVER.route(f"/vuln_tiles/<int:tz>/<int:tx>/<int:ty>/<country_key>/<mode>/<int:year>")
+def vuln_tiles(tz, tx, ty, country_key, mode, year):
+    print("*** vuln_tiles:", country_key, mode, year)
+    config = CS[country_key]
+    df = DATA_FRAMES["vuln"][country_key][(mode, year)]
+
+    im = pingrid.produce_bkg_tile(BGRA(0, 0, 0, 0), 256, 256)
+
+    vmax = df["normalized"].max()
+
+    shapes = [
+        (
+            r["the_geom"],
+            pingrid.DrawAttrs(
+                BGRA(0, 0, 255, 255),
+                BGRA(0, 0, 255, r["normalized"] / vmax * 255),
+                1,
+                cv2.LINE_AA,
+            ),
+        )
+        for _, r in df.iterrows()
+    ]
+    im = pingrid.produce_shape_tile(im, shapes, tx, ty, tz, oper="intersection")
+
+    return image_resp(im)
 
 
 if __name__ == "__main__":
