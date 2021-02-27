@@ -2,6 +2,7 @@ from typing import Any, Dict, Tuple, List, Literal, Optional, Union, Callable, H
 import os
 import time
 import io
+from functools import lru_cache
 import datetime
 import numpy as np
 import pandas as pd
@@ -183,9 +184,11 @@ def sql_key(fields, table=None):
     return res
 
 
-def retrieve_vulnerability(
-    config, dbpool, mode: str, year: int, adm0_name: str
-) -> MultiPolygon:
+@lru_cache
+def retrieve_vulnerability(country_key, mode, year):
+    config = CONFIG
+    dbpool = DBPOOL
+    adm0_name = config["countries"][country_key]["adm0_name"]
     sc = config["shapes"][mode]
     dc = config["dataframes"]["vuln"]
     with dbpool.take() as cm:
@@ -220,6 +223,9 @@ def retrieve_vulnerability(
                 )
                 select
                     v.label, v.key, v.year, g.the_geom,
+                    v.vulnerability,
+                    a.mean as mean,
+                    a.stddev as stddev,
                     v.vulnerability / a.mean as normalized,
                     coalesce(to_char(v.vulnerability,'999,999,999,999'),'N/A') as "Vulnerability",
                     coalesce(to_char(a.mean,'999,999,999,999'),'N/A') as "Mean",
@@ -495,7 +501,9 @@ def _(pathname, position, mode):
         positions = [(x0, y0), (x1, y0), (x1, y1), (x0, y1), (x0, y0)]
         title += ": " + str((round((x0 + x1) / 2, 2), round((y0 + y1) / 2, 2)))
     else:
+
         geom, attrs = retrieve_geometry(CONFIG, DBPOOL, position, mode, c["adm0_name"])
+
         if geom is not None:
             xs, ys = geom[-1].exterior.coords.xy
             positions = list(zip(ys, xs))
@@ -567,7 +575,6 @@ def _(year, issue_month, freq, pathname, season):
         da = da.sel({ns["issue"]: s, ns["lead"]: l, ns["pct"]: p}, drop=True)
         dae.interp2d[(s, l, p)] = pingrid.create_interp2d(da, da.dims)
         print("*** MISS: ", (s, l, p), len(dae.interp2d))
-
     return f"/pnep_tiles/{{z}}/{{x}}/{{y}}/{country_key}/{season}/{year}/{issue_month}/{freq_max}"
 
 
@@ -593,7 +600,6 @@ def _(year, pathname, season):
         da = da.sel({"season": t}, drop=True).fillna(0.0)
         dae.interp2d[(target_month, t)] = pingrid.create_interp2d(da, da.dims)
         print("*** MISS: ", (target_month, t), len(dae.interp2d))
-
     return f"/rain_tiles/{{z}}/{{x}}/{{y}}/{country_key}/{season}/{year}"
 
 
@@ -606,15 +612,7 @@ def _(year, pathname, season):
 def _(year, pathname, mode):
     print("*** callback vuln_layer:", year, pathname, mode)
     country_key = country(pathname)
-    config = CS[country_key]
-
-    cache = DATA_FRAMES["vuln"][country_key]
-    if (mode, year) not in cache:
-        cache[(mode, year)] = retrieve_vulnerability(
-            CONFIG, DBPOOL, mode, year, config["adm0_name"]
-        )
-        print("*** MISS: ", (mode, year))
-
+    retrieve_vulnerability(country_key, mode, year)
     return f"/vuln_tiles/{{z}}/{{x}}/{{y}}/{country_key}/{mode}/{year}"
 
 
@@ -632,11 +630,8 @@ def image_resp(im):
 
 def tile(dae, interp2d_key, tx, ty, tz, clipping=None, test_tile=False):
     z = pingrid.produce_data_tile(dae.interp2d[interp2d_key], tx, ty, tz, 256, 256)
-
     im = cv2.flip((z - dae.min_val) * 255 / (dae.max_val - dae.min_val), 0)
-
     im = pingrid.apply_colormap(im, dae.colormap)
-
     if clipping is not None:
         country_shape, country_attrs = clipping
         draw_attrs = pingrid.DrawAttrs(
@@ -644,10 +639,8 @@ def tile(dae, interp2d_key, tx, ty, tz, clipping=None, test_tile=False):
         )
         shapes = [(country_shape, draw_attrs)]
         im = pingrid.produce_shape_tile(im, shapes, tx, ty, tz, oper="difference")
-
     if test_tile:
         im = pingrid.produce_test_tile(im, f"{tz}x{tx},{ty}")
-
     return image_resp(im)
 
 
@@ -677,12 +670,9 @@ def rain_tiles(tz, tx, ty, country_key, season, year):
 def vuln_tiles(tz, tx, ty, country_key, mode, year):
     print("*** vuln_tiles:", country_key, mode, year)
     config = CS[country_key]
-    df = DATA_FRAMES["vuln"][country_key][(mode, year)]
-
+    df = retrieve_vulnerability(country_key, mode, year)
     im = pingrid.produce_bkg_tile(BGRA(0, 0, 0, 0), 256, 256)
-
     vmax = df["normalized"].max()
-
     shapes = [
         (
             r["the_geom"],
@@ -696,7 +686,6 @@ def vuln_tiles(tz, tx, ty, country_key, mode, year):
         for _, r in df.iterrows()
     ]
     im = pingrid.produce_shape_tile(im, shapes, tx, ty, tz, oper="intersection")
-
     return image_resp(im)
 
 
