@@ -1,9 +1,11 @@
 from typing import Any, Dict, Tuple, List, Literal, Optional, Union, Callable, Hashable
 import os
+import threading
 import time
 import io
 from functools import lru_cache
 import datetime
+import yaml
 import numpy as np
 import pandas as pd
 import xarray as xr
@@ -36,7 +38,10 @@ TABLE_COLUMNS = [
     dict(id="bad_year", name="Farmers' reported Bad Years"),
 ]
 
-PFX = "/fbfmaproom"
+PFX = CONFIG["core_path"]
+TILE_PFX = CONFIG["tile_path"]
+ADMIN_PFX = CONFIG["admin_path"]
+
 SERVER = flask.Flask(__name__)
 APP = dash.Dash(
     __name__,
@@ -562,7 +567,7 @@ def _(year, issue_month, freq, pathname, season):
     country_key = country(pathname)
     _, freq_max = freq
     select_pnep(country_key, season, year, issue_month, freq_max)
-    return f"/pnep_tiles/{{z}}/{{x}}/{{y}}/{country_key}/{season}/{year}/{issue_month}/{freq_max}"
+    return f"{TILE_PFX}/pnep/{{z}}/{{x}}/{{y}}/{country_key}/{season}/{year}/{issue_month}/{freq_max}"
 
 
 @APP.callback(
@@ -574,7 +579,7 @@ def _(year, issue_month, freq, pathname, season):
 def _(year, pathname, season):
     country_key = country(pathname)
     select_rain(country_key, year, season)
-    return f"/rain_tiles/{{z}}/{{x}}/{{y}}/{country_key}/{season}/{year}"
+    return f"{TILE_PFX}/rain/{{z}}/{{x}}/{{y}}/{country_key}/{season}/{year}"
 
 
 @APP.callback(
@@ -587,7 +592,7 @@ def _(year, pathname, mode):
     country_key = country(pathname)
     if mode != "pixel":
         retrieve_vulnerability(country_key, mode, year)
-    return f"/vuln_tiles/{{z}}/{{x}}/{{y}}/{country_key}/{mode}/{year}"
+    return f"{TILE_PFX}/vuln/{{z}}/{{x}}/{{y}}/{country_key}/{mode}/{year}"
 
 
 # Endpoints
@@ -598,6 +603,13 @@ def image_resp(im):
     assert cv2_imencode_success
     io_buf = io.BytesIO(buffer)
     resp = flask.send_file(io_buf, mimetype="image/png")
+    resp.headers["Cache-Control"] = "private, max-age=0, no-cache, no-store"
+    return resp
+
+
+def yaml_resp(data):
+    s = yaml.dump(data, default_flow_style=False, width=120, allow_unicode=True)
+    resp = flask.Response(response=s, mimetype="text/x-yaml")
     resp.headers["Cache-Control"] = "private, max-age=0, no-cache, no-store"
     return resp
 
@@ -619,7 +631,7 @@ def tile(dae, tx, ty, tz, clipping=None, test_tile=False):
 
 
 @SERVER.route(
-    f"/pnep_tiles/<int:tz>/<int:tx>/<int:ty>/<country_key>/<season>/<int:year>/<int:issue_month>/<int:freq_max>"
+    f"{TILE_PFX}/pnep/<int:tz>/<int:tx>/<int:ty>/<country_key>/<season>/<int:year>/<int:issue_month>/<int:freq_max>"
 )
 def pnep_tiles(tz, tx, ty, country_key, season, year, issue_month, freq_max):
     dae = select_pnep(country_key, season, year, issue_month, freq_max)
@@ -630,7 +642,7 @@ def pnep_tiles(tz, tx, ty, country_key, season, year, issue_month, freq_max):
 
 
 @SERVER.route(
-    f"/rain_tiles/<int:tz>/<int:tx>/<int:ty>/<country_key>/<season>/<int:year>"
+    f"{TILE_PFX}/rain/<int:tz>/<int:tx>/<int:ty>/<country_key>/<season>/<int:year>"
 )
 def rain_tiles(tz, tx, ty, country_key, season, year):
     dae = select_rain(country_key, year, season)
@@ -640,7 +652,9 @@ def rain_tiles(tz, tx, ty, country_key, season, year):
     return resp
 
 
-@SERVER.route(f"/vuln_tiles/<int:tz>/<int:tx>/<int:ty>/<country_key>/<mode>/<int:year>")
+@SERVER.route(
+    f"{TILE_PFX}/vuln/<int:tz>/<int:tx>/<int:ty>/<country_key>/<mode>/<int:year>"
+)
 def vuln_tiles(tz, tx, ty, country_key, mode, year):
     config = CONFIG["countries"][country_key]
     df = retrieve_vulnerability(country_key, mode, year)
@@ -670,6 +684,49 @@ def vuln_tiles(tz, tx, ty, country_key, mode, year):
         ]
         im = pingrid.produce_shape_tile(im, shapes, tx, ty, tz, oper="intersection")
     return image_resp(im)
+
+
+def cache_stats(f):
+    cs = {}
+    # cs |= f.cache_parameters()
+    cs |= f.cache_info()._asdict()
+    return {f.__name__: cs}
+
+
+@SERVER.route(f"{ADMIN_PFX}/stats")
+def stats():
+    fs = [
+        open_pnep,
+        select_pnep,
+        open_rain,
+        select_rain,
+        open_enso,
+        retrieve_vulnerability,
+    ]
+    cs = {}
+    for f in fs:
+        cs |= cache_stats(f)
+
+    ps = dict(
+        pid=os.getpid(),
+        active_count=threading.active_count(),
+        current_thread_name=threading.current_thread().name,
+        ident=threading.get_ident(),
+        main_thread_ident=threading.main_thread().ident,
+        stack_size=threading.stack_size(),
+        threads={
+            x.ident: dict(name=x.name, is_alive=x.is_alive(), is_daemon=x.daemon)
+            for x in threading.enumerate()
+        },
+    )
+
+    rs = dict(
+        version="0.1.125",
+        timestamp=datetime.datetime.now(datetime.timezone.utc).isoformat(),
+        cache_stats=cs,
+        process_stats=ps,
+    )
+    return yaml_resp(rs)
 
 
 if __name__ == "__main__":

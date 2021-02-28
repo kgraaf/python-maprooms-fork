@@ -1,7 +1,8 @@
 mode: prod  # debug, devel or prod
 prefix: https://iridl.ldeo.columbia.edu
 core_path: /fbfmaproom
-admin_path: /fbfmaproom/admin
+admin_path: /fbfmaproom-admin
+tile_path: /fbfmaproom-tiles
 support_email: help@iri.columbia.edu
 bypass_dlauth: true
 loglevel: info
