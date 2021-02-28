@@ -124,9 +124,11 @@ def open_enso(season_length):
     return df
 
 
-def retrieve_geometry(
-    config, dbpool, point: Tuple[float, float], mode: str, adm0_name: str
-) -> MultiPolygon:
+@lru_cache
+def retrieve_geometry(country_key: str, point: Tuple[float, float], mode: str):
+    config = CONFIG
+    dbpool = DBPOOL
+    adm0_name = config["countries"][country_key]["adm0_name"]
     y, x = point
     sc = config["shapes"][mode]
     with dbpool.take() as cm:
@@ -137,7 +139,7 @@ def retrieve_geometry(
                     """
                     with a as(
                         select gid, {geom} as the_geom,
-                            ST_SetSRID(ST_MakePoint(%(x)s, %(y)s),4326) as pt,
+                            ST_SetSRID(ST_MakePoint(%(x)s, %(y)s), 4326) as pt,
                             adm0_name, {label} as label
                             from {schema}.{table})
                     select gid, ST_AsBinary(the_geom) as the_geom, pt,
@@ -183,7 +185,7 @@ def sql_key(fields, table=None):
 
 
 @lru_cache
-def retrieve_vulnerability(country_key, mode, year):
+def retrieve_vulnerability(country_key: str, mode: str, year: int):
     config = CONFIG
     dbpool = DBPOOL
     adm0_name = config["countries"][country_key]["adm0_name"]
@@ -241,7 +243,7 @@ def retrieve_vulnerability(country_key, mode, year):
                 geom=sql.Identifier(sc["geom"]),
                 label=sql.Identifier(sc["label"]),
             )
-            print(s.as_string(conn))
+            # print(s.as_string(conn))
             df = pd.read_sql(
                 s,
                 conn,
@@ -258,11 +260,6 @@ def retrieve_vulnerability(country_key, mode, year):
 SEASON_LENGTH = 3.0
 
 DATA_ARRAYS = {k: open_data_arrays(k, v) for k, v in CS.items()}
-
-CLIPPING = {
-    k: retrieve_geometry(CONFIG, DBPOOL, v["marker"], "national", v["adm0_name"])
-    for k, v in CS.items()
-}
 
 
 def seasonal_average(da, ns, target_month, season_length):
@@ -488,7 +485,8 @@ def _(position):
     Input("mode", "value"),
 )
 def _(pathname, position, mode):
-    c = CS[country(pathname)]
+    country_key = country(pathname)
+    c = CS[country_key]
     title = mode
     content = ""
     positions = None
@@ -497,9 +495,7 @@ def _(pathname, position, mode):
         positions = [(x0, y0), (x1, y0), (x1, y1), (x0, y1), (x0, y0)]
         title += ": " + str((round((x0 + x1) / 2, 2), round((y0 + y1) / 2, 2)))
     else:
-
-        geom, attrs = retrieve_geometry(CONFIG, DBPOOL, position, mode, c["adm0_name"])
-
+        geom, attrs = retrieve_geometry(country_key, tuple(position), mode)
         if geom is not None:
             xs, ys = geom[-1].exterior.coords.xy
             positions = list(zip(ys, xs))
@@ -629,7 +625,7 @@ def tile(dae, interp2d_key, tx, ty, tz, clipping=None, test_tile=False):
     im = cv2.flip((z - dae.min_val) * 255 / (dae.max_val - dae.min_val), 0)
     im = pingrid.apply_colormap(im, dae.colormap)
     if clipping is not None:
-        country_shape, country_attrs = clipping
+        country_shape, _ = clipping
         draw_attrs = pingrid.DrawAttrs(
             BGRA(0, 0, 255, 255), BGRA(0, 0, 0, 0), 1, cv2.LINE_AA
         )
@@ -645,8 +641,10 @@ def tile(dae, interp2d_key, tx, ty, tz, clipping=None, test_tile=False):
 )
 def pnep_tiles(tz, tx, ty, country_key, season, year, issue_month, freq_max):
     dae = DATA_ARRAYS[country_key]["pnep"]
+    config = CS[country_key]
     s, l, p = slp(country_key, season, year, issue_month, freq_max)
-    resp = tile(dae, (s, l, p), tx, ty, tz, CLIPPING[country_key])
+    clipping = retrieve_geometry(country_key, tuple(config["marker"]), "national")
+    resp = tile(dae, (s, l, p), tx, ty, tz, clipping)
     return resp
 
 
@@ -658,7 +656,8 @@ def rain_tiles(tz, tx, ty, country_key, season, year):
     config = CS[country_key]
     target_month = config["seasons"][season]["target_month"]
     t = pingrid.to_months_since(datetime.date(year, 1, 1)) + target_month
-    resp = tile(dae, (target_month, t), tx, ty, tz, CLIPPING[country_key])
+    clipping = retrieve_geometry(country_key, tuple(config["marker"]), "national")
+    resp = tile(dae, (target_month, t), tx, ty, tz, clipping)
     return resp
 
 
