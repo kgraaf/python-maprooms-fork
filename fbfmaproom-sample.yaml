@@ -71,10 +71,10 @@ countries:
         logo: Malawi_IRI_98x48.png
         adm0_name: Malawi
         resolution: [1, 1]
-        center: [-13, 37.5]
+        center: [37.5, -13]
         zoom: 7
         rotation: 0
-        marker: [-14, 34]
+        marker: [34, -14]
         datasets:
             rain:
                 path: rain-noaa.nc
@@ -114,10 +114,10 @@ countries:
         logo: Madagascar_IRI_98x48.png
         adm0_name: Madagascar
         resolution: [.0375, .0375]
-        center: [-23, 49]
+        center: [49, -23]
         zoom: 7
         rotation: 0
-        marker: [-24, 45.5]
+        marker: [45.5, -24]
         datasets:
             rain:
                 path: rain-noaa.nc

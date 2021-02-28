@@ -16,6 +16,7 @@ from dash.exceptions import PreventUpdate
 from shapely import wkb
 from shapely.geometry.multipolygon import MultiPolygon
 from shapely.geometry import Polygon, Point
+from shapely.geometry.multipoint import MultiPoint
 from psycopg2 import sql
 import pyaconf
 import pingrid
@@ -128,7 +129,7 @@ def retrieve_geometry(
     country_key: str, point: Tuple[float, float], mode: str, year: Optional[int]
 ) -> Tuple[MultiPolygon, Dict[str, Any]]:
     df = retrieve_vulnerability(country_key, mode, year)
-    y, x = point
+    x, y = point
     p = Point(x, y)
     geom, attrs = None, None
     for _, r in df.iterrows():
@@ -141,7 +142,9 @@ def retrieve_geometry(
 
 
 @lru_cache
-def retrieve_vulnerability(country_key: str, mode: str, year: Optional[int]) -> pd.DataFrame:
+def retrieve_vulnerability(
+    country_key: str, mode: str, year: Optional[int]
+) -> pd.DataFrame:
     config = CONFIG
     dbpool = DBPOOL
     adm0_name = config["countries"][country_key]["adm0_name"]
@@ -235,6 +238,22 @@ def generate_tables(
     freq,
     positions,
 ):
+    df = pd.DataFrame({c["id"]: [] for c in table_columns})
+
+    dfs = pd.DataFrame({c["id"]: [] for c in table_columns})
+    dfs["year_label"] = [
+        "Worthy-action:",
+        "Act-in-vain:",
+        "Fail-to-act:",
+        "Worthy-Inaction:",
+        "Rate:",
+    ]
+    dfs2 = pd.DataFrame({c["id"]: [c["name"]] for c in table_columns})
+    dfs = dfs.append(dfs2)
+
+    if positions == [[0, 0], [0, 0], [0, 0], [0, 0]]:
+        return df, dfs
+
     season_config = config["seasons"][season]
     year_min, year_max = season_config["year_range"]
     season_length = season_config["length"]
@@ -244,7 +263,6 @@ def generate_tables(
     df2 = open_enso(season_length)
     df2 = df2[df2["adm0_name"] == config["adm0_name"]]
 
-    df = pd.DataFrame({c["id"]: [] for c in table_columns})
     df["year"] = df2["year"]
     df["year_label"] = df2["label"]
     df["enso_state"] = df2["enso_state"]
@@ -326,17 +344,6 @@ def generate_tables(
         + ["rain_yellow", "rain_brown", "pnep_yellow", "pnep_brown"]
     ]
 
-    dfs = pd.DataFrame({c["id"]: [] for c in table_columns})
-    dfs["year_label"] = [
-        "Worthy-action:",
-        "Act-in-vain:",
-        "Fail-to-act:",
-        "Worthy-Inaction:",
-        "Rate:",
-    ]
-    dfs2 = pd.DataFrame({c["id"]: [c["name"]] for c in table_columns})
-    dfs = dfs.append(dfs2)
-
     bad_year = df["bad_year"] == "Bad"
     dfs["enso_state"][:5] = hits_and_misses(df["enso_state"] == "El Niño", bad_year)
     dfs["forecast"][:5] = hits_and_misses(df["pnep_yellow"] == 1, bad_year)
@@ -384,11 +391,13 @@ def _(pathname):
         for k in sorted(c["seasons"].keys())
     ]
     season_value = min(c["seasons"].keys())
+    x, y = c["marker"]
+    cx, cy = c["center"]
     return (
         f"{PFX}/assets/{c['logo']}",
-        c["center"],
+        [cy, cx],
         c["zoom"],
-        c["marker"],
+        [y, x],
         season_options,
         season_value,
     )
@@ -443,26 +452,36 @@ def _(position):
 )
 def _(pathname, position, mode, year):
     country_key = country(pathname)
+    y, x = position
     c = CS[country_key]
-    title = mode
-    content = ""
+    title = "No Data"
+    content = []
     positions = None
     if mode == "pixel":
-        (x0, y0), (x1, y1) = calculate_bounds(position, c["resolution"])
-        positions = [(x0, y0), (x1, y0), (x1, y1), (x0, y1), (x0, y0)]
-        title += ": " + str((round((x0 + x1) / 2, 2), round((y0 + y1) / 2, 2)))
+        (x0, y0), (x1, y1) = calculate_bounds((x, y), c["resolution"])
+        pixel = MultiPoint([(x0, y0), (x1, y1)]).envelope
+        geom, _ = retrieve_geometry(country_key, tuple(c["marker"]), "national", None)
+        if pixel.intersects(geom):
+            positions = [[y0, x0], [y1, x0], [y1, x1], [y0, x1], [y0, x0]]
+            px = (x0 + x1) / 2
+            pxs = "E" if px > 0.0 else "W" if px < 0.0 else "" 
+            py = (y0 + y1) / 2
+            pys = "N" if py > 0.0 else "S" if py < 0.0 else "" 
+            title = f"{np.abs(py):.5f}° {pys} {np.abs(px):.5f}° {pxs}"
     else:
-        geom, attrs = retrieve_geometry(country_key, tuple(position), mode, year)
+        geom, attrs = retrieve_geometry(country_key, (x, y), mode, year)
         if geom is not None:
             xs, ys = geom[-1].exterior.coords.xy
             positions = list(zip(ys, xs))
-            title += ": " + attrs["label"]
-            content = str(
-                dict(marker=(round(position[1], 2), round(position[0], 2))) | attrs
+            title = attrs["label"]
+            fmt = lambda k: [html.B(k + ": "), attrs[k], html.Br()]
+            content = (
+                fmt("Vulnerability") + fmt("Mean") + fmt("Stddev") + fmt("Normalized")
             )
     if positions is None:
-        raise PreventUpdate
-    return positions, [html.H2(title), html.P(content)]
+        # raise PreventUpdate
+        positions = [[0, 0], [0, 0], [0, 0], [0, 0]]
+    return positions, [html.H3(title), html.Div(content)]
 
 
 @APP.callback(
@@ -558,7 +577,8 @@ def _(year, pathname, season):
 )
 def _(year, pathname, mode):
     country_key = country(pathname)
-    retrieve_vulnerability(country_key, mode, year)
+    if mode != "pixel":
+        retrieve_vulnerability(country_key, mode, year)
     return f"/vuln_tiles/{{z}}/{{x}}/{{y}}/{country_key}/{mode}/{year}"
 
 
@@ -620,29 +640,30 @@ def vuln_tiles(tz, tx, ty, country_key, mode, year):
     config = CS[country_key]
     df = retrieve_vulnerability(country_key, mode, year)
     im = pingrid.produce_bkg_tile(BGRA(0, 0, 0, 0), 256, 256)
-    vmax = df["normalized"].max()
-    shapes = [
-        (
-            r["the_geom"],
-            pingrid.DrawAttrs(
-                BGRA(0, 0, 255, 255),
-                BGRA(
-                    0,
-                    0,
-                    255,
-                    int(r["normalized"] / vmax * 255)
-                    if r["normalized"] is not None
-                    and not np.isnan(r["normalized"])
-                    and not np.isnan(vmax)
-                    else 0,
+    if mode != "pixel":
+        vmax = df["normalized"].max()
+        shapes = [
+            (
+                r["the_geom"],
+                pingrid.DrawAttrs(
+                    BGRA(0, 0, 255, 255),
+                    BGRA(
+                        0,
+                        0,
+                        255,
+                        int(r["normalized"] / vmax * 255)
+                        if r["normalized"] is not None
+                        and not np.isnan(r["normalized"])
+                        and not np.isnan(vmax)
+                        else 0,
+                    ),
+                    1,
+                    cv2.LINE_AA,
                 ),
-                1,
-                cv2.LINE_AA,
-            ),
-        )
-        for _, r in df.iterrows()
-    ]
-    im = pingrid.produce_shape_tile(im, shapes, tx, ty, tz, oper="intersection")
+            )
+            for _, r in df.iterrows()
+        ]
+        im = pingrid.produce_shape_tile(im, shapes, tx, ty, tz, oper="intersection")
     return image_resp(im)
 
 
