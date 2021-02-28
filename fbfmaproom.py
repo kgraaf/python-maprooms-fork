@@ -84,9 +84,10 @@ def open_data_arrays(country_key, config):
     return rs
 
 
-def open_data_frames(config, dbpool, season_length):
-    rs = {}
-
+@lru_cache
+def open_enso(season_length):
+    config = CONFIG
+    dbpool = DBPOOL
     dc = config["dataframes"]["enso"]
     with dbpool.take() as cm:
         conn = cm.resource
@@ -120,10 +121,7 @@ def open_data_frames(config, dbpool, season_length):
         else str(d["begin_year"]) + "/" + str(d["end_year"])[-2:],
         axis=1,
     )
-    rs["enso"] = df
-
-    rs["vuln"] = {k: {} for k in CONFIG["countries"].keys()}
-    return rs
+    return df
 
 
 def retrieve_geometry(
@@ -266,8 +264,6 @@ CLIPPING = {
     for k, v in CS.items()
 }
 
-DATA_FRAMES = open_data_frames(CONFIG, DBPOOL, SEASON_LENGTH)
-
 
 def seasonal_average(da, ns, target_month, season_length):
     da["season"] = (
@@ -292,7 +288,7 @@ def generate_tables(
     target_month = config["seasons"][season]["target_month"]
     freq_min, freq_max = freq
 
-    df2 = DATA_FRAMES["enso"]
+    df2 = open_enso(season_length)
     df2 = df2[df2["adm0_name"] == config["adm0_name"]]
 
     df = pd.DataFrame({c["id"]: [] for c in table_columns})
