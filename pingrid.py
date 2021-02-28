@@ -318,9 +318,16 @@ def produce_shape_tile(
 
     for s, a in shapes:
         mask = np.zeros(im.shape[:2], np.uint8)
-        mp = to_multipolygon(
-            tile.difference(s) if oper == "difference" else tile.intersection(s)
-        )
+        if oper == "difference":
+            if tile.intersects(s):
+                mp = to_multipolygon(tile.difference(s))
+            else:
+                mp = to_multipolygon(tile)
+        elif oper == "intersection":
+            if tile.intersects(s):
+                mp = to_multipolygon(tile.intersection(s))
+            else:
+                continue
         fxs = lambda xs: (xs - x0) * x_ratio
         fys = lambda ys: (to_mercator_deg(ys) - y0_mercator) * y_ratio_mercator
         rasterize_multipolygon(mask, mp, fxs, fys, a.line_type, 255, 0)
