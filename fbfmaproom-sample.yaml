@@ -83,7 +83,7 @@ countries:
                     lat: Y
                     lon: X
                     time: T
-                colormap: "[16777215 16777215 12632256 12632256 14155730 [14155730 21] 12841150 [12841150 23] 10215830 [10215830 23] 7262835 [7262835 22] 6931300 [6931300 23] 5944410 [5944410 23] 5285200 [5285200 23] 4625990 [4625990 22] 3966780 [3966780 23] 3307570 [3307570 23] 2648360 [2648360 23] 1989150]"
+                colormap: &raincm "[16777215 16777215 12632256 12632256 14155730 [14155730 21] 12841150 [12841150 23] 10215830 [10215830 23] 7262835 [7262835 22] 6931300 [6931300 23] 5944410 [5944410 23] 5285200 [5285200 23] 4625990 [4625990 22] 3966780 [3966780 23] 3307570 [3307570 23] 2648360 [2648360 23] 1989150]"
             pnep:
                 path: pnep-malawi.nc
                 var_names:
@@ -93,17 +93,19 @@ countries:
                     issue: S
                     lead: L
                     pct: P
-                colormap: "[null 12632256 8388608 [16711680 14] [16760576 13] [15453831 14] 13959039 [13959039 13] 64636 [65535 25] [36095 26] [255 51] [128 51] [128 51] 2763429]"
+                colormap: &pnepcm "[null 12632256 8388608 [16711680 14] [16760576 13] [15453831 14] 13959039 [13959039 13] 64636 [65535 25] [36095 26] [255 51] [128 51] [128 51] 2763429]"
         seasons:
             season1:
                 label: DJF
                 target_month: 0.5  # season center in months since Jan 1: 0.0 <= season < 12.0
+                length: 3.0
                 issue_months: [7, 8, 9, 10]  # months since Jan 1: 0.0 <= season < 12.0
                 leads: [5.5, 4.5, 3.5, 2.5]  # as appear in the dataset, i.e. may be dummy 0.0
                 year_range: [1983, 2021]
             season2:
                 label: dJf
                 target_month: 0.5  # months since Jan 1: 0.0 <= season < 12.0
+                length: 3.0
                 issue_months: [9, 7]  # months since Jan 1: 0.0 <= season < 12.0
                 leads: [3.5, 5.5]  # as appear in the dataset, i.e. may be dummy 0.0
                 year_range: [2001, 2005]
@@ -124,7 +126,7 @@ countries:
                     lat: Y
                     lon: X
                     time: T
-                colormap: "[16777215 16777215 12632256 12632256 14155730 [14155730 21] 12841150 [12841150 23] 10215830 [10215830 23] 7262835 [7262835 22] 6931300 [6931300 23] 5944410 [5944410 23] 5285200 [5285200 23] 4625990 [4625990 22] 3966780 [3966780 23] 3307570 [3307570 23] 2648360 [2648360 23] 1989150]"
+                colormap: *raincm
             pnep:
                 path: pnep-madagascar.nc
                 var_names: 
@@ -134,11 +136,13 @@ countries:
                     issue: S
                     lead: L
                     pct: P
-                colormap: "[null 12632256 8388608 [16711680 14] [16760576 13] [15453831 14] 13959039 [13959039 13] 64636 [65535 25] [36095 26] [255 51] [128 51] [128 51] 2763429]"
+                colormap: *pnepcm
         seasons:
             season1:
                 label: DJF
                 target_month: 0.5  # season center in months since Jan 1: 0.0 <= season < 12.0
+                length: 3.0
                 issue_months: [8, 9, 10]  # months since Jan 1: 0.0 <= season < 12.0
                 leads: [2.5, 2.5, 2.5]  # as appear in the dataset, i.e. may be dummy 0.0
                 year_range: [1982, 2020]
+

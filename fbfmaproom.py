@@ -257,8 +257,6 @@ def retrieve_vulnerability(country_key: str, mode: str, year: int):
     return df
 
 
-SEASON_LENGTH = 3.0
-
 DATA_ARRAYS = {k: open_data_arrays(k, v) for k, v in CS.items()}
 
 
@@ -274,15 +272,16 @@ def seasonal_average(da, ns, target_month, season_length):
 def generate_tables(
     country_key,
     config,
-    season_length,
     table_columns,
     issue_month,
     season,
     freq,
     positions,
 ):
-    year_min, year_max = config["seasons"][season]["year_range"]
-    target_month = config["seasons"][season]["target_month"]
+    season_config = config["seasons"][season]
+    year_min, year_max = season_config["year_range"]
+    season_length = season_config["length"]
+    target_month = season_config["target_month"]
     freq_min, freq_max = freq
 
     df2 = open_enso(season_length)
@@ -524,7 +523,6 @@ def _(issue_month, freq, positions, pathname, season):
     dft, dfs = generate_tables(
         country_key,
         config,
-        SEASON_LENGTH,
         TABLE_COLUMNS,
         issue_month,
         season,
@@ -580,14 +578,16 @@ def _(year, pathname, season):
     print("*** callback rain_layer:", year, season, pathname)
     country_key = country(pathname)
     config = CS[country_key]
-    target_month = config["seasons"][season]["target_month"]
+    season_config = config["seasons"][season]
+    season_length = season_config["length"]
+    target_month = season_config["target_month"]
     t = pingrid.to_months_since(datetime.date(year, 1, 1)) + target_month
     dae = DATA_ARRAYS[country_key]["rain"]
     if (target_month, t) not in dae.interp2d:
         ns = config["datasets"]["rain"]["var_names"]
         da = dae.data_array
         da = (
-            seasonal_average(da, ns, target_month, SEASON_LENGTH) * SEASON_LENGTH * 30.0
+            seasonal_average(da, ns, target_month, season_length) * season_length * 30.0
         )
         da = da.sel({"season": t}, drop=True).fillna(0.0)
         dae.interp2d[(target_month, t)] = pingrid.create_interp2d(da, da.dims)
