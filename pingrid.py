@@ -9,6 +9,7 @@ from collections.abc import Iterable
 from scipy import interpolate
 import cv2
 import psycopg2.extensions
+from psycopg2 import sql
 from queuepool.psycopg2cm import ConnectionManagerExtended
 from queuepool.pool import Pool
 import rasterio.features
@@ -181,6 +182,19 @@ def tile_extents(g: Callable[[int, int], float], tx: int, tz: int, n: int = 1):
         b = g(tx + i / n, tz)
         yield a, b
         a = b
+
+
+def sql_key(fields, table=None):
+    if table is None:
+        res = sql.SQL(", ").join(sql.Identifier(k) for k in fields)
+    else:
+        res = sql.SQL(", ").join(
+            sql.SQL("{table}.{field}").format(
+                table=sql.Identifier(table), field=sql.Identifier(k)
+            )
+            for k in fields
+        )
+    return res
 
 
 def produce_bkg_tile(

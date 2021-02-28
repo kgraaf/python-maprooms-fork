@@ -15,7 +15,7 @@ from dash.dependencies import Output, Input, State, ALL
 from dash.exceptions import PreventUpdate
 from shapely import wkb
 from shapely.geometry.multipolygon import MultiPolygon
-from shapely.geometry import Polygon
+from shapely.geometry import Polygon, Point
 from psycopg2 import sql
 import pyaconf
 import pingrid
@@ -124,68 +124,24 @@ def open_enso(season_length):
     return df
 
 
-@lru_cache
-def retrieve_geometry(country_key: str, point: Tuple[float, float], mode: str):
-    config = CONFIG
-    dbpool = DBPOOL
-    adm0_name = config["countries"][country_key]["adm0_name"]
+def retrieve_geometry(
+    country_key: str, point: Tuple[float, float], mode: str, year: Optional[int]
+) -> Tuple[MultiPolygon, Dict[str, Any]]:
+    df = retrieve_vulnerability(country_key, mode, year)
     y, x = point
-    sc = config["shapes"][mode]
-    with dbpool.take() as cm:
-        conn = cm.resource
-        with conn:  # transaction
-            df = pd.read_sql(
-                sql.SQL(
-                    """
-                    with a as(
-                        select gid, {geom} as the_geom,
-                            ST_SetSRID(ST_MakePoint(%(x)s, %(y)s), 4326) as pt,
-                            adm0_name, {label} as label
-                            from {schema}.{table})
-                    select gid, ST_AsBinary(the_geom) as the_geom, pt,
-                        adm0_name, label
-                        from a
-                        where the_geom && pt and ST_Contains(the_geom, pt) and
-                            adm0_name = %(adm0_name)s
-                    """
-                ).format(
-                    schema=sql.Identifier(sc["schema"]),
-                    table=sql.Identifier(sc["table"]),
-                    label=sql.Identifier(sc["label"]),
-                    geom=sql.Identifier(sc["geom"]),
-                ),
-                conn,
-                params=dict(x=x, y=y, adm0_name=adm0_name),
-            )
-    # print("bytes: ", sum(df.the_geom.apply(lambda x: len(x.tobytes()))), "x, y: ", x, y)
-    df["the_geom"] = df["the_geom"].apply(lambda x: wkb.loads(x.tobytes()))
-    if len(df.index) != 0:
-        res = df["the_geom"].values[0]
-        if not isinstance(res, MultiPolygon):
-            # make a MultiPolygon out of a single polygon
-            res = MultiPolygon([res])
-        attrs = {k: vs[0] for k, vs in df.iteritems() if k not in ("the_geom", "pt")}
-    else:
-        res = None
-        attrs = None
-    return res, attrs
-
-
-def sql_key(fields, table=None):
-    if table is None:
-        res = sql.SQL(", ").join(sql.Identifier(k) for k in fields)
-    else:
-        res = sql.SQL(", ").join(
-            sql.SQL("{table}.{field}").format(
-                table=sql.Identifier(table), field=sql.Identifier(k)
-            )
-            for k in fields
-        )
-    return res
+    p = Point(x, y)
+    geom, attrs = None, None
+    for _, r in df.iterrows():
+        minx, miny, maxx, maxy = r["the_geom"].bounds
+        if minx <= x <= maxx and miny <= y <= maxy and r["the_geom"].contains(p):
+            geom = r["the_geom"]
+            attrs = {k: v for k, v in r.items() if k not in ("the_geom")}
+            break
+    return geom, attrs
 
 
 @lru_cache
-def retrieve_vulnerability(country_key: str, mode: str, year: int):
+def retrieve_vulnerability(country_key: str, mode: str, year: Optional[int]) -> pd.DataFrame:
     config = CONFIG
     dbpool = DBPOOL
     adm0_name = config["countries"][country_key]["adm0_name"]
@@ -198,7 +154,6 @@ def retrieve_vulnerability(country_key: str, mode: str, year: int):
                 """
                 with v as (
                     select
-                        {label} as label,
                         ({key}) as key,
                         year,
                         sum(vulnerability) as vulnerability
@@ -209,6 +164,7 @@ def retrieve_vulnerability(country_key: str, mode: str, year: int):
                 g as (
                     select
                         ({key}) as key,
+                        {label} as label,
                         ST_AsBinary({geom}) as the_geom
                     from {geom_schema}.{geom_table}
                     where adm0_name = %(adm0_name)s
@@ -222,7 +178,8 @@ def retrieve_vulnerability(country_key: str, mode: str, year: int):
                     group by key
                 )
                 select
-                    v.label, v.key, v.year, g.the_geom,
+                    g.label, g.key, g.the_geom,
+                    v.year,
                     v.vulnerability,
                     a.mean as mean,
                     a.stddev as stddev,
@@ -231,15 +188,15 @@ def retrieve_vulnerability(country_key: str, mode: str, year: int):
                     coalesce(to_char(a.mean,'999,999,999,999'),'N/A') as "Mean",
                     coalesce(to_char(a.stddev,'999,999,999,999'),'N/A') as "Stddev",
                     coalesce(to_char(v.vulnerability / a.mean,'999,990D999'),'N/A') as "Normalized"
-                from (g left outer join v using (key)) left outer join a using (key)
-                where year=%(year)s
+                from (g left outer join a using (key))
+                    left outer join v on(g.key=v.key and v.year=%(year)s)
                 """
             ).format(
                 geom_schema=sql.Identifier(sc["schema"]),
                 geom_table=sql.Identifier(sc["table"]),
                 vuln_schema=sql.Identifier(dc["schema"]),
                 vuln_table=sql.Identifier(dc["table"]),
-                key=sql_key(sc["key"]),
+                key=pingrid.sql_key(sc["key"]),
                 geom=sql.Identifier(sc["geom"]),
                 label=sql.Identifier(sc["label"]),
             )
@@ -482,8 +439,9 @@ def _(position):
     Input("location", "pathname"),
     Input("marker", "position"),
     Input("mode", "value"),
+    Input("year", "value"),
 )
-def _(pathname, position, mode):
+def _(pathname, position, mode, year):
     country_key = country(pathname)
     c = CS[country_key]
     title = mode
@@ -494,7 +452,7 @@ def _(pathname, position, mode):
         positions = [(x0, y0), (x1, y0), (x1, y1), (x0, y1), (x0, y0)]
         title += ": " + str((round((x0 + x1) / 2, 2), round((y0 + y1) / 2, 2)))
     else:
-        geom, attrs = retrieve_geometry(country_key, tuple(position), mode)
+        geom, attrs = retrieve_geometry(country_key, tuple(position), mode, year)
         if geom is not None:
             xs, ys = geom[-1].exterior.coords.xy
             positions = list(zip(ys, xs))
@@ -517,7 +475,6 @@ def _(pathname, position, mode):
     State("season", "value"),
 )
 def _(issue_month, freq, positions, pathname, season):
-    print("*** callback table:", issue_month, season, freq, len(positions), pathname)
     country_key = country(pathname)
     config = CS[country_key]
     dft, dfs = generate_tables(
@@ -553,7 +510,6 @@ def slp(country_key, season, year, issue_month, freq_max):
     State("season", "value"),
 )
 def _(year, issue_month, freq, pathname, season):
-    print("*** callback pnep_layer:", year, issue_month, season, freq, pathname)
     country_key = country(pathname)
     config = CS[country_key]
     _, freq_max = freq
@@ -575,7 +531,6 @@ def _(year, issue_month, freq, pathname, season):
     State("season", "value"),
 )
 def _(year, pathname, season):
-    print("*** callback rain_layer:", year, season, pathname)
     country_key = country(pathname)
     config = CS[country_key]
     season_config = config["seasons"][season]
@@ -602,7 +557,6 @@ def _(year, pathname, season):
     Input("mode", "value"),
 )
 def _(year, pathname, mode):
-    print("*** callback vuln_layer:", year, pathname, mode)
     country_key = country(pathname)
     retrieve_vulnerability(country_key, mode, year)
     return f"/vuln_tiles/{{z}}/{{x}}/{{y}}/{country_key}/{mode}/{year}"
@@ -643,7 +597,7 @@ def pnep_tiles(tz, tx, ty, country_key, season, year, issue_month, freq_max):
     dae = DATA_ARRAYS[country_key]["pnep"]
     config = CS[country_key]
     s, l, p = slp(country_key, season, year, issue_month, freq_max)
-    clipping = retrieve_geometry(country_key, tuple(config["marker"]), "national")
+    clipping = retrieve_geometry(country_key, tuple(config["marker"]), "national", None)
     resp = tile(dae, (s, l, p), tx, ty, tz, clipping)
     return resp
 
@@ -656,14 +610,13 @@ def rain_tiles(tz, tx, ty, country_key, season, year):
     config = CS[country_key]
     target_month = config["seasons"][season]["target_month"]
     t = pingrid.to_months_since(datetime.date(year, 1, 1)) + target_month
-    clipping = retrieve_geometry(country_key, tuple(config["marker"]), "national")
+    clipping = retrieve_geometry(country_key, tuple(config["marker"]), "national", None)
     resp = tile(dae, (target_month, t), tx, ty, tz, clipping)
     return resp
 
 
 @SERVER.route(f"/vuln_tiles/<int:tz>/<int:tx>/<int:ty>/<country_key>/<mode>/<int:year>")
 def vuln_tiles(tz, tx, ty, country_key, mode, year):
-    print("*** vuln_tiles:", country_key, mode, year)
     config = CS[country_key]
     df = retrieve_vulnerability(country_key, mode, year)
     im = pingrid.produce_bkg_tile(BGRA(0, 0, 0, 0), 256, 256)
@@ -673,7 +626,16 @@ def vuln_tiles(tz, tx, ty, country_key, mode, year):
             r["the_geom"],
             pingrid.DrawAttrs(
                 BGRA(0, 0, 255, 255),
-                BGRA(0, 0, 255, r["normalized"] / vmax * 255),
+                BGRA(
+                    0,
+                    0,
+                    255,
+                    int(r["normalized"] / vmax * 255)
+                    if r["normalized"] is not None
+                    and not np.isnan(r["normalized"])
+                    and not np.isnan(vmax)
+                    else 0,
+                ),
                 1,
                 cv2.LINE_AA,
             ),
