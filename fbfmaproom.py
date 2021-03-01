@@ -59,7 +59,13 @@ APP.layout = fbflayout.app_layout(TABLE_COLUMNS)
 
 
 def open_data_array(
-    config, country_key, dataset_key, var_key, val_min=None, val_max=None
+    config,
+    country_key,
+    dataset_key,
+    var_key,
+    val_min=None,
+    val_max=None,
+    reverse_colormap=False,
 ):
     cfg = config["countries"][country_key]["datasets"][dataset_key]
     ns = cfg["var_names"]
@@ -71,6 +77,8 @@ def open_data_array(
     if val_max is None:
         val_max = da.max().item()
     colormap = pingrid.parse_colormap(cfg["colormap"])
+    if reverse_colormap:
+        colormap = colormap[::-1]
     # print("*** colormap:", dataset_key, colormap.shape)
     e = pingrid.DataArrayEntry(dataset_key, da, None, val_min, val_max, colormap)
     return e
@@ -79,7 +87,13 @@ def open_data_array(
 @lru_cache
 def open_pnep(country_key):
     return open_data_array(
-        CONFIG, country_key, "pnep", "pnep", val_min=0.0, val_max=100.0
+        CONFIG,
+        country_key,
+        "pnep",
+        "pnep",
+        val_min=0.0,
+        val_max=100.0,
+        reverse_colormap=True,
     )
 
 
