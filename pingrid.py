@@ -413,9 +413,21 @@ def parse_colormap(s: str) -> np.ndarray:
     vs = []
     for x in s[1:-1].split(" "):
         vs = parse_color_item(vs, x)
-    # print("*** CM cm:", len(vs), [f"{v.red:02x}{v.green:02x}{v.blue:02x}" for v in vs])
+    # print(
+    #     "*** CM cm:",
+    #     len(vs),
+    #     [f"{v.red:02x}{v.green:02x}{v.blue:02x}{v.alpha:02x}" for v in vs],
+    # )
     rs = np.array([vs[int(i / 256.0 * len(vs))] for i in range(0, 256)], np.uint8)
     return rs
+
+
+def to_dash_colorscale(cm: np.ndarray) -> List[str]:
+    cs = []
+    for x in cm:
+        v = BGRA(*x)
+        cs.append(f"#{v.red:02x}{v.green:02x}{v.blue:02x}{v.alpha:02x}")
+    return cs
 
 
 def apply_colormap(im: np.ndarray, colormap: np.ndarray) -> np.ndarray:

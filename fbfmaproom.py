@@ -38,6 +38,8 @@ TABLE_COLUMNS = [
     dict(id="bad_year", name="Farmers' reported Bad Years"),
 ]
 
+ZERO_SHAPE = [[0, 0], [0, 0], [0, 0], [0, 0]]
+
 PFX = CONFIG["core_path"]
 TILE_PFX = CONFIG["tile_path"]
 ADMIN_PFX = CONFIG["admin_path"]
@@ -69,6 +71,7 @@ def open_data_array(
     if val_max is None:
         val_max = da.max().item()
     colormap = pingrid.parse_colormap(cfg["colormap"])
+    # print("*** colormap:", dataset_key, colormap.shape)
     e = pingrid.DataArrayEntry(dataset_key, da, None, val_min, val_max, colormap)
     return e
 
@@ -296,7 +299,7 @@ def generate_tables(
     dfs2 = pd.DataFrame({c["id"]: [c["name"]] for c in table_columns})
     dfs = dfs.append(dfs2)
 
-    if positions == [[0, 0], [0, 0], [0, 0], [0, 0]]:
+    if positions == ZERO_SHAPE:
         return df, dfs
 
     season_config = config["seasons"][season]
@@ -424,6 +427,9 @@ def country(pathname: str) -> str:
     Output("marker", "position"),
     Output("season", "options"),
     Output("season", "value"),
+    Output("pnep_colorbar", "colorscale"),
+    Output("rain_colorbar", "colorscale"),
+    Output("vuln_colorbar", "colorscale"),
     Input("location", "pathname"),
 )
 def _(pathname):
@@ -439,6 +445,9 @@ def _(pathname):
     season_value = min(c["seasons"].keys())
     x, y = c["marker"]
     cx, cy = c["center"]
+    pnep_cs = pingrid.to_dash_colorscale(open_pnep(country_key).colormap)
+    rain_cs = pingrid.to_dash_colorscale(open_rain(country_key).colormap)
+    vuln_cs = pingrid.to_dash_colorscale(open_rain(country_key).colormap)
     return (
         f"{PFX}/assets/{c['logo']}",
         [cy, cx],
@@ -446,6 +455,9 @@ def _(pathname):
         [y, x],
         season_options,
         season_value,
+        pnep_cs,
+        rain_cs,
+        vuln_cs,
     )
 
 
@@ -527,7 +539,7 @@ def _(pathname, position, mode, year):
             )
     if positions is None:
         # raise PreventUpdate
-        positions = [[0, 0], [0, 0], [0, 0], [0, 0]]
+        positions = ZERO_SHAPE
     return positions, [html.H3(title), html.Div(content)]
 
 
