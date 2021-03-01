@@ -39,7 +39,7 @@ def map_layout():
                     ),
                     dl.Overlay(
                         [
-                            dl.TileLayer(opacity=0.6, id="pnep_layer"),
+                            dl.TileLayer(opacity=0.8, id="pnep_layer"),
                             dl.Colorbar(
                                 id="pnep_colorbar",
                                 position="bottomleft",
@@ -56,7 +56,7 @@ def map_layout():
                     ),
                     dl.Overlay(
                         [
-                            dl.TileLayer(opacity=0.6, id="rain_layer"),
+                            dl.TileLayer(opacity=0.8, id="rain_layer"),
                             dl.Colorbar(
                                 id="rain_colorbar",
                                 position="bottomleft",

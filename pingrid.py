@@ -434,9 +434,9 @@ def apply_colormap(im: np.ndarray, colormap: np.ndarray) -> np.ndarray:
     im = im.astype(np.uint8)
     im = cv2.merge(
         [
-            cv2.LUT(im, colormap[:, 2]),
-            cv2.LUT(im, colormap[:, 1]),
             cv2.LUT(im, colormap[:, 0]),
+            cv2.LUT(im, colormap[:, 1]),
+            cv2.LUT(im, colormap[:, 2]),
             cv2.LUT(im, colormap[:, 3]),
         ]
     )
