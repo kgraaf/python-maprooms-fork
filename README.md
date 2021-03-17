@@ -26,6 +26,7 @@ Please consult us if you require to overlay raster data.
 * Clone this repo and step into it:
 
     `git clone git@bitbucket.org:iridl/x24-vector.git`
+
     `cd x24-vector`
 
 * Create conda environment `dash` as follows: 
