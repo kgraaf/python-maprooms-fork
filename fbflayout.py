@@ -2,7 +2,7 @@ import dash_core_components as dcc
 import dash_html_components as html
 import dash_table as table
 import dash_daq as daq
-import dash_leaflet as dl
+import dash_leaflet as dlf
 import dash_leaflet.express as dlx
 
 
@@ -19,28 +19,28 @@ def app_layout(table_columns):
 
 
 def map_layout():
-    return dl.Map(
+    return dlf.Map(
         [
-            dl.LayersControl(
+            dlf.LayersControl(
                 [
-                    dl.BaseLayer(
-                        dl.TileLayer(
+                    dlf.BaseLayer(
+                        dlf.TileLayer(
                             url="https://cartodb-basemaps-{s}.global.ssl.fastly.net/light_all/{z}/{x}/{y}.png",
                         ),
                         name="Street",
                         checked=True,
                     ),
-                    dl.BaseLayer(
-                        dl.TileLayer(
+                    dlf.BaseLayer(
+                        dlf.TileLayer(
                             url="https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png"
                         ),
                         name="Topo",
                         checked=False,
                     ),
-                    dl.Overlay(
+                    dlf.Overlay(
                         [
-                            dl.TileLayer(opacity=0.8, id="pnep_layer"),
-                            dl.Colorbar(
+                            dlf.TileLayer(opacity=0.8, id="pnep_layer"),
+                            dlf.Colorbar(
                                 id="pnep_colorbar",
                                 position="bottomleft",
                                 width=300,
@@ -54,10 +54,10 @@ def map_layout():
                         name="Forecast",
                         checked=True,
                     ),
-                    dl.Overlay(
+                    dlf.Overlay(
                         [
-                            dl.TileLayer(opacity=0.8, id="rain_layer"),
-                            dl.Colorbar(
+                            dlf.TileLayer(opacity=0.8, id="rain_layer"),
+                            dlf.Colorbar(
                                 id="rain_colorbar",
                                 position="bottomleft",
                                 width=300,
@@ -71,10 +71,10 @@ def map_layout():
                         name="Precipitation",
                         checked=False,
                     ),
-                    dl.Overlay(
+                    dlf.Overlay(
                         [
-                            dl.TileLayer(opacity=0.8, id="vuln_layer"),
-                            dl.Colorbar(
+                            dlf.TileLayer(opacity=0.8, id="vuln_layer"),
+                            dlf.Colorbar(
                                 id="vuln_colorbar",
                                 position="bottomleft",
                                 width=300,
@@ -92,9 +92,9 @@ def map_layout():
                 position="topleft",
                 id="layers_control",
             ),
-            dl.LayerGroup(
+            dlf.LayerGroup(
                 [
-                    dl.Polygon(
+                    dlf.Polygon(
                         positions=[(0, 0), (0, 0)],
                         color="rgb(49, 109, 150)",
                         fillColor="orange",
@@ -102,9 +102,9 @@ def map_layout():
                         weight=1,
                         id="feature",
                     ),
-                    dl.Marker(
+                    dlf.Marker(
                         [
-                            dl.Popup(id="marker_popup"),
+                            dlf.Popup(id="marker_popup"),
                         ],
                         position=(0, 0),
                         draggable=True,
@@ -113,7 +113,7 @@ def map_layout():
                 ],
                 id="pixel_layer",
             ),
-            dl.ScaleControl(imperial=False, position="topleft"),
+            dlf.ScaleControl(imperial=False, position="topleft"),
         ],
         id="map",
         style={

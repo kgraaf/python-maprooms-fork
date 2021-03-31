@@ -35,7 +35,7 @@ TABLE_COLUMNS = [
     dict(id="enso_state", name="ENSO State"),
     dict(id="forecast", name="Forecast, %"),
     dict(id="rain_rank", name="Rain Rank"),
-    dict(id="bad_year", name="Farmers' reported Bad Years"),
+    dict(id="bad_year", name="Reported Bad Years"),
 ]
 
 ZERO_SHAPE = [[0, 0], [0, 0], [0, 0], [0, 0]]
@@ -756,4 +756,6 @@ def stats():
 
 
 if __name__ == "__main__":
-    APP.run_server()
+    APP.run_server(
+        debug=False if CONFIG["mode"] == "prod" else True,
+    )
