@@ -166,8 +166,8 @@ def g_lon(tx: int, tz: int) -> float:
     return tx * 360 / 2 ** tz - 180
 
 
-def g_lat(tx: int, tz: int) -> float:
-    return tx * 180 / 2 ** tz - 90
+def g_lat(ty: int, tz: int) -> float:
+    return ty * 180 / 2 ** tz - 90
 
 
 def g_lat_3857(ty: int, tz: int) -> float:
