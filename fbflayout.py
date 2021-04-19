@@ -56,23 +56,6 @@ def map_layout():
                     ),
                     dlf.Overlay(
                         [
-                            dlf.TileLayer(opacity=0.8, id="rain_layer"),
-                            dlf.Colorbar(
-                                id="rain_colorbar",
-                                position="bottomleft",
-                                width=300,
-                                height=10,
-                                min=0,
-                                max=50,
-                                nTicks=3,
-                                opacity=0.8,
-                            ),
-                        ],
-                        name="Precipitation",
-                        checked=False,
-                    ),
-                    dlf.Overlay(
-                        [
                             dlf.TileLayer(opacity=0.8, id="vuln_layer"),
                             dlf.Colorbar(
                                 id="vuln_colorbar",

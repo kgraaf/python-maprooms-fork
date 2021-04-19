@@ -443,7 +443,6 @@ def country(pathname: str) -> str:
     Output("season", "options"),
     Output("season", "value"),
     Output("pnep_colorbar", "colorscale"),
-    Output("rain_colorbar", "colorscale"),
     Output("vuln_colorbar", "colorscale"),
     Input("location", "pathname"),
 )
@@ -461,7 +460,6 @@ def _(pathname):
     x, y = c["marker"]
     cx, cy = c["center"]
     pnep_cs = pingrid.to_dash_colorscale(open_pnep(country_key).colormap)
-    rain_cs = pingrid.to_dash_colorscale(open_rain(country_key).colormap)
     vuln_cs = pingrid.to_dash_colorscale(open_rain(country_key).colormap)
     return (
         f"{PFX}/assets/{c['logo']}",
@@ -471,7 +469,6 @@ def _(pathname):
         season_options,
         season_value,
         pnep_cs,
-        rain_cs,
         vuln_cs,
     )
 
@@ -598,18 +595,6 @@ def _(year, issue_month, freq, pathname, season):
 
 
 @APP.callback(
-    Output("rain_layer", "url"),
-    Input("year", "value"),
-    Input("location", "pathname"),
-    State("season", "value"),
-)
-def _(year, pathname, season):
-    country_key = country(pathname)
-    select_rain(country_key, year, season)
-    return f"{TILE_PFX}/rain/{{z}}/{{x}}/{{y}}/{country_key}/{season}/{year}"
-
-
-@APP.callback(
     Output("vuln_layer", "url"),
     Input("year", "value"),
     Input("location", "pathname"),
@@ -662,17 +647,6 @@ def tile(dae, tx, ty, tz, clipping=None, test_tile=False):
 )
 def pnep_tiles(tz, tx, ty, country_key, season, year, issue_month, freq_max):
     dae = select_pnep(country_key, season, year, issue_month, freq_max)
-    p = tuple(CONFIG["countries"][country_key]["marker"])
-    clipping = retrieve_geometry(country_key, p, "national", None)
-    resp = tile(dae, tx, ty, tz, clipping)
-    return resp
-
-
-@SERVER.route(
-    f"{TILE_PFX}/rain/<int:tz>/<int:tx>/<int:ty>/<country_key>/<season>/<int:year>"
-)
-def rain_tiles(tz, tx, ty, country_key, season, year):
-    dae = select_rain(country_key, year, season)
     p = tuple(CONFIG["countries"][country_key]["marker"])
     clipping = retrieve_geometry(country_key, p, "national", None)
     resp = tile(dae, tx, ty, tz, clipping)
