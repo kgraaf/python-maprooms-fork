@@ -54,6 +54,7 @@ APP = dash.Dash(
         {"name": "viewport", "content": "width=device-width, initial-scale=1.0"},
     ],
 )
+APP.title = "FBF--Maproom"
 
 APP.layout = fbflayout.app_layout(TABLE_COLUMNS)
 
