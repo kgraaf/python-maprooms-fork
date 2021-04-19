@@ -19,8 +19,6 @@ flask:
     debug: false
     threaded: false
     processes: 1
-    ssl_cert: keys/key.crt
-    ssl_key: keys/key.key
 
 bjoern:
     host: localhost
