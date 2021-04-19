@@ -87,20 +87,20 @@ class DrawAttrs(NamedTuple):
     line_type: int  # cv2.LINE_4 | cv2.LINE_8 | cv2.LINE_AA
 
 
-def from_mercator_rad(lats: float) -> float:
+def mercator_to_rad(lats: float) -> float:
     return np.arctan(0.5 * (np.exp(lats) - np.exp(-lats)))
 
 
-def from_mercator_deg(lats: float) -> float:
-    return np.rad2deg(from_mercator_rad(np.deg2rad(lats)))
+def mercator_to_deg(lats: float) -> float:
+    return np.rad2deg(mercator_to_rad(np.deg2rad(lats)))
 
 
-def to_mercator_rad(lats: float) -> float:
+def rad_to_mercator(lats: float) -> float:
     return np.log(np.tan(np.pi / 4 + lats / 2))
 
 
-def to_mercator_deg(lats: float) -> float:
-    return np.rad2deg(to_mercator_rad(np.deg2rad(lats)))
+def deg_to_mercator(lats: float) -> float:
+    return np.rad2deg(rad_to_mercator(np.deg2rad(lats)))
 
 
 def create_interp2d(
@@ -172,7 +172,7 @@ def g_lat(ty: int, tz: int) -> float:
 
 def g_lat_3857(ty: int, tz: int) -> float:
     a = math.pi - 2 * math.pi * ty / 2 ** tz
-    return np.rad2deg(from_mercator_rad(a))
+    return np.rad2deg(mercator_to_rad(a))
 
 
 def tile_extents(g: Callable[[int, int], float], tx: int, tz: int, n: int = 1):
@@ -310,8 +310,8 @@ def produce_shape_tile(
     y0, y1 = list(tile_extents(g_lat_3857, ty, tz, 1))[0]
 
     x_ratio = tile_width / (x1 - x0)
-    y0_mercator = to_mercator_deg(y0)
-    y_ratio_mercator = tile_height / (to_mercator_deg(y1) - y0_mercator)
+    y0_mercator = deg_to_mercator(y0)
+    y_ratio_mercator = tile_height / (deg_to_mercator(y1) - y0_mercator)
 
     tile_bounds = (x0, y0, x1, y1)
     tile = MultiPoint([(x0, y0), (x1, y1)]).envelope
@@ -329,7 +329,7 @@ def produce_shape_tile(
             else:
                 continue
         fxs = lambda xs: (xs - x0) * x_ratio
-        fys = lambda ys: (to_mercator_deg(ys) - y0_mercator) * y_ratio_mercator
+        fys = lambda ys: (deg_to_mercator(ys) - y0_mercator) * y_ratio_mercator
         rasterize_multipolygon(mask, mp, fxs, fys, a.line_type, 255, 0)
         im = apply_mask(im, mask, a.background_color)
 
