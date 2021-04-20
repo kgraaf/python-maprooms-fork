@@ -1,5 +1,6 @@
 import sys
 import json
+import time
 from io import BytesIO
 import pandas as pd
 import numpy as np
@@ -77,7 +78,7 @@ app.layout = html.Div(
                         ),
                         dl.Overlay(
                             dl.ImageOverlay(
-                                url='',
+                                url="",
                                 bounds=[[3.3, 32.6], [15.2, 48.1]],
                                 id="img",
                             ),
@@ -192,6 +193,7 @@ def info_hover(feature):
                 rs.append(": ")
                 rs.append(v)
                 rs.append(html.Br())
+        time.sleep(1)
     else:
         rs.append(html.I("Hover over a marker."))
     return rs

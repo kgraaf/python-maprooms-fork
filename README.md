@@ -1,6 +1,6 @@
 # Overview
 
-This Dash application overlays results of WRSI DL [query](http://iridl.ldeo.columbia.edu/home/.remic/.Leap/.WRSI/.Meher/.FinalIcat/Crop/%28Barley%29/VALUE/X/Y/fig-/colors/-fig) on the street or topo map and also displays points of interest from a CSV files that has at least the following columns:
+Dash application x24-vector overlays results of WRSI DL [query](http://iridl.ldeo.columbia.edu/home/.remic/.Leap/.WRSI/.Meher/.FinalIcat/Crop/%28Barley%29/VALUE/X/Y/fig-/colors/-fig) on the street or topo map and also displays points of interest from a CSV files that has at least the following columns:
 
 * Region
 * Woreda
@@ -12,6 +12,9 @@ This Dash application overlays results of WRSI DL [query](http://iridl.ldeo.colu
 
 Additionally it uses a python library to convert white background into transparent background on the fly.
 
+The image overlay is not normally recommended, the better (and a bit more involved) way to overlay raster data is tiling.
+Please consult us if you require to overlay raster data.
+
 # Screenshot
 
 ![Screenshot](x24.0-vector.png)
@@ -19,6 +22,12 @@ Additionally it uses a python library to convert white background into transpare
 # Installation and Run Instructions
 
 * Install Miniconda: https://docs.conda.io/en/latest/miniconda.html
+
+* Clone this repo and step into it:
+
+    `git clone git@bitbucket.org:iridl/x24-vector.git`
+
+    `cd x24-vector`
 
 * Create conda environment `dash` as follows: 
 
@@ -37,4 +46,5 @@ Additionally it uses a python library to convert white background into transpare
 
 # Support
 
-ikh@iri.columbia.edu
+* aaron@iri.columbia.edu
+* ikh@iri.columbia.edu
