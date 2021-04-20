@@ -657,7 +657,6 @@ def pnep_tiles(tz, tx, ty, country_key, season, year, issue_month, freq_max):
     f"{TILE_PFX}/vuln/<int:tz>/<int:tx>/<int:ty>/<country_key>/<mode>/<int:year>"
 )
 def vuln_tiles(tz, tx, ty, country_key, mode, year):
-    config = CONFIG["countries"][country_key]
     im = pingrid.produce_bkg_tile(BGRA(0, 0, 0, 0), 256, 256)
     if mode != "pixel":
         df = retrieve_vulnerability(country_key, mode, year)
