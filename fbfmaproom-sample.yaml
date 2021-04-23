@@ -76,7 +76,7 @@ countries:
         marker: [34, -14]
         datasets:
             rain:
-                path: rain-noaa.nc
+                path: /data/aaron/fbf/rain-noaa.nc
                 var_names:
                     rain: prcp_est
                     lat: Y
@@ -88,7 +88,7 @@ countries:
                     5285200 [5285200 23] 4625990 [4625990 22] 3966780 [3966780 23]
                     3307570 [3307570 23] 2648360 [2648360 23] 1989150]"
             pnep:
-                path: pnep-malawi.nc
+                path: /data/aaron/fbf/pnep-malawi.nc
                 var_names:
                     pnep: prob
                     lat: Y
@@ -125,15 +125,15 @@ countries:
         marker: [45.5, -24]
         datasets:
             rain:
-                path: rain-noaa.nc
+                path: /data/aaron/fbf/rain-madagascar.nc
                 var_names:
-                    rain: prcp_est
+                    rain: rfe
                     lat: Y
                     lon: X
                     time: T
                 colormap: *raincm
             pnep:
-                path: pnep-madagascar.nc
+                path: /data/aaron/fbf/pnep-madagascar.nc
                 var_names: 
                     pnep: pne
                     lat: Y
