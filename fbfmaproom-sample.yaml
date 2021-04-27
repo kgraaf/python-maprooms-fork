@@ -148,3 +148,37 @@ countries:
                 issue_months: [8, 9, 10]  # months since Jan 1: 0.0 <= season < 12.0
                 year_range: [1982, 2020]
 
+    ethiopia:
+        logo: Ethiopia_IRI_98x48.png
+        adm0_name: Ethiopia
+        resolution: [.25, .25]
+        center: [40, 6]
+        zoom: 6
+        rotation: 0
+        marker:  [43.875, 6.875]
+        datasets:
+            rain:
+                path: /data/aaron/fbf/rain-ethiopia.nc
+                var_names:
+                    rain: obs
+                    lat: Y
+                    lon: X
+                    time: T
+                colormap: *raincm
+            pnep:
+                path: /data/aaron/fbf/pnep-ethiopia.nc
+                var_names:
+                    pnep: pne
+                    lat: Y
+                    lon: X
+                    issue: S
+                    lead: null  # dataset has forecasts for only one season; L is implicit.
+                    pct: P
+                colormap: *pnepcm
+        seasons:
+            season1:
+                label: MAM
+                target_month: 3.5
+                length: 3.0
+                issue_months: [11, 0]
+                year_range: [1983, 2021]
