@@ -96,9 +96,13 @@ countries:
                     issue: S
                     lead: L
                     pct: P
-                colormap: &pnepcm "[null 12632256 8388608 [16711680 14] [16760576 13]
-                    [15453831 14] 13959039 [13959039 13] 64636 [65535 25] [36095 26]
-                    [255 51] [128 51] [128 51] 2763429]"
+                colormap: &pnepcm "[0x0000ba 0x004fff 0x3ec5f5 0x7fffd4 0x97fc00
+                    0xd8fe00 0xffe800 0xffac00 0xff7b00 0xff5900 0xff3500 0xff1300
+                    0xef0000 0xd10000 0xb00000 0x8f0000 [0x800000 4]]"
+            vuln:
+                colormap: &vulncm "[[0xffff00 5] 0xfff500 0xffde00 0xffc300 0xffae00
+                    0xff9900 0xff7e00 0xff6200 0xff4600 0xff2f00 0xff0b00 0xf70000
+                    0xdb0000 0xbf0000 0xa60000 0x8a0000 [0x800000 5]]"
         seasons:
             season1:
                 label: DJF
@@ -140,6 +144,8 @@ countries:
                     lead: null  # dataset has forecasts for only one season; L is implicit.
                     pct: P
                 colormap: *pnepcm
+            vuln:
+                colormap: *vulncm
         seasons:
             season1:
                 label: DJF

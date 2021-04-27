@@ -98,7 +98,7 @@ def open_pnep(country_key):
         "pnep",
         val_min=0.0,
         val_max=100.0,
-        reverse_colormap=True,
+        reverse_colormap=False,
     )
 
 
@@ -471,7 +471,9 @@ def _(pathname):
     x, y = c["marker"]
     cx, cy = c["center"]
     pnep_cs = pingrid.to_dash_colorscale(open_pnep(country_key).colormap)
-    vuln_cs = pingrid.to_dash_colorscale(open_rain(country_key).colormap)
+    vuln_cs = pingrid.to_dash_colorscale(
+        pingrid.parse_colormap(c["datasets"]["vuln"]["colormap"])
+    )
     return (
         f"{PFX}/assets/{c['logo']}",
         [cy, cx],
