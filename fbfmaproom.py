@@ -134,16 +134,9 @@ def select_pnep(country_key, season, year, issue_month, freq_max):
     ns = config["countries"][country_key]["datasets"]["pnep"]["var_names"]
     e = open_pnep(country_key)
     da = e.data_array
-    l_values = da[ns["lead"]].values
-    if len(l_values) == 1:
-        # If there's just one L value, it might be a dummy dimension,
-        # in which case the sel would exclude the values we want to
-        # keep. Temporary workaround until we decide on a standard
-        # representation of S and L across all datasets.
-        l_for_sel = l_values[0]
-    else:
-        l_for_sel = l
-    da = da.sel({ns["issue"]: s, ns["lead"]: l_for_sel, ns["pct"]: p}, drop=True)
+    da = da.sel({ns["issue"]: s, ns["pct"]: p}, drop=True)
+    if ns["lead"]:
+        da = da.sel({ns["lead"]: l}, drop=True)
     interp2d = pingrid.create_interp2d(da, da.dims)
     dae = pingrid.DataArrayEntry(
         e.name, e.data_array, interp2d, e.min_val, e.max_val, e.colormap
@@ -394,16 +387,8 @@ def generate_tables(
         l += 12
 
     da2 = da2.where(da2[ns["issue"]] % 12 == s, drop=True)
-    l_values = np.unique(da2[ns["lead"]].values)
-    if len(l_values) == 1:
-        # If there's just one L value, it might be a dummy dimension,
-        # in which case the sel would exclude the values we want to
-        # keep. Temporary workaround until we decide on a standard
-        # representation of S and L across all datasets.
-        l_for_sel = l_values[0]
-    else:
-        l_for_sel = l
-    da2 = da2.sel({ns["lead"]: l_for_sel}, drop=True)
+    if ns["lead"]:
+        da2 = da2.sel({ns["lead"]: l}, drop=True)
     da2[ns["issue"]] = da2[ns["issue"]] + l
 
     da2 = pingrid.average_over_trimmed(

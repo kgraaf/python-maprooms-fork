@@ -137,7 +137,7 @@ countries:
                     lat: Y
                     lon: X
                     issue: S
-                    lead: L
+                    lead: null  # dataset has forecasts for only one season; L is implicit.
                     pct: P
                 colormap: *pnepcm
         seasons:
