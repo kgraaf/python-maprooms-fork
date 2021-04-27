@@ -10,7 +10,7 @@ datasets = [
     ('rain-madagascar.nc', '/home/.rijaf/.Madagascar_v3/.ALL/.monthly/.rainfall/.rfe/data.nc'),
     ('pnep-madagascar.nc', '/home/.aaron/.DGM/.Forecast/.Seasonal/.NextGen/.Madagascar_South/.PRCP/.pne/L/removeGRID/data.nc'),
     ('rain-ethiopia.nc', '/home/.xchourio/.ACToday/.Ethiopia/.CPT/.NextGen/.MAM_PRCP/.Somali/.NextGen/.History/.obs/'),
-    ('pnep-ethiopia.nc', '/home/.xchourio/.ACToday/.Ethiopia/.CPT/.NextGen/.MAM_PRCP/.Somali/.NextGen/.FbF/.pne//L//months/ordered/%5B0.0%5D/NewGRID/addGRID/L//pointwidth/3.0/put/data.nc'),
+    ('pnep-ethiopia.nc', '/home/.xchourio/.ACToday/.Ethiopia/.CPT/.NextGen/.MAM_PRCP/.Somali/.NextGen/.FbF/.pne/P//P//percentile/0/5/5/95/NewEvenGRID/replaceGRID/data.nc'),
 ]
 
 for name, urlpath in datasets:
