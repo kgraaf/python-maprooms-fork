@@ -299,8 +299,8 @@ def seasonal_average(da, ns, target_month, season_length):
     da["season"] = (
         da[ns["time"]] - target_month + season_length / 2
     ) // season_length * season_length + target_month
-    da = da.groupby("season").mean()
     da = da.where(da["season"] % 12 == target_month, drop=True)
+    da = da.groupby("season").mean()
     return da
 
 
