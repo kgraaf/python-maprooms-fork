@@ -356,7 +356,10 @@ def generate_tables(
     ns = config["datasets"]["rain"]["var_names"]
     da = seasonal_average(da, ns, target_month, season_length) * season_length * 30.0
 
-    mpolygon = MultiPolygon([Polygon(poly) for poly in positions])
+    mpolygon = MultiPolygon(
+        Polygon((y, x) for x, y in poly)
+        for poly in positions
+    )
 
     da = pingrid.average_over_trimmed(
         da, mpolygon, lon_name=ns["lon"], lat_name=ns["lat"], all_touched=True
@@ -572,7 +575,10 @@ def _(pathname, position, mode, year):
     else:
         geom, attrs = retrieve_geometry(country_key, (x, y), mode, year)
         if geom is not None:
-            positions = [list(poly.exterior.coords) for poly in geom]
+            positions = [
+                [(y, x) for x, y in poly.exterior.coords]
+                for poly in geom
+            ]
             title = attrs["label"]
             fmt = lambda k: [html.B(k + ": "), attrs[k], html.Br()]
             content = (
