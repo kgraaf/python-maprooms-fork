@@ -229,10 +229,10 @@ def command_layout():
             html.Div(
                 html.A(
                     html.Img(
-                        id="gantt",
                         src="assets/ganttit.png",
                         style={"cursor": "pointer"},
                     ),
+                    id="gantt",
                     href="https://fist-fbf-gantt.iri.columbia.edu/Nov/2020/Pixel/Dec-Jan-Feb/1/30/15/",
                     target="_blank",
                 ),

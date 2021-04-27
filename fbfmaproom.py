@@ -5,7 +5,9 @@ import time
 import io
 from functools import lru_cache
 import datetime
+import urllib.parse
 import yaml
+import json
 import numpy as np
 import pandas as pd
 import xarray as xr
@@ -613,6 +615,40 @@ def _(issue_month, freq, positions, pathname, season):
         positions,
     )
     return dft.to_dict("records"), dfs.to_dict("records")
+
+
+@APP.callback(
+    Output("gantt", "href"),
+    Input("issue_month", "value"),
+    Input("freq", "value"),
+    Input("feature", "positions"),
+    Input("mode", "value"),
+    Input("year", "value"),
+    Input("location", "pathname"),
+    State("season", "value"),
+)
+def _(issue_month, freq, positions, mode, year, pathname, season):
+    country_key = country(pathname)
+    config = CONFIG["countries"][country_key]
+    res = dict(
+        country=country_key,
+        mode=mode,
+        year=year,
+        freq=freq,
+        season={
+            k: v
+            for k, v in config["seasons"][season].items()
+            if k in ("label", "target_month", "length")
+        },
+        issue_month=config["seasons"][season]["issue_months"][issue_month],
+        bounds=positions if mode == "pixel" else None,
+        region=None,
+    )
+    print("***:", res)
+    url = "https://fist-fbf-gantt.iri.columbia.edu/gantt?" + urllib.parse.urlencode(
+        dict(data=json.dumps(res))
+    )
+    return url
 
 
 @APP.callback(
