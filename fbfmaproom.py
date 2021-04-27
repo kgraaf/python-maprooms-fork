@@ -105,7 +105,7 @@ def open_rain(country_key):
     )
 
 
-def slp(country_key, season, season_year, issue_month, freq_max):
+def slp(country_key, season, year, issue_month, freq_max):
     season_config = CONFIG["countries"][country_key]["seasons"][season]
     issue_month = season_config["issue_months"][issue_month]
     target_month = season_config["target_month"]
@@ -115,9 +115,9 @@ def slp(country_key, season, season_year, issue_month, freq_max):
         l += 12
 
     if issue_month > target_month:
-        issue_year = season_year - 1
+        issue_year = year - 1
     else:
-        issue_year = season_year
+        issue_year = year
 
     s = (
         pingrid.to_months_since(datetime.date(issue_year, 1, 1))
