@@ -105,13 +105,23 @@ def open_rain(country_key):
     )
 
 
-def slp(country_key, season, year, issue_month, freq_max):
+def slp(country_key, season, season_year, issue_month, freq_max):
     season_config = CONFIG["countries"][country_key]["seasons"][season]
-    l = season_config["leads"][issue_month]
+    issue_month = season_config["issue_months"][issue_month]
+    target_month = season_config["target_month"]
+
+    l = target_month - issue_month
+    if l < 0:
+        l += 12
+
+    if issue_month > target_month:
+        issue_year = season_year - 1
+    else:
+        issue_year = season_year
+
     s = (
-        pingrid.to_months_since(datetime.date(year, 1, 1))
-        + season_config["target_month"]
-        - l
+        pingrid.to_months_since(datetime.date(issue_year, 1, 1))
+        + issue_month
     )
     p = freq_max
     return s, l, p
@@ -124,7 +134,16 @@ def select_pnep(country_key, season, year, issue_month, freq_max):
     ns = config["countries"][country_key]["datasets"]["pnep"]["var_names"]
     e = open_pnep(country_key)
     da = e.data_array
-    da = da.sel({ns["issue"]: s, ns["lead"]: l, ns["pct"]: p}, drop=True)
+    l_values = da[ns["lead"]].values
+    if len(l_values) == 1:
+        # If there's just one L value, it might be a dummy dimension,
+        # in which case the sel would exclude the values we want to
+        # keep. Temporary workaround until we decide on a standard
+        # representation of S and L across all datasets.
+        l_for_sel = l_values[0]
+    else:
+        l_for_sel = l
+    da = da.sel({ns["issue"]: s, ns["lead"]: l_for_sel, ns["pct"]: p}, drop=True)
     interp2d = pingrid.create_interp2d(da, da.dims)
     dae = pingrid.DataArrayEntry(
         e.name, e.data_array, interp2d, e.min_val, e.max_val, e.colormap
@@ -367,10 +386,21 @@ def generate_tables(
     da2 = da2.sel({ns["pct"]: [freq_min, freq_max]}, drop=True)
 
     s = config["seasons"][season]["issue_months"][issue_month]
-    l = config["seasons"][season]["leads"][issue_month]
+    l = target_month - s
+    if l < 0:
+        l += 12
 
     da2 = da2.where(da2[ns["issue"]] % 12 == s, drop=True)
-    da2 = da2.sel({ns["lead"]: l}, drop=True)
+    l_values = np.unique(da2[ns["lead"]].values)
+    if len(l_values) == 1:
+        # If there's just one L value, it might be a dummy dimension,
+        # in which case the sel would exclude the values we want to
+        # keep. Temporary workaround until we decide on a standard
+        # representation of S and L across all datasets.
+        l_for_sel = l_values[0]
+    else:
+        l_for_sel = l
+    da2 = da2.sel({ns["lead"]: l_for_sel}, drop=True)
     da2[ns["issue"]] = da2[ns["issue"]] + l
 
     da2 = pingrid.average_over_trimmed(
