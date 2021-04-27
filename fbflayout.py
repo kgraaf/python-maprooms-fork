@@ -95,7 +95,6 @@ def map_layout():
                 opacity=0.8,
                 tooltip=True,
             ),
-
         ],
         id="map",
         style={
@@ -222,6 +221,23 @@ def command_layout():
                 ],
                 style={
                     "width": "400px",
+                    "display": "inline-block",
+                    "padding": "10px",
+                    "vertical-align": "top",
+                },
+            ),
+            html.Div(
+                html.A(
+                    html.Img(
+                        id="gantt",
+                        src="assets/ganttit.png",
+                        style={"cursor": "pointer"},
+                    ),
+                    href="https://fist-fbf-gantt.iri.columbia.edu/Nov/2020/Pixel/Dec-Jan-Feb/1/30/15/",
+                    target="_blank",
+                ),
+                style={
+                    "width": "100px",
                     "display": "inline-block",
                     "padding": "10px",
                     "vertical-align": "top",
