@@ -1,6 +1,4 @@
-#!/bin/env python2.7
-# Using python 2.7 to avoid hassles on gfs2 machines. This script will be short-lived.
-
+from __future__ import print_function
 import os
 
 datadir = '/data/aaron/fbf'
@@ -16,7 +14,7 @@ datasets = [
 ]
 
 for name, urlpath in datasets:
-    print name
+    print(name)
     filepath = '%s/%s' % (datadir, name)
     if os.path.exists(filepath):
         timeopt = '--time-cond %s' % filepath
