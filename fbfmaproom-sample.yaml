@@ -103,6 +103,7 @@ countries:
                 colormap: &vulncm "[[0xffff00 5] 0xfff500 0xffde00 0xffc300 0xffae00
                     0xff9900 0xff7e00 0xff6200 0xff4600 0xff2f00 0xff0b00 0xf70000
                     0xdb0000 0xbf0000 0xa60000 0x8a0000 [0x800000 5]]"
+                range: [0.0, 5.0]
         seasons:
             season1:
                 label: DJF
@@ -146,6 +147,7 @@ countries:
                 colormap: *pnepcm
             vuln:
                 colormap: *vulncm
+                range: [0.0, 5.0]
         seasons:
             season1:
                 label: DJF

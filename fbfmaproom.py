@@ -73,20 +73,42 @@ def open_data_array(
     reverse_colormap=False,
 ):
     cfg = config["countries"][country_key]["datasets"][dataset_key]
-    ns = cfg["var_names"]
-    da = xr.open_dataset(cfg["path"], decode_times=False)[ns[var_key]].transpose(
-        ns["lat"], ns["lon"], ...
-    )
+    if var_key is not None:
+        ns = cfg["var_names"]
+        da = xr.open_dataset(cfg["path"], decode_times=False)[ns[var_key]].transpose(
+            ns["lat"], ns["lon"], ...
+        )
+    else:
+        da = None
     if val_min is None:
-        val_min = da.min().item()
+        if "range" in cfg:
+            val_min = cfg["range"][0]
+        else:
+            val_min = da.min().item()
     if val_max is None:
-        val_max = da.max().item()
+        if "range" in cfg:
+            val_max = cfg["range"][1]
+        else:
+            val_max = da.max().item()
     colormap = pingrid.parse_colormap(cfg["colormap"])
     if reverse_colormap:
         colormap = colormap[::-1]
     # print("*** colormap:", dataset_key, colormap.shape)
     e = pingrid.DataArrayEntry(dataset_key, da, None, val_min, val_max, colormap)
     return e
+
+
+@lru_cache
+def open_vuln(country_key):
+    return open_data_array(
+        CONFIG,
+        country_key,
+        "vuln",
+        None,
+        val_min=None,
+        val_max=None,
+        reverse_colormap=False,
+    )
 
 
 @lru_cache
@@ -471,9 +493,7 @@ def _(pathname):
     x, y = c["marker"]
     cx, cy = c["center"]
     pnep_cs = pingrid.to_dash_colorscale(open_pnep(country_key).colormap)
-    vuln_cs = pingrid.to_dash_colorscale(
-        pingrid.parse_colormap(c["datasets"]["vuln"]["colormap"])
-    )
+    vuln_cs = pingrid.to_dash_colorscale(open_vuln(country_key).colormap)
     return (
         f"{PFX}/assets/{c['logo']}",
         [cy, cx],
@@ -674,24 +694,29 @@ def pnep_tiles(tz, tx, ty, country_key, season, year, issue_month, freq_max):
 )
 def vuln_tiles(tz, tx, ty, country_key, mode, year):
     im = pingrid.produce_bkg_tile(BGRA(0, 0, 0, 0), 256, 256)
+    e = open_vuln(country_key)
     if mode != "pixel":
         df = retrieve_vulnerability(country_key, mode, year)
-        vmax = df["normalized"].max()
         shapes = [
             (
                 r["the_geom"],
                 pingrid.DrawAttrs(
                     BGRA(0, 0, 255, 255),
-                    BGRA(
-                        0,
-                        0,
+                    pingrid.set_alpha(
+                        e.colormap[
+                            min(
+                                255,
+                                int(
+                                    (r["normalized"] - e.min_val)
+                                    * 255
+                                    / (e.max_val - e.min_val)
+                                ),
+                            )
+                        ],
                         255,
-                        int(r["normalized"] / vmax * 255)
-                        if r["normalized"] is not None
-                        and not np.isnan(r["normalized"])
-                        and not np.isnan(vmax)
-                        else 0,
-                    ),
+                    )
+                    if r["normalized"] is not None and not np.isnan(r["normalized"])
+                    else BGRA(0, 0, 0, 0),
                     1,
                     cv2.LINE_AA,
                 ),
@@ -716,6 +741,7 @@ def stats():
         select_pnep,
         open_rain,
         select_rain,
+        open_vuln,
         open_enso,
         retrieve_vulnerability,
     ]
