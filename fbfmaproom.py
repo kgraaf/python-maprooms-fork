@@ -645,7 +645,7 @@ def _(issue_month, freq, positions, mode, year, pathname, season):
         region=None,
     )
     print("***:", res)
-    url = "https://fist-fbf-gantt.iri.columbia.edu/gantt?" + urllib.parse.urlencode(
+    url = CONFIG["gantt_url"] + urllib.parse.urlencode(
         dict(data=json.dumps(res))
     )
     return url

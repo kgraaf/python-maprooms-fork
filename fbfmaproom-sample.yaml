@@ -6,6 +6,7 @@ tile_path: /fbfmaproom-tiles
 support_email: help@iri.columbia.edu
 bypass_dlauth: true
 loglevel: info
+gantt_url: https://fist-fbf-gantt.iri.columbia.edu/gantt?
 
 dlauth_client:
     prefix: https://iridl.ldeo.columbia.edu

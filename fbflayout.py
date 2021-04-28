@@ -233,7 +233,6 @@ def command_layout():
                         style={"cursor": "pointer"},
                     ),
                     id="gantt",
-                    href="https://fist-fbf-gantt.iri.columbia.edu/Nov/2020/Pixel/Dec-Jan-Feb/1/30/15/",
                     target="_blank",
                 ),
                 style={
