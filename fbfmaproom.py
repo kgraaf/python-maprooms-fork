@@ -110,18 +110,12 @@ def slp(country_key, season, year, issue_month, freq_max):
     issue_month = season_config["issue_months"][issue_month]
     target_month = season_config["target_month"]
 
-    l = target_month - issue_month
-    if l < 0:
-        l += 12
-
-    if issue_month > target_month:
-        issue_year = year - 1
-    else:
-        issue_year = year
+    l = (target_month - issue_month) % 12
 
     s = (
-        pingrid.to_months_since(datetime.date(issue_year, 1, 1))
-        + issue_month
+        pingrid.to_months_since(datetime.date(year, 1, 1))
+        + target_month
+        - l
     )
     p = freq_max
     return s, l, p
@@ -135,7 +129,7 @@ def select_pnep(country_key, season, year, issue_month, freq_max):
     e = open_pnep(country_key)
     da = e.data_array
     da = da.sel({ns["issue"]: s, ns["pct"]: p}, drop=True)
-    if ns["lead"]:
+    if ns["lead"] is not None:
         da = da.sel({ns["lead"]: l}, drop=True)
     interp2d = pingrid.create_interp2d(da, da.dims)
     dae = pingrid.DataArrayEntry(
@@ -382,12 +376,10 @@ def generate_tables(
     da2 = da2.sel({ns["pct"]: [freq_min, freq_max]}, drop=True)
 
     s = config["seasons"][season]["issue_months"][issue_month]
-    l = target_month - s
-    if l < 0:
-        l += 12
+    l = (target_month - s) % 12
 
     da2 = da2.where(da2[ns["issue"]] % 12 == s, drop=True)
-    if ns["lead"]:
+    if ns["lead"] is not None:
         da2 = da2.sel({ns["lead"]: l}, drop=True)
     da2[ns["issue"]] = da2[ns["issue"]] + l
 
