@@ -641,7 +641,7 @@ def _(issue_month, freq, positions, mode, year, pathname, season):
             if k in ("label", "target_month", "length")
         },
         issue_month=config["seasons"][season]["issue_months"][issue_month],
-        bounds=positions if mode == "pixel" else None,
+        bounds=None,
         region=None,
     )
     print("***:", res)
