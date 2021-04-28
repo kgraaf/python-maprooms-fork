@@ -443,7 +443,7 @@ def apply_colormap(im: np.ndarray, colormap: np.ndarray) -> np.ndarray:
     return im
 
 
-def set_alpha(c: BGRA, alpha) -> BGRA:
+def with_alpha(c: BGRA, alpha) -> BGRA:
     return BGRA(*c[:3], alpha)
 
 
