@@ -38,7 +38,11 @@ TABLE_COLUMNS = [
     dict(id="bad_year", name="Reported Bad Years"),
 ]
 
-ZERO_SHAPE = [[[0, 0], [0, 0], [0, 0], [0, 0]]]
+ZERO_SHAPE = [
+    [
+        [[0, 0], [0, 0], [0, 0], [0, 0]]
+    ]
+]
 
 PFX = CONFIG["core_path"]
 TILE_PFX = CONFIG["tile_path"]
@@ -343,10 +347,7 @@ def generate_tables(
     ns = config["datasets"]["rain"]["var_names"]
     da = seasonal_average(da, ns, target_month, season_length) * season_length * 30.0
 
-    mpolygon = MultiPolygon(
-        Polygon((y, x) for x, y in poly)
-        for poly in positions
-    )
+    mpolygon = pingrid.mpoly_leaflet_to_shapely(positions)
 
     da = pingrid.average_over_trimmed(
         da, mpolygon, lon_name=ns["lon"], lat_name=ns["lat"], all_touched=True
@@ -543,7 +544,11 @@ def _(pathname, position, mode, year):
         pixel = MultiPoint([(x0, y0), (x1, y1)]).envelope
         geom, _ = retrieve_geometry(country_key, tuple(c["marker"]), "national", None)
         if pixel.intersects(geom):
-            positions = [[[y0, x0], [y1, x0], [y1, x1], [y0, x1], [y0, x0]]]
+            positions = [
+                [
+                    [[y0, x0], [y1, x0], [y1, x1], [y0, x1], [y0, x0]]
+                ]
+            ]
             px = (x0 + x1) / 2
             pxs = "E" if px > 0.0 else "W" if px < 0.0 else ""
             py = (y0 + y1) / 2
@@ -552,10 +557,7 @@ def _(pathname, position, mode, year):
     else:
         geom, attrs = retrieve_geometry(country_key, (x, y), mode, year)
         if geom is not None:
-            positions = [
-                [(y, x) for x, y in poly.exterior.coords]
-                for poly in geom
-            ]
+            positions = pingrid.mpoly_shapely_to_leaflet(geom)
             title = attrs["label"]
             fmt = lambda k: [html.B(k + ": "), attrs[k], html.Br()]
             content = (
