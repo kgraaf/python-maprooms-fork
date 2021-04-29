@@ -391,7 +391,7 @@ def correct_coord(da: xr.DataArray, coord_name: str) -> xr.DataArray:
 
 
 def parse_color(s: str) -> BGRA:
-    v = int(s)
+    v = int(s, 0)  # 0 tells int() to guess radix
     return BGRA(v >> 0 & 0xFF, v >> 8 & 0xFF, v >> 16 & 0xFF, 255)
 
 
@@ -441,6 +441,10 @@ def apply_colormap(im: np.ndarray, colormap: np.ndarray) -> np.ndarray:
         ]
     )
     return im
+
+
+def with_alpha(c: BGRA, alpha) -> BGRA:
+    return BGRA(*c[:3], alpha)
 
 
 #
