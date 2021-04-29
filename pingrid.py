@@ -616,10 +616,7 @@ def sel_periodic(ds, dim, vals, period=360.0):
 
 
 def mpoly_leaflet_to_shapely(polys):
-    return MultiPolygon(
-        poly_leaflet_to_shapely(poly)
-        for poly in polys
-    )
+    return MultiPolygon(poly_leaflet_to_shapely(poly) for poly in polys)
 
 
 def poly_leaflet_to_shapely(poly):
@@ -627,10 +624,7 @@ def poly_leaflet_to_shapely(poly):
     interiors = poly[1:]
     return Polygon(
         ring_leaflet_to_shapely(exterior),
-        [
-            ring_leaflet_to_shapely(interior)
-            for interior in interiors
-        ]
+        [ring_leaflet_to_shapely(interior) for interior in interiors],
     )
 
 
@@ -643,13 +637,9 @@ def mpoly_shapely_to_leaflet(mpoly):
 
 
 def poly_shapely_to_leaflet(poly):
-    return (
-        [ring_shapely_to_leaflet(poly.exterior)] +
-        [
-            ring_shapely_to_leaflet(interior)
-            for interior in poly.interiors
-        ]
-    )
+    return [ring_shapely_to_leaflet(poly.exterior)] + [
+        ring_shapely_to_leaflet(interior) for interior in poly.interiors
+    ]
 
 
 def ring_shapely_to_leaflet(ring):
