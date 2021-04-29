@@ -227,13 +227,18 @@ def command_layout():
                 },
             ),
             html.Div(
-                html.A(
-                    html.Img(
-                        src="assets/ganttit.png",
-                        style={"cursor": "pointer"},
+                dcc.Loading(
+                    html.A(
+                        html.Img(
+                            src="assets/ganttit.png",
+                            style={"cursor": "pointer"},
+                        ),
+                        id="gantt",
+                        target="_blank",
                     ),
-                    id="gantt",
-                    target="_blank",
+                    type="dot",
+                    parent_style={"height": "100%"},
+                    style={"opacity": 0.2},
                 ),
                 style={
                     "width": "100px",
