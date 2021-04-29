@@ -38,7 +38,11 @@ TABLE_COLUMNS = [
     dict(id="bad_year", name="Reported Bad Years"),
 ]
 
-ZERO_SHAPE = [[0, 0], [0, 0], [0, 0], [0, 0]]
+ZERO_SHAPE = [
+    [
+        [[0, 0], [0, 0], [0, 0], [0, 0]]
+    ]
+]
 
 PFX = CONFIG["core_path"]
 TILE_PFX = CONFIG["tile_path"]
@@ -107,10 +111,14 @@ def open_rain(country_key):
 
 def slp(country_key, season, year, issue_month, freq_max):
     season_config = CONFIG["countries"][country_key]["seasons"][season]
-    l = season_config["leads"][issue_month]
+    issue_month = season_config["issue_months"][issue_month]
+    target_month = season_config["target_month"]
+
+    l = (target_month - issue_month) % 12
+
     s = (
         pingrid.to_months_since(datetime.date(year, 1, 1))
-        + season_config["target_month"]
+        + target_month
         - l
     )
     p = freq_max
@@ -124,7 +132,9 @@ def select_pnep(country_key, season, year, issue_month, freq_max):
     ns = config["countries"][country_key]["datasets"]["pnep"]["var_names"]
     e = open_pnep(country_key)
     da = e.data_array
-    da = da.sel({ns["issue"]: s, ns["lead"]: l, ns["pct"]: p}, drop=True)
+    da = da.sel({ns["issue"]: s, ns["pct"]: p}, drop=True)
+    if ns["lead"] is not None:
+        da = da.sel({ns["lead"]: l}, drop=True)
     interp2d = pingrid.create_interp2d(da, da.dims)
     dae = pingrid.DataArrayEntry(
         e.name, e.data_array, interp2d, e.min_val, e.max_val, e.colormap
@@ -287,8 +297,8 @@ def seasonal_average(da, ns, target_month, season_length):
     da["season"] = (
         da[ns["time"]] - target_month + season_length / 2
     ) // season_length * season_length + target_month
-    da = da.groupby("season").mean()
     da = da.where(da["season"] % 12 == target_month, drop=True)
+    da = da.groupby("season").mean()
     return da
 
 
@@ -337,7 +347,7 @@ def generate_tables(
     ns = config["datasets"]["rain"]["var_names"]
     da = seasonal_average(da, ns, target_month, season_length) * season_length * 30.0
 
-    mpolygon = MultiPolygon([Polygon([[x, y] for y, x in positions])])
+    mpolygon = pingrid.mpoly_leaflet_to_shapely(positions)
 
     da = pingrid.average_over_trimmed(
         da, mpolygon, lon_name=ns["lon"], lat_name=ns["lat"], all_touched=True
@@ -367,10 +377,11 @@ def generate_tables(
     da2 = da2.sel({ns["pct"]: [freq_min, freq_max]}, drop=True)
 
     s = config["seasons"][season]["issue_months"][issue_month]
-    l = config["seasons"][season]["leads"][issue_month]
+    l = (target_month - s) % 12
 
     da2 = da2.where(da2[ns["issue"]] % 12 == s, drop=True)
-    da2 = da2.sel({ns["lead"]: l}, drop=True)
+    if ns["lead"] is not None:
+        da2 = da2.sel({ns["lead"]: l}, drop=True)
     da2[ns["issue"]] = da2[ns["issue"]] + l
 
     da2 = pingrid.average_over_trimmed(
@@ -533,7 +544,11 @@ def _(pathname, position, mode, year):
         pixel = MultiPoint([(x0, y0), (x1, y1)]).envelope
         geom, _ = retrieve_geometry(country_key, tuple(c["marker"]), "national", None)
         if pixel.intersects(geom):
-            positions = [[y0, x0], [y1, x0], [y1, x1], [y0, x1], [y0, x0]]
+            positions = [
+                [
+                    [[y0, x0], [y1, x0], [y1, x1], [y0, x1], [y0, x0]]
+                ]
+            ]
             px = (x0 + x1) / 2
             pxs = "E" if px > 0.0 else "W" if px < 0.0 else ""
             py = (y0 + y1) / 2
@@ -542,8 +557,7 @@ def _(pathname, position, mode, year):
     else:
         geom, attrs = retrieve_geometry(country_key, (x, y), mode, year)
         if geom is not None:
-            xs, ys = geom[-1].exterior.coords.xy
-            positions = list(zip(ys, xs))
+            positions = pingrid.mpoly_shapely_to_leaflet(geom)
             title = attrs["label"]
             fmt = lambda k: [html.B(k + ": "), attrs[k], html.Br()]
             content = (

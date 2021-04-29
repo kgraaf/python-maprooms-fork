@@ -76,7 +76,7 @@ countries:
         marker: [34, -14]
         datasets:
             rain:
-                path: rain-noaa.nc
+                path: /data/aaron/fbf/rain-noaa.nc
                 var_names:
                     rain: prcp_est
                     lat: Y
@@ -88,7 +88,7 @@ countries:
                     5285200 [5285200 23] 4625990 [4625990 22] 3966780 [3966780 23]
                     3307570 [3307570 23] 2648360 [2648360 23] 1989150]"
             pnep:
-                path: pnep-malawi.nc
+                path: /data/aaron/fbf/pnep-malawi.nc
                 var_names:
                     pnep: prob
                     lat: Y
@@ -105,14 +105,12 @@ countries:
                 target_month: 0.5  # season center in months since Jan 1: 0.0 <= season < 12.0
                 length: 3.0
                 issue_months: [7, 8, 9, 10]  # months since Jan 1: 0.0 <= season < 12.0
-                leads: [5.5, 4.5, 3.5, 2.5]  # as appear in the dataset, i.e. may be dummy 0.0
                 year_range: [1983, 2021]
             season2:
                 label: dJf
                 target_month: 0.5  # months since Jan 1: 0.0 <= season < 12.0
                 length: 3.0
                 issue_months: [9, 7]  # months since Jan 1: 0.0 <= season < 12.0
-                leads: [3.5, 5.5]  # as appear in the dataset, i.e. may be dummy 0.0
                 year_range: [2001, 2005]
 
     madagascar:
@@ -125,21 +123,21 @@ countries:
         marker: [45.5, -24]
         datasets:
             rain:
-                path: rain-noaa.nc
+                path: /data/aaron/fbf/rain-madagascar.nc
                 var_names:
-                    rain: prcp_est
+                    rain: rfe
                     lat: Y
                     lon: X
                     time: T
                 colormap: *raincm
             pnep:
-                path: pnep-madagascar.nc
+                path: /data/aaron/fbf/pnep-madagascar.nc
                 var_names: 
                     pnep: pne
                     lat: Y
                     lon: X
                     issue: S
-                    lead: L
+                    lead: null  # dataset has forecasts for only one season; L is implicit.
                     pct: P
                 colormap: *pnepcm
         seasons:
@@ -148,6 +146,39 @@ countries:
                 target_month: 0.5  # season center in months since Jan 1: 0.0 <= season < 12.0
                 length: 3.0
                 issue_months: [8, 9, 10]  # months since Jan 1: 0.0 <= season < 12.0
-                leads: [2.5, 2.5, 2.5]  # as appear in the dataset, i.e. may be dummy 0.0
                 year_range: [1982, 2020]
 
+    ethiopia:
+        logo: Ethiopia_IRI_98x48.png
+        adm0_name: Ethiopia
+        resolution: [.25, .25]
+        center: [40, 6]
+        zoom: 6
+        rotation: 0
+        marker:  [43.875, 6.875]
+        datasets:
+            rain:
+                path: /data/aaron/fbf/rain-ethiopia.nc
+                var_names:
+                    rain: obs
+                    lat: Y
+                    lon: X
+                    time: T
+                colormap: *raincm
+            pnep:
+                path: /data/aaron/fbf/pnep-ethiopia.nc
+                var_names:
+                    pnep: pne
+                    lat: Y
+                    lon: X
+                    issue: S
+                    lead: null  # dataset has forecasts for only one season; L is implicit.
+                    pct: P
+                colormap: *pnepcm
+        seasons:
+            season1:
+                label: MAM
+                target_month: 3.5
+                length: 3.0
+                issue_months: [11, 0]
+                year_range: [1983, 2021]
