@@ -315,7 +315,7 @@ def table_layout(table_columns):
                         columns=table_columns,
                         page_action="none",
                         style_table={
-                            "height": "420px",
+                            "height": "350px",
                             "overflowY": "scroll",
                         },
                         css=[
@@ -430,7 +430,7 @@ def table_layout(table_columns):
             "top": "110px",
             "right": "10px",
             "z-index": "1000",
-            "height": "80%",
+            "height": "564px",
             "width": "600px",
             "pointer-events": "auto",
             "padding-left": "10px",
