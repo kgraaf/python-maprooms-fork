@@ -161,7 +161,7 @@ countries:
         logo: Ethiopia_IRI_98x48.png
         adm0_name: Ethiopia
         resolution: [.25, .25]
-        center: [40, 6]
+        center: [43.875, 6.875]
         zoom: 6
         rotation: 0
         marker:  [43.875, 6.875]
@@ -184,6 +184,9 @@ countries:
                     lead: null  # dataset has forecasts for only one season; L is implicit.
                     pct: P
                 colormap: *pnepcm
+            vuln:
+                colormap: *vulncm
+                range: [0.0, 5.0]
         seasons:
             season1:
                 label: MAM
