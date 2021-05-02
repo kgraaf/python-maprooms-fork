@@ -152,9 +152,7 @@ def select_pnep(country_key, season, year, issue_month, freq_max):
     if ns["lead"] is not None:
         da = da.sel({ns["lead"]: l}, drop=True)
     interp2d = pingrid.create_interp2d(da, da.dims)
-    dae = pingrid.DataArrayEntry(
-        e.name, da, interp2d, e.min_val, e.max_val, e.colormap
-    )
+    dae = pingrid.DataArrayEntry(e.name, da, interp2d, e.min_val, e.max_val, e.colormap)
     return dae
 
 
