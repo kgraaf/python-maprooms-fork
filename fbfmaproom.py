@@ -448,11 +448,12 @@ def hits_and_misses(c1, c2):
     return [h1, m1, m2, h2, f"{(h1 + h2) / (h1 + h2 + m1 + m2) * 100:.2f}%"]
 
 
-def calculate_bounds(pt, res):
+def calculate_bounds(pt, res, origin):
     x, y = pt
     dx, dy = res
-    cx = (x + dx / 2) // dx * dx
-    cy = (y + dy / 2) // dy * dy
+    x0, y0 = origin
+    cx = (x - x0 + dx / 2) // dx * dx + x0
+    cy = (y - y0 + dy / 2) // dy * dy + y0
     return [[cx - dx / 2, cy - dy / 2], [cx + dx / 2, cy + dy / 2]]
 
 
@@ -554,7 +555,9 @@ def _(pathname, position, mode, year):
     content = []
     positions = None
     if mode == "pixel":
-        (x0, y0), (x1, y1) = calculate_bounds((x, y), c["resolution"])
+        (x0, y0), (x1, y1) = calculate_bounds(
+            (x, y), c["resolution"], c.get("origin", (0, 0))
+        )
         pixel = MultiPoint([(x0, y0), (x1, y1)]).envelope
         geom, _ = retrieve_geometry(country_key, tuple(c["marker"]), "national", None)
         if pixel.intersects(geom):

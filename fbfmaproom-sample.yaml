@@ -165,6 +165,7 @@ countries:
         zoom: 6
         rotation: 0
         marker:  [43.875, 6.875]
+        origin: [.125, .125]
         datasets:
             rain:
                 path: /data/aaron/fbf/rain-ethiopia.nc
