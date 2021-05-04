@@ -22,13 +22,15 @@ from shapely.geometry.multipolygon import MultiPolygon
 from shapely.geometry import Polygon, Point
 from shapely.geometry.multipoint import MultiPoint
 from psycopg2 import sql
+
+import __about__ as about
 import pyaconf
 import pingrid
 from pingrid import BGRA
 import fbflayout
 
 
-CONFIG = pyaconf.load(os.environ["CONFIG"])
+CONFIG = pyaconf.load(os.environ["FBFMAPROOM_CONFIG"])
 
 DBPOOL = pingrid.init_dbpool("dbpool", CONFIG)
 
@@ -767,7 +769,7 @@ def stats():
     )
 
     rs = dict(
-        version="0.1.125",
+        version=about.version,
         timestamp=datetime.datetime.now(datetime.timezone.utc).isoformat(),
         cache_stats=cs,
         process_stats=ps,
