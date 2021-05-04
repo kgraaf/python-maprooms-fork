@@ -3,7 +3,7 @@ import numpy as np
 
 
 def nearest_interpolator(
-    input_grids: Iterable[Tuple[float, float]],  # [(x0, dx), (y0, dy), ...]
+    input_grids: Iterable[Tuple[float, float]],  # [(y0, dy), (x0, dx), ...]
     input_data: np.ndarray,
 ) -> Callable[Iterable[np.ndarray], np.ndarray]:
     padded_data = np.pad(
@@ -21,9 +21,9 @@ def nearest_interpolator(
 
 
 def nearest_all_together(
-    input_grids: List[Tuple[float, float]],  # [(x0, dx), (y0, dy), ...]
+    input_grids: List[Tuple[float, float]],  # [(y0, dy), (x0, dx), ...]
     input_data: np.ndarray,
-    output_grids: List[np.ndarray],  # [x, y, ...]
+    output_grids: List[np.ndarray],  # [y, x, ...]
 ) -> np.ndarray:
     padded_data = np.pad(
         input_data, pad_width=1, mode="constant", constant_values=np.nan
@@ -52,4 +52,3 @@ print("*** z:", z)
 f = nearest_interpolator(input_grids, input_data)
 z2 = f(output_grids)
 print("*** z1:", z2)
-

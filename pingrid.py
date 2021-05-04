@@ -1,11 +1,11 @@
-from typing import Any, Dict, Tuple, List, Literal, Optional, Union, Callable, Hashable
+from typing import Tuple, List, Literal, Optional, Union, Callable, Iterable as Iterable
 from typing import NamedTuple
 import math
 import datetime
 import numpy as np
 import pandas as pd
 import xarray as xr
-from collections.abc import Iterable
+from collections.abc import Iterable as CollectionsIterable
 from scipy import interpolate
 import cv2
 import psycopg2.extensions
@@ -48,7 +48,7 @@ def init_dbpool(name, config):
     return dbpool
 
 
-FuncInterp2d = Callable[[np.ndarray, np.ndarray], np.ndarray]
+FuncInterp2d = Callable[Iterable[np.ndarray], np.ndarray]
 
 
 class DataArrayEntry(NamedTuple):
@@ -103,13 +103,33 @@ def deg_to_mercator(lats: float) -> float:
     return np.rad2deg(rad_to_mercator(np.deg2rad(lats)))
 
 
-def create_interp2d(
-    da: xr.DataArray, dims: Tuple[str, str]
-) -> Callable[[np.ndarray, np.ndarray], np.ndarray]:
+def nearest_interpolator(
+    input_grids: Iterable[Tuple[float, float]],  # [(y0, dy), (x0, dx), ...]
+    input_data: np.ndarray,
+) -> FuncInterp2d:
+    padded_data = np.pad(
+        input_data, pad_width=1, mode="constant", constant_values=np.nan
+    )
+
+    def interp_func(output_grids: Iterable[np.ndarray]) -> np.ndarray:
+        index = tuple(
+            np.minimum(np.maximum(((x - (x0 - 1.5 * dx)) / dx).astype(int), 0), n - 1)
+            for (x0, dx), x, n in zip(input_grids, output_grids, padded_data.shape)
+        )
+        return padded_data[tuple(reversed(np.meshgrid(*reversed(index))))]
+
+    return interp_func
+
+
+def create_interp2d(da: xr.DataArray, dims: Tuple[str, str]) -> FuncInterp2d:
     x = da[dims[1]].values
     y = da[dims[0]].values
-    z = da.values
-    f = interpolate.interp2d(x, y, z, kind="linear", copy=False, bounds_error=False)
+    input_grids = [
+        (y[0], y[1] - y[0]),
+        (x[0], x[1] - x[0]),
+    ]  # require at least 2 points in each spatial dimension, and assuming that the grid is even
+    input_data = da.values
+    f = nearest_interpolator(input_grids, input_data)
     return f
 
 
@@ -207,7 +227,7 @@ def produce_bkg_tile(
 
 
 def produce_data_tile(
-    interp2d: Callable[[np.ndarray, np.ndarray], np.ndarray],
+    interp2d: FuncInterp2d,
     tx: int,
     ty: int,
     tz: int,
@@ -222,8 +242,7 @@ def produce_data_tile(
         (a + (b - a) / 2.0 for a, b in tile_extents(g_lat_3857, ty, tz, tile_height)),
         np.double,
     )
-    # print("*** produce_data_tile:", tz, tx, ty, x[0], x[-1], y[0], y[-1])
-    z = interp2d(x, y)
+    z = interp2d([y, x])
     return z
 
 
@@ -533,7 +552,7 @@ def __dim_range(ds, dim, period=360.0):
 
 def __normalize_vals(v0, vals, period=360.0, right=False):
 
-    vs = vals if isinstance(vals, Iterable) else [vals]
+    vs = vals if isinstance(vals, CollectionsIterable) else [vals]
 
     v1 = v0 + period
     assert v0 <= 0.0 <= v1
@@ -544,7 +563,7 @@ def __normalize_vals(v0, vals, period=360.0, right=False):
     else:
         vs[vs >= v1] -= period
 
-    vs = vs if isinstance(vals, Iterable) else vs[0]
+    vs = vs if isinstance(vals, CollectionsIterable) else vs[0]
 
     return vs
 
