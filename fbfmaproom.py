@@ -687,7 +687,7 @@ def yaml_resp(data):
 
 def tile(dae, tx, ty, tz, clipping=None, test_tile=False):
     z = pingrid.produce_data_tile(dae.interp2d, tx, ty, tz, 256, 256)
-    im = cv2.flip((z - dae.min_val) * 255 / (dae.max_val - dae.min_val), 0)
+    im = (z - dae.min_val) * 255 / (dae.max_val - dae.min_val)
     im = pingrid.apply_colormap(im, dae.colormap)
     if clipping is not None:
         country_shape, _ = clipping

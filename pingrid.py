@@ -242,7 +242,7 @@ def produce_data_tile(
         (a + (b - a) / 2.0 for a, b in tile_extents(g_lat_3857, ty, tz, tile_height)),
         np.double,
     )
-    z = np.flip(interp2d([y, x]), axis=0)
+    z = interp2d([y, x])
     return z
 
 
