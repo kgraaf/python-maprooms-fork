@@ -132,14 +132,6 @@ def command_layout():
                     html.Label("Mode:"),
                     dcc.Dropdown(
                         id="mode",
-                        options=[
-                            dict(
-                                label=v,
-                                value=v.lower(),
-                            )
-                            for v in ["National", "Regional", "District", "Pixel"]
-                        ],
-                        value="national",
                         clearable=False,
                     ),
                 ],
