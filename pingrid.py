@@ -173,7 +173,7 @@ def extent(da: xr.DataArray, dim: str, default: Optional[Extent] = None) -> Exte
 
 
 def extents(
-    da: xr.DataArray, dims: List[str] = None, defaults: Optional[List[Extent]] = None
+    da: xr.DataArray, dims: Optional[List[str]] = None, defaults: Optional[List[Extent]] = None
 ) -> List[Extent]:
     if dims is None:
         dims = da.dims
@@ -286,6 +286,7 @@ def rasterize_multipolygon(
             rasterize_linearring(im, p.exterior, fxs, fys, line_type, fg_color, shift)
             for q in p.interiors:
                 rasterize_linearring(im, q, fxs, fys, line_type, bg_color, shift)
+    return im
 
 
 def flatten(im_fg: np.ndarray, im_bg: np.ndarray) -> np.ndarray:
