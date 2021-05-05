@@ -30,7 +30,7 @@ from pingrid import BGRA
 import fbflayout
 
 
-CONFIG = pyaconf.load(os.environ["FBFMAPROOM_CONFIG"])
+CONFIG = pyaconf.load(os.environ["CONFIG"])
 
 DBPOOL = pingrid.init_dbpool("dbpool", CONFIG)
 
