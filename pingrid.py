@@ -54,7 +54,7 @@ FuncInterp2d = Callable[[Iterable[np.ndarray]], np.ndarray]
 class DataArrayEntry(NamedTuple):
     name: str
     data_array: xr.DataArray
-    interp2d: Optional[FuncInterp2d]
+    interp: Optional[FuncInterp2d]
     min_val: Optional[float]
     max_val: Optional[float]
     colormap: Optional[np.ndarray]
@@ -121,7 +121,7 @@ def nearest_interpolator(
     return interp_func
 
 
-def create_interp2d(da: xr.DataArray, dims: Tuple[str, str]) -> FuncInterp2d:
+def create_interp(da: xr.DataArray, dims: Tuple[str, str]) -> FuncInterp2d:
     x = da[dims[1]].values
     y = da[dims[0]].values
     input_grids = [
@@ -227,7 +227,7 @@ def produce_bkg_tile(
 
 
 def produce_data_tile(
-    interp2d: FuncInterp2d,
+    interp: FuncInterp2d,
     tx: int,
     ty: int,
     tz: int,
@@ -242,7 +242,7 @@ def produce_data_tile(
         (a + (b - a) / 2.0 for a, b in tile_extents(g_lat_3857, ty, tz, tile_height)),
         np.double,
     )
-    z = interp2d([y, x])
+    z = interp([y, x])
     return z
 
 

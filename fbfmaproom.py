@@ -151,8 +151,8 @@ def select_pnep(country_key, season, year, issue_month, freq_max):
     da = da.sel({ns["issue"]: s, ns["pct"]: p}, drop=True)
     if ns["lead"] is not None:
         da = da.sel({ns["lead"]: l}, drop=True)
-    interp2d = pingrid.create_interp2d(da, da.dims)
-    dae = pingrid.DataArrayEntry(e.name, da, interp2d, e.min_val, e.max_val, e.colormap)
+    interp = pingrid.create_interp(da, da.dims)
+    dae = pingrid.DataArrayEntry(e.name, da, interp, e.min_val, e.max_val, e.colormap)
     return dae
 
 
@@ -168,9 +168,9 @@ def select_rain(country_key, year, season):
     da = e.data_array
     da = seasonal_average(da, ns, target_month, season_length) * season_length * 30.0
     da = da.sel({"season": t}, drop=True).fillna(0.0)
-    interp2d = pingrid.create_interp2d(da, da.dims)
+    interp = pingrid.create_interp(da, da.dims)
     dae = pingrid.DataArrayEntry(
-        e.name, e.data_array, interp2d, e.min_val, e.max_val, e.colormap
+        e.name, e.data_array, interp, e.min_val, e.max_val, e.colormap
     )
     return dae
 
@@ -686,7 +686,7 @@ def yaml_resp(data):
 
 
 def tile(dae, tx, ty, tz, clipping=None, test_tile=False):
-    z = pingrid.produce_data_tile(dae.interp2d, tx, ty, tz, 256, 256)
+    z = pingrid.produce_data_tile(dae.interp, tx, ty, tz, 256, 256)
     im = (z - dae.min_val) * 255 / (dae.max_val - dae.min_val)
     im = pingrid.apply_colormap(im, dae.colormap)
     if clipping is not None:
