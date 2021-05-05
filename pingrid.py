@@ -48,7 +48,7 @@ def init_dbpool(name, config):
     return dbpool
 
 
-FuncInterp2d = Callable[Iterable[np.ndarray], np.ndarray]
+FuncInterp2d = Callable[[Iterable[np.ndarray]], np.ndarray]
 
 
 class DataArrayEntry(NamedTuple):
