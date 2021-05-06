@@ -15,7 +15,7 @@ datasets = [
     ),
     (
         "rain-madagascar.nc",
-        "/home/.rijaf/.Madagascar_v3/.ALL/.monthly/.rainfall/.rfe/data.nc",
+        "/home/.rijaf/.Madagascar_v3/.ALL/.monthly/.rainfall/.rfe/T/(Dec)/(Jan)/(Feb)/VALUES/data.nc",
     ),
     (
         "pnep-madagascar.nc",
