@@ -19,7 +19,7 @@ datasets = [
     ),
     (
         "pnep-madagascar.nc",
-        "/home/.aaron/.DGM/.Forecast/.Seasonal/.NextGen/.Madagascar_South/.PRCP/.pne/L/removeGRID/data.nc",
+        "/home/.aaron/.DGM/.Forecast/.Seasonal/.NextGen/.Madagascar_South/.PRCP/.pne/S/(1%20Sep)/(1%20Oct)/(1%20Nov)/VALUES/L/removeGRID/data.nc",
     ),
     (
         "rain-ethiopia.nc",
@@ -39,5 +39,5 @@ for name, urlpath in datasets:
     else:
         timeopt = ""
     os.system(
-        "curl %s -o %s http://iridl.ldeo.columbia.edu%s" % (timeopt, filepath, urlpath)
+        "curl %s -o %s 'http://iridl.ldeo.columbia.edu%s'" % (timeopt, filepath, urlpath)
     )
