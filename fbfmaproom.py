@@ -186,7 +186,7 @@ def open_enso(season_length):
             df = pd.read_sql(
                 sql.SQL(
                     """
-                    select adm0_code, adm0_name, month_since_01011960,
+                    select lower(adm0_name) as country_key, month_since_01011960,
                         enso_state, bad_year 
                     from {schema}.{table}
                     """
@@ -235,69 +235,50 @@ def retrieve_geometry(
 def retrieve_vulnerability(
     country_key: str, mode: str, year: Optional[int]
 ) -> pd.DataFrame:
-    config = CONFIG
+    config = CONFIG["countries"][country_key]
+    sc = config["shapes"][int(mode)]
     dbpool = DBPOOL
-    adm0_name = config["countries"][country_key]["adm0_name"]
-    sc = config["shapes"][mode]
-    dc = config["dataframes"]["vuln"]
     with dbpool.take() as cm:
         conn = cm.resource
         with conn:  # transaction
-            s = sql.SQL(
-                """
-                with v as (
-                    select
-                        ({key}) as key,
-                        year,
-                        sum(vulnerability) as vulnerability
-                    from {vuln_schema}.{vuln_table}
-                    where adm0_name = %(adm0_name)s
-                    group by {label}, ({key}), year
-                ),
-                g as (
-                    select
-                        ({key}) as key,
-                        {label} as label,
-                        ST_AsBinary({geom}) as the_geom
-                    from {geom_schema}.{geom_table}
-                    where adm0_name = %(adm0_name)s
-                ),
-                a as (
-                    select
-                        key,
-                        avg(vulnerability) as mean,
-                        stddev_pop(vulnerability) as stddev
-                    from v
-                    group by key
-                )
-                select
-                    g.label, g.key, g.the_geom,
-                    v.year,
-                    v.vulnerability,
-                    a.mean as mean,
-                    a.stddev as stddev,
-                    v.vulnerability / a.mean as normalized,
-                    coalesce(to_char(v.vulnerability,'999,999,999,999'),'N/A') as "Vulnerability",
-                    coalesce(to_char(a.mean,'999,999,999,999'),'N/A') as "Mean",
-                    coalesce(to_char(a.stddev,'999,999,999,999'),'N/A') as "Stddev",
-                    coalesce(to_char(v.vulnerability / a.mean,'999,990D999'),'N/A') as "Normalized"
-                from (g left outer join a using (key))
-                    left outer join v on(g.key=v.key and v.year=%(year)s)
-                """
-            ).format(
-                geom_schema=sql.Identifier(sc["schema"]),
-                geom_table=sql.Identifier(sc["table"]),
-                vuln_schema=sql.Identifier(dc["schema"]),
-                vuln_table=sql.Identifier(dc["table"]),
-                key=pingrid.sql_key(sc["key"]),
-                geom=sql.Identifier(sc["geom"]),
-                label=sql.Identifier(sc["label"]),
+            s = sql.Composed(
+                [
+                    sql.SQL("with v as ("),
+                    sql.SQL(sc["vuln_sql"]),
+                    sql.SQL("), g as ("),
+                    sql.SQL(sc["sql"]),
+                    sql.SQL(
+                        """
+                        ), a as (
+                            select
+                                key,
+                                avg(vuln) as mean,
+                                stddev_pop(vuln) as stddev
+                            from v
+                            group by key
+                        )
+                        select
+                            g.label, g.key, g.the_geom,
+                            v.year,
+                            v.vuln as vulnerability,
+                            a.mean as mean,
+                            a.stddev as stddev,
+                            v.vuln / a.mean as normalized,
+                            coalesce(to_char(v.vuln,'999,999,999,999'),'N/A') as "Vulnerability",
+                            coalesce(to_char(a.mean,'999,999,999,999'),'N/A') as "Mean",
+                            coalesce(to_char(a.stddev,'999,999,999,999'),'N/A') as "Stddev",
+                            coalesce(to_char(v.vuln / a.mean,'999,990D999'),'N/A') as "Normalized"
+                        from (g left outer join a using (key))
+                            left outer join v on(g.key=v.key and v.year=%(year)s)
+                        """
+                    ),
+                ]
             )
             # print(s.as_string(conn))
             df = pd.read_sql(
                 s,
                 conn,
-                params=dict(year=year, adm0_name=adm0_name),
+                params=dict(year=year),
             )
     # print("bytes: ", sum(df.the_geom.apply(lambda x: len(x.tobytes()))))
     df["the_geom"] = df["the_geom"].apply(lambda x: wkb.loads(x.tobytes()))
@@ -348,7 +329,7 @@ def generate_tables(
     freq_min, freq_max = freq
 
     df2 = open_enso(season_length)
-    df2 = df2[df2["adm0_name"] == config["adm0_name"]]
+    df2 = df2[df2["country_key"] == country_key]
 
     df["year"] = df2["year"]
     df["year_label"] = df2["label"]
@@ -470,6 +451,8 @@ def country(pathname: str) -> str:
     Output("season", "value"),
     Output("pnep_colorbar", "colorscale"),
     Output("vuln_colorbar", "colorscale"),
+    Output("mode", "options"),
+    Output("mode", "value"),
     Input("location", "pathname"),
 )
 def _(pathname):
@@ -487,6 +470,14 @@ def _(pathname):
     cx, cy = c["center"]
     pnep_cs = pingrid.to_dash_colorscale(open_pnep(country_key).colormap)
     vuln_cs = pingrid.to_dash_colorscale(open_vuln(country_key).colormap)
+    mode_options = [
+        dict(
+            label=k["name"],
+            value=str(i),
+        )
+        for i, k in enumerate(c["shapes"])
+    ] + [dict(label="Pixel", value="pixel")]
+    mode_value = "0"
     return (
         f"{PFX}/assets/{c['logo']}",
         [cy, cx],
@@ -496,6 +487,8 @@ def _(pathname):
         season_value,
         pnep_cs,
         vuln_cs,
+        mode_options,
+        mode_value,
     )
 
 
@@ -559,7 +552,7 @@ def _(pathname, position, mode, year):
             (x, y), c["resolution"], c.get("origin", (0, 0))
         )
         pixel = MultiPoint([(x0, y0), (x1, y1)]).envelope
-        geom, _ = retrieve_geometry(country_key, tuple(c["marker"]), "national", None)
+        geom, _ = retrieve_geometry(country_key, tuple(c["marker"]), "0", None)
         if pixel.intersects(geom):
             positions = [[[[y0, x0], [y1, x0], [y1, x1], [y0, x1], [y0, x0]]]]
             px = (x0 + x1) / 2
@@ -633,7 +626,7 @@ def _(issue_month, freq, positions, mode, year, pathname, season):
         bounds=None,
         region=None,
     )
-    print("***:", res)
+    # print("***:", res)
     url = CONFIG["gantt_url"] + urllib.parse.urlencode(dict(data=json.dumps(res)))
     return url
 
@@ -707,7 +700,7 @@ def tile(dae, tx, ty, tz, clipping=None, test_tile=False):
 def pnep_tiles(tz, tx, ty, country_key, season, year, issue_month, freq_max):
     dae = select_pnep(country_key, season, year, issue_month, freq_max)
     p = tuple(CONFIG["countries"][country_key]["marker"])
-    clipping = retrieve_geometry(country_key, p, "national", None)
+    clipping = retrieve_geometry(country_key, p, "0", None)
     resp = tile(dae, tx, ty, tz, clipping)
     return resp
 
