@@ -289,10 +289,15 @@ def retrieve_vulnerability(
 
 
 def seasonal_average(da, ns, target_month, season_length):
+    season_first_month = (target_month - season_length / 2) % 12 + .5
+    season_months = [(season_first_month + i) % 12
+                     for i in range(int(season_length))]
+    season_t = [t for t in da[ns["time"]].values if t % 12 in season_months]
+    da = da.sel({ns["time"]: season_t})
+
     da["season"] = (
         da[ns["time"]] - target_month + season_length / 2
     ) // season_length * season_length + target_month
-    da = da.where(da["season"] % 12 == target_month, drop=True)
     da = da.groupby("season").mean()
     return da
 
