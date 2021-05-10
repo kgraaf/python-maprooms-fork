@@ -23,7 +23,7 @@ datasets = [
     ),
     (
         "rain-ethiopia.nc",
-        "/home/.xchourio/.ACToday/.Ethiopia/.CPT/.NextGen/.MAM_PRCP/.Somali/.NextGen/.History/.obs/",
+        "/home/.xchourio/.ACToday/.Ethiopia/.CPT/.NextGen/.MAM_PRCP/.Somali/.NextGen/.History/.obs/data.nc",
     ),
     (
         "pnep-ethiopia.nc",
