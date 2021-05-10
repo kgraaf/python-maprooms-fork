@@ -54,6 +54,6 @@ docker build \
   . \
   || fail "build failed"
 
-for tag in latest $commithash; do
+for tag in latest $version; do
     docker push $registry/$imagename:$tag || fail "failed to push $tag"
 done
