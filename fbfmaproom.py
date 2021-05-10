@@ -656,7 +656,6 @@ def image_resp(im):
     assert cv2_imencode_success
     io_buf = io.BytesIO(buffer)
     resp = flask.send_file(io_buf, mimetype="image/png")
-    resp.headers["Cache-Control"] = "private, max-age=0, no-cache, no-store"
     return resp
 
 
