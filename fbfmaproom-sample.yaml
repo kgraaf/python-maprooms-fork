@@ -74,7 +74,7 @@ countries:
 
         datasets:
             rain:
-                path: /data/aaron/fbf/rain-noaa.nc
+                path: /data/aaron/fbf/rain-malawi.nc
                 var_names:
                     rain: prcp_est
                     lat: Y

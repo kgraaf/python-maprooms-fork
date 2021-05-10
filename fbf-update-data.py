@@ -6,8 +6,8 @@ base = "http://iridl.ldeo.columbia.edu"
 
 datasets = [
     (
-        "rain-noaa.nc",
-        "/SOURCES/.NOAA/.NCEP/.CPC/.Merged_Analysis/.monthly/.latest/.ver2/.prcp_est/data.nc",
+        "rain-malawi.nc",
+        "/SOURCES/.NOAA/.NCEP/.CPC/.Merged_Analysis/.monthly/.latest/.ver2/.prcp_est/X/32/36/RANGE/Y/-17/-9/RANGE/T/(Dec-Feb)/seasonalAverage/data.nc",
     ),
     (
         "pnep-malawi.nc",
