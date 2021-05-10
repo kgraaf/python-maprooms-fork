@@ -165,9 +165,8 @@ def select_rain(country_key, year, season):
     target_month = season_config["target_month"]
     e = open_rain(country_key)
     t = pingrid.to_months_since(datetime.date(year, 1, 1)) + target_month
-    da = e.data_array
-    da = seasonal_average(da, ns, target_month, season_length) * season_length * 30.0
-    da = da.sel({"season": t}, drop=True).fillna(0.0)
+    da = e.data_array * season_length * 30.0
+    da = da.sel({ns["time"]: t}, drop=True).fillna(0.0)
     interp = pingrid.create_interp(da, da.dims)
     dae = pingrid.DataArrayEntry(
         e.name, e.data_array, interp, e.min_val, e.max_val, e.colormap
@@ -288,15 +287,6 @@ def retrieve_vulnerability(
     return df
 
 
-def seasonal_average(da, ns, target_month, season_length):
-    da["season"] = (
-        da[ns["time"]] - target_month + season_length / 2
-    ) // season_length * season_length + target_month
-    da = da.where(da["season"] % 12 == target_month, drop=True)
-    da = da.groupby("season").mean()
-    return da
-
-
 def generate_tables(
     country_key,
     config,
@@ -338,9 +328,8 @@ def generate_tables(
     df["season"] = df2["month_since_01011960"]
     df = df.set_index("season")
 
-    da = open_rain(country_key).data_array
+    da = open_rain(country_key).data_array * season_length * 30
     ns = config["datasets"]["rain"]["var_names"]
-    da = seasonal_average(da, ns, target_month, season_length) * season_length * 30.0
 
     mpolygon = pingrid.mpoly_leaflet_to_shapely(positions)
 
@@ -386,7 +375,7 @@ def generate_tables(
     df4 = da2.to_dataframe().unstack()
     df4.columns = df4.columns.to_flat_index()
 
-    df = df.join(df4, on="season", how="outer")
+    df = df.join(df4, how="outer")
 
     df = df[(df["year"] >= year_min) & (df["year"] <= year_max)]
 
@@ -667,7 +656,6 @@ def image_resp(im):
     assert cv2_imencode_success
     io_buf = io.BytesIO(buffer)
     resp = flask.send_file(io_buf, mimetype="image/png")
-    resp.headers["Cache-Control"] = "private, max-age=0, no-cache, no-store"
     return resp
 
 
