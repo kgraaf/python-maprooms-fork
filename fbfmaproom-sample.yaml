@@ -74,7 +74,7 @@ countries:
 
         datasets:
             rain:
-                path: /data/aaron/fbf/rain-malawi.nc
+                path: /data/aaron/fbf/rain-malawi.zarr
                 var_names:
                     rain: prcp_est
                     lat: Y
@@ -86,7 +86,7 @@ countries:
                     5285200 [5285200 23] 4625990 [4625990 22] 3966780 [3966780 23]
                     3307570 [3307570 23] 2648360 [2648360 23] 1989150]"
             pnep:
-                path: /data/aaron/fbf/pnep-malawi.nc
+                path: /data/aaron/fbf/pnep-malawi.zarr
                 var_names:
                     pnep: prob
                     lat: Y
@@ -150,7 +150,7 @@ countries:
 
         datasets:
             rain:
-                path: /data/aaron/fbf/rain-madagascar.nc
+                path: /data/aaron/fbf/rain-madagascar.zarr
                 var_names:
                     rain: rfe
                     lat: Y
@@ -158,7 +158,7 @@ countries:
                     time: T
                 colormap: *raincm
             pnep:
-                path: /data/aaron/fbf/pnep-madagascar.nc
+                path: /data/aaron/fbf/pnep-madagascar.zarr
                 var_names: 
                     pnep: pne
                     lat: Y
@@ -209,7 +209,7 @@ countries:
 
         datasets:
             rain:
-                path: /data/aaron/fbf/rain-ethiopia.nc
+                path: /data/aaron/fbf/rain-ethiopia.zarr
                 var_names:
                     rain: obs
                     lat: Y
@@ -217,7 +217,7 @@ countries:
                     time: T
                 colormap: *raincm
             pnep:
-                path: /data/aaron/fbf/pnep-ethiopia.nc
+                path: /data/aaron/fbf/pnep-ethiopia.zarr
                 var_names:
                     pnep: pne
                     lat: Y
@@ -266,7 +266,7 @@ countries:
 
         datasets:
             rain:
-                path: /data/aaron/fbf/rain-niger.nc
+                path: /data/aaron/fbf/rain-niger.zarr
                 var_names:
                     rain: obs
                     lat: Y
@@ -274,7 +274,7 @@ countries:
                     time: T
                 colormap: *raincm
             pnep:
-                path: /data/aaron/fbf/pnep-niger.nc
+                path: /data/aaron/fbf/pnep-niger.zarr
                 var_names:
                     pnep: pne
                     lat: Y
