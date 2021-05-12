@@ -1,0 +1,22 @@
+name: fbfmaproom2
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - dash
+  - dash-daq
+  - flask
+  - numpy
+  - opencv
+  - pandas
+  - psycopg2
+  - rasterio
+  - shapely
+  - xarray
+  - yaml
+  - zarr
+  - pip
+  - pip:
+    - dash-leaflet
+    - pyaconf
+    - queuepool

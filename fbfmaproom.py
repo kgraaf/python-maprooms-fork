@@ -75,7 +75,7 @@ def open_data_array(
     cfg = config["countries"][country_key]["datasets"][dataset_key]
     if var_key is not None:
         ns = cfg["var_names"]
-        da = xr.open_dataset(cfg["path"], decode_times=False)[ns[var_key]].transpose(
+        da = xr.open_zarr(cfg["path"], decode_times=False)[ns[var_key]].transpose(
             ns["lat"], ns["lon"], ...
         )
     else:

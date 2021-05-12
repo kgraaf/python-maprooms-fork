@@ -6,7 +6,6 @@ import numpy as np
 import pandas as pd
 import xarray as xr
 from collections.abc import Iterable as CollectionsIterable
-from scipy import interpolate
 import cv2
 import psycopg2.extensions
 from psycopg2 import sql

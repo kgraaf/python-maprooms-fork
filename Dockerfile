@@ -19,7 +19,7 @@ RUN curl -L \
     conda install conda==4.10.1
 
 # conda environment
-COPY environment_linux.yml /build/environment.yml
+COPY environment_fbfmaproom_linux.yml /build/environment.yml
 RUN eval "$('/conda/bin/conda' 'shell.bash' 'hook' 2> /dev/null)" && \
     conda env create -f /build/environment.yml
 
