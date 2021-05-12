@@ -26,7 +26,7 @@ RUN eval "$('/conda/bin/conda' 'shell.bash' 'hook' 2> /dev/null)" && \
 # mod_wsgi: use pip to compile mod_wsgi from source for the particular versions
 # of apache and python that we're using.
 RUN eval "$('/conda/bin/conda' 'shell.bash' 'hook' 2> /dev/null)" && \
-    conda activate dash && \
+    conda activate fbfmaproom2 && \
     pip install mod_wsgi==4.7.1
 
 # httpd config
