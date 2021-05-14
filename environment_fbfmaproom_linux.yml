@@ -17,6 +17,7 @@ dependencies:
   - cairo=1.16.0=h6cf1ce9_1008
   - certifi=2020.12.5=py39hf3d152e_1
   - cfitsio=3.470=hb418390_7
+  - cftime=1.4.1=py39hce5d2b2_0
   - click=7.1.2=pyh9f0ad1d_0
   - click-plugins=1.1.1=py_0
   - cligj=0.7.1=pyhd8ed1ab_0
@@ -108,6 +109,7 @@ dependencies:
   - mysql-common=8.0.23=ha770c72_2
   - mysql-libs=8.0.23=h935591d_2
   - ncurses=6.2=h58526e2_4
+  - netcdf4=1.5.6=nompi_py39h36800e2_102
   - nettle=3.6=he412f7d_0
   - nspr=4.30=h9c3ff4c_0
   - nss=3.64=hb5efdd6_0
