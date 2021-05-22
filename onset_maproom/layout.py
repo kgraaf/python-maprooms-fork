@@ -10,25 +10,46 @@ def app_layout():
         fluid=True,
         children=[
             dcc.Location(id="location", refresh=True),
-            dbc.NavbarSimple(
+            dbc.Navbar(
                 children=[
-                    dbc.NavItem(dbc.NavLink("Page 1", href="#")),
-                    dbc.DropdownMenu(
-                        children=[
-                            dbc.DropdownMenuItem("More pages", header=True),
-                            dbc.DropdownMenuItem("Page 2", href="#"),
-                            dbc.DropdownMenuItem("Page 3", href="#"),
-                        ],
-                        nav=True,
-                        in_navbar=True,
-                        label="More",
+                    html.A(
+                        # Use row and col to control vertical alignment of logo / brand
+                        dbc.Row(
+                            [
+                                dbc.Col(
+                                    html.Img(
+                                        src="assets/Ethiopia_IRI_98x48.png", height="30px"
+                                    )
+                                ),
+                                dbc.Col(dbc.NavbarBrand("Onset Maproom", className="ml-2")),
+                            ],
+                            align="center",
+                            no_gutters=True,
+                        ),
+                        href="https://plot.ly",
+                    ),
+                    dbc.NavbarToggler(id="navbar-toggler"),
+                    dbc.Collapse(
+                        dbc.Row(
+                            [
+                                dbc.Col(dbc.Input(type="search", placeholder="Search")),
+                                dbc.Col(
+                                    dbc.Button(
+                                        "Search", color="primary", className="ml-2"
+                                    ),
+                                    width="auto",
+                                ),
+                            ],
+                            no_gutters=True,
+                            className="ml-auto flex-nowrap mt-3 mt-md-0",
+                            align="center",
+                        ),
+                        id="navbar-collapse",
+                        navbar=True,
                     ),
                 ],
-                brand="Onset Maproom",
-                brand_href=None,
                 color="dark",
                 dark=True,
-                fluid=True,
             ),
             dbc.Row(
                 children=[
