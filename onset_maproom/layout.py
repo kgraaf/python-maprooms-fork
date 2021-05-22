@@ -18,7 +18,7 @@ def app_layout():
                     dbc.Col(
                         sm=12,
                         md=2,
-                        style={"background-color": "#eeeeee"},
+                        style={"background-color": "#fafafa"},
                         children=column1_layout(),
                     ),
                     dbc.Col(
@@ -30,19 +30,22 @@ def app_layout():
                                 no_gutters=True,
                                 children=[
                                     dbc.Col(
-                                        md=12,
-                                        lg=6,
+                                        width=12,
                                         style={
                                             "background-color": "white",
                                         },
                                         children=column2_layout(),
                                     ),
+                                ],
+                            ),
+                            dbc.Row(
+                                no_gutters=True,
+                                children=[
                                     dbc.Col(
-                                        md=12,
-                                        lg=6,
+                                        width=12,
                                         style={
-                                            "background-color": "#ddffdd",
-                                            "height": "500px",
+                                            "background-color": "white",
+                                            "height": "200px",
                                         },
                                         children=column3_layout(),
                                     ),
@@ -219,12 +222,12 @@ def column2_layout():
                         position="topleft",
                         id="layers_control",
                     ),
-                    dlf.ScaleControl(imperial=False, position="topleft"),
+                    dlf.ScaleControl(imperial=False, position="bottomleft"),
                 ],
                 id="map",
                 style={
                     "width": "100%",
-                    "height": "500px",
+                    "height": "300px",
                     # "position": "absolute",
                 },
             ),
