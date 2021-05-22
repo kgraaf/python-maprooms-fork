@@ -18,29 +18,49 @@ def app_layout():
                             [
                                 dbc.Col(
                                     html.Img(
-                                        src="assets/Ethiopia_IRI_98x48.png", height="30px"
+                                        src="assets/Ethiopia_IRI_98x48.png",
+                                        height="30px",
                                     )
                                 ),
-                                dbc.Col(dbc.NavbarBrand("Onset Maproom", className="ml-2")),
+                                dbc.Col(
+                                    dbc.NavbarBrand("Onset Maproom", className="ml-2")
+                                ),
                             ],
                             align="center",
                             no_gutters=True,
                         ),
-                        href="https://plot.ly",
+                        href="https://iridl.ldeo.columbia.edu",
                     ),
                     dbc.NavbarToggler(id="navbar-toggler"),
                     dbc.Collapse(
                         dbc.Row(
                             [
-                                dbc.Col(dbc.Input(type="search", placeholder="Search")),
                                 dbc.Col(
-                                    dbc.Button(
-                                        "Search", color="primary", className="ml-2"
+                                    dbc.Input(
+                                        type="search",
+                                        placeholder="Search",
+                                        bs_size="sm",
+                                    )
+                                ),
+                                dbc.Col(
+                                    dbc.Select(
+                                        id="select",
+                                        value="en",
+                                        bs_size="sm",
+                                        options=[
+                                            {"label": "English", "value": "en"},
+                                            {
+                                                "label": "Español",
+                                                "value": "es",
+                                                "disabled": True,
+                                            },
+                                            {"label": "Française", "value": "fr"},
+                                            {"label": "Русский", "value": "ru"},
+                                        ],
                                     ),
-                                    width="auto",
                                 ),
                             ],
-                            no_gutters=True,
+                            # no_gutters=True,
                             className="ml-auto flex-nowrap mt-3 mt-md-0",
                             align="center",
                         ),
@@ -54,38 +74,36 @@ def app_layout():
             dbc.Row(
                 children=[
                     dbc.Col(
-                        width=12,
-                        children=[
-                            "Hello",
-                        ],
-                    ),
-                ],
-            ),
-            dbc.Row(
-                children=[
-                    dbc.Col(
                         sm=12,
-                        md=2,
-                        style={"background-color": "red"},
+                        md=3,
+                        lg=2,
+                        style={"background-color": "red", "height": "100px"},
                         children=["Column 1"],
                     ),
                     dbc.Col(
                         sm=12,
-                        md=10,
-                        style={"background-color": "gray"},
+                        md=9,
+                        lg=10,
+                        style={"background-color": "white"},
                         children=[
                             dbc.Row(
                                 children=[
                                     dbc.Col(
                                         md=12,
                                         lg=6,
-                                        style={"background-color": "yellow"},
+                                        style={
+                                            "background-color": "yellow",
+                                            "height": "200px",
+                                        },
                                         children=["Column 2"],
                                     ),
                                     dbc.Col(
                                         md=12,
                                         lg=6,
-                                        style={"background-color": "green"},
+                                        style={
+                                            "background-color": "green",
+                                            "height": "700px",
+                                        },
                                         children=["Column 3"],
                                     ),
                                 ],

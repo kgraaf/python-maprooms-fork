@@ -3,5 +3,8 @@
     padding-right: 0px;
 }
 .navbar {
-    padding: 0.5rem;
+    padding-right: 1rem;
+    padding-left: 0.6rem;
+    padding-top: 0.4rem;
+    padding-bottom: 0.4rem;
 }
