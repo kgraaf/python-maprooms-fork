@@ -45,5 +45,16 @@ def toggle_navbar_collapse(n, is_open):
     return is_open
 
 
+@APP.callback(
+    Output("map", "style"),
+    Input("date_input", "value"),
+)
+def toggle_layout(value):
+    return {
+        "width": "100%",
+        "height": "93vh" if value == "onset" else "45vh",
+    }
+
+
 if __name__ == "__main__":
     APP.run_server(debug=CONFIG["mode"] != "prod")

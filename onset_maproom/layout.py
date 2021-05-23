@@ -286,7 +286,7 @@ def column2_content():
                 zoom=7,
                 style={
                     "width": "100%",
-                    "height": "300px",
+                    "height": "93vh",
                 },
             ),
         ],
@@ -306,5 +306,3 @@ def column3_content():
             "&waterBalanceCess=3&drySpellCess=10&plotrange2=15"
         ),
     )
-
-
