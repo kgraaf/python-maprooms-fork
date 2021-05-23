@@ -5,72 +5,76 @@ import dash_table as table
 import dash_leaflet as dlf
 
 
+IRI_BLUE = "rgb(25,57,138)"
+IRI_GRAY = "rgb(113,112,116)"
+LIGHT_GRAY = "#eeeeee"
+
+
 def app_layout():
     return dbc.Container(
-        fluid=True,
-        style={"padding-left": "0px", "padding-right": "0px"},
-        children=[
+        [
             dcc.Location(id="location", refresh=True),
             navbar_layout(),
             dbc.Row(
-                no_gutters=True,
-                children=[
+                [
                     dbc.Col(
+                        column1_content(),
                         sm=12,
-                        md=2,
+                        md=4,
                         style={
                             "background-color": "white",
                             "border-style": "solid",
-                            "border-color": "#eeeeee",
+                            "border-color": LIGHT_GRAY,
                             "border-width": "0px 1px 0px 0px",
                         },
-                        children=column1_content(),
                     ),
                     dbc.Col(
-                        sm=12,
-                        md=10,
-                        style={"background-color": "white"},
-                        children=[
+                        [
                             dbc.Row(
-                                no_gutters=True,
-                                children=[
+                                [
                                     dbc.Col(
+                                        column2_content(),
                                         width=12,
                                         style={
                                             "background-color": "white",
                                         },
-                                        children=column2_content(),
                                     ),
                                 ],
+                                no_gutters=True,
                             ),
                             dbc.Row(
-                                no_gutters=True,
-                                children=[
+                                [
                                     dbc.Col(
+                                        column3_content(),
                                         width=12,
                                         style={
                                             "background-color": "white",
                                             "min-height": "100px",
                                             "border-style": "solid",
-                                            "border-color": "#eeeeee",
+                                            "border-color": LIGHT_GRAY,
                                             "border-width": "1px 0px 0px 0px",
                                         },
-                                        children=column3_content(),
                                     ),
                                 ],
+                                no_gutters=True,
                             ),
                         ],
+                        sm=12,
+                        md=8,
+                        style={"background-color": "white"},
                     ),
                 ],
+                no_gutters=True,
             ),
         ],
+        fluid=True,
+        style={"padding-left": "0px", "padding-right": "0px"},
     )
 
 
 def navbar_layout():
     return dbc.Navbar(
-        sticky="top",
-        children=[
+        [
             html.A(
                 dbc.Row(
                     [
@@ -80,7 +84,12 @@ def navbar_layout():
                                 height="30px",
                             )
                         ),
-                        dbc.Col(dbc.NavbarBrand("Onset Maproom", className="ml-2")),
+                        dbc.Col(
+                            dbc.NavbarBrand(
+                                "Climate and Agriculture / Onset Maproom",
+                                className="ml-2",
+                            )
+                        ),
                     ],
                     align="center",
                     no_gutters=True,
@@ -90,10 +99,7 @@ def navbar_layout():
             dbc.NavbarToggler(id="navbar-toggler"),
             dbc.Collapse(
                 dbc.Row(
-                    no_gutters=True,
-                    className="ml-auto flex-nowrap mt-3 mt-md-0",
-                    align="center",
-                    children=[
+                    [
                         dbc.Col(
                             dbc.Select(
                                 id="select",
@@ -115,25 +121,48 @@ def navbar_layout():
                             ),
                         ),
                     ],
+                    no_gutters=True,
+                    className="ml-auto flex-nowrap mt-3 mt-md-0",
+                    align="center",
                 ),
                 id="navbar-collapse",
                 navbar=True,
             ),
         ],
-        color="dark",
+        sticky="top",
+        color=IRI_GRAY,
         dark=True,
     )
 
 
 def column1_content():
     return dbc.Container(
-        fluid=True,
-        style={"padding-bottom": "1rem", "padding-top": "1rem"},
-        children=[
+        [
+            html.H5(
+                [
+                    "Historical Onset and Cessation Date ",
+                    dbc.Button(
+                        "Update",
+                        size="sm",
+                        color="primary",
+                        disabled=True,
+                    ),
+                ]
+            ),
+            html.P(
+                "The Maproom explores historical rainy season onset and cessation "
+                "dates based on user-defined definitions. The date when the rainy "
+                "season starts is critical to agriculture planification, in "
+                "particular for planting."
+            ),
+            html.P(
+                "By enabling the exploration of the history of onset dates, "
+                "the Maproom allows to understand the spatial and temporal variability "
+                "of this phenomenon and therefore characterize the risk for a successful "
+                "agricultural campaign associated with it."
+            ),
             dbc.FormGroup(
-                row=True,
-                inline=True,
-                children=[
+                [
                     dbc.Label("Date:", size="sm", html_for="date_input", width="auto"),
                     dbc.Col(
                         dbc.Select(
@@ -148,11 +177,11 @@ def column1_content():
                         width="auto",
                     ),
                 ],
-            ),
-            dbc.FormGroup(
                 row=True,
                 inline=True,
-                children=[
+            ),
+            dbc.FormGroup(
+                [
                     dbc.Label(
                         "Yearly statistics:",
                         size="sm",
@@ -173,11 +202,11 @@ def column1_content():
                         width="auto",
                     ),
                 ],
-            ),
-            dbc.FormGroup(
                 row=True,
                 inline=True,
-                children=[
+            ),
+            dbc.FormGroup(
+                [
                     dbc.Label(
                         "Wet day definition:",
                         size="sm",
@@ -197,17 +226,37 @@ def column1_content():
                         width="auto",
                     ),
                 ],
+                row=True,
+                inline=True,
             ),
-            dbc.Button("Update", size="sm", color="primary"),
+            html.P(
+                "This map shows the monthly geopotential height climatology "
+                "and anomalies at the 250 hPa pressure level in the atmosphere using "
+                "the 1981-2010 base period for the month shown."
+            ),
+            html.P(
+                "Monthly geopotential height climatology values are shown as "
+                "grey contours with a contour interval of 60 geopotential meters (gpm). "
+                "Positive geopotential height anomalies are shown in yellow and orange, "
+                "and negative anomalies are shown in shades of blue and are also "
+                "expressed in units of gpm."
+            ),
+            html.H5("Dataset Documentation"),
+            html.P(
+                "Monthly Geopotential Height Anomaly at 250 hPa. "
+                "Data: NCEP-NCAR Reanalysis monthly geopotential height at "
+                "250 hPa on a 2.5° lat/lon grid."
+            ),
         ],
+        fluid=True,
+        className="scrollable-panel",
+        style={"padding-bottom": "1rem", "padding-top": "1rem"},
     )
 
 
 def column2_content():
     return dbc.Container(
-        fluid=True,
-        style={"padding": "0rem"},
-        children=[
+        [
             dlf.Map(
                 [
                     dlf.LayersControl(
@@ -217,14 +266,14 @@ def column2_content():
                                     url="https://cartodb-basemaps-{s}.global.ssl.fastly.net/light_all/{z}/{x}/{y}.png",
                                 ),
                                 name="Street",
-                                checked=True,
+                                checked=False,
                             ),
                             dlf.BaseLayer(
                                 dlf.TileLayer(
                                     url="https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png"
                                 ),
                                 name="Topo",
-                                checked=False,
+                                checked=True,
                             ),
                         ],
                         position="topleft",
@@ -233,68 +282,29 @@ def column2_content():
                     dlf.ScaleControl(imperial=False, position="bottomleft"),
                 ],
                 id="map",
+                center=[3.5, -74],
+                zoom=7,
                 style={
                     "width": "100%",
                     "height": "300px",
                 },
             ),
         ],
+        fluid=True,
+        style={"padding": "0rem"},
     )
 
 
 def column3_content():
-    return dbc.Container(
-        fluid=True,
-        style={"padding": "1rem"},
-        children=[
-            dbc.Tabs(
-                children=[
-                    dbc.Tab(
-                        tab1_content(),
-                        label="Description",
-                    ),
-                    dbc.Tab(tab2_content(), label="Charts"),
-                    dbc.Tab(tab3_content(), label="Tables"),
-                    dbc.Tab(tab4_content(), label="Documentation"),
-                ],
-            ),
-        ],
-    )
-
-
-def tab1_content():
-    return dbc.Container(
-        fluid=True,
-        style={"padding": "1rem"},
-        children=[
-            html.H5("Historical Onset and Cessation Date"),
-            html.P(
-                "The Maproom explores historical rainy season onset and cessation "
-                "dates based on user-defined definitions. The date when the rainy "
-                "season starts is critical to agriculture planification, in "
-                "particular for planting."
-            ),
-            html.P(
-                "By enabling the exploration of the history of onset dates, "
-                "the Maproom allows to understand the spatial and temporal variability "
-                "of this phenomenon and therefore characterize the risk for a successful "
-                "agricultural campaign associated with it."
-            ),
-            tab2_content(),
-        ],
-    )
-
-
-def tab2_content():
     return html.Img(
-        style={"height": "300px"},
-        src="https://iridl.ldeo.columbia.edu/dlcharts/render/905cdac6e87a58586967e115a18e615d01530ddd?_wd=1200px&_ht=600px&_langs=en&_mimetype=image%2Fpng&region=bb%3A39.375%3A7.125%3A39.625%3A7.375%3Abb&waterBalanceCess=3&drySpellCess=10&plotrange2=15",
+        style={"width": "600px"},
+        src=(
+            "https://iridl.ldeo.columbia.edu/dlcharts/render/"
+            "905cdac6e87a58586967e115a18e615d01530ddd?_wd=1200px&_ht=600px"
+            "&_langs=en&_mimetype=image%2Fpng"
+            "&region=bb%3A39.375%3A7.125%3A39.625%3A7.375%3Abb"
+            "&waterBalanceCess=3&drySpellCess=10&plotrange2=15"
+        ),
     )
 
 
-def tab3_content():
-    return "tab 3"
-
-
-def tab4_content():
-    return "tab 4"
