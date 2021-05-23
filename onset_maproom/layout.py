@@ -11,15 +11,20 @@ def app_layout():
         style={"padding-left": "0px", "padding-right": "0px"},
         children=[
             dcc.Location(id="location", refresh=True),
-            navbar(),
+            navbar_layout(),
             dbc.Row(
                 no_gutters=True,
                 children=[
                     dbc.Col(
                         sm=12,
                         md=2,
-                        style={"background-color": "#fafafa"},
-                        children=column1_layout(),
+                        style={
+                            "background-color": "white",
+                            "border-style": "solid",
+                            "border-color": "#eeeeee",
+                            "border-width": "0px 1px 0px 0px",
+                        },
+                        children=column1_content(),
                     ),
                     dbc.Col(
                         sm=12,
@@ -34,7 +39,7 @@ def app_layout():
                                         style={
                                             "background-color": "white",
                                         },
-                                        children=column2_layout(),
+                                        children=column2_content(),
                                     ),
                                 ],
                             ),
@@ -45,9 +50,12 @@ def app_layout():
                                         width=12,
                                         style={
                                             "background-color": "white",
-                                            "height": "200px",
+                                            "min-height": "100px",
+                                            "border-style": "solid",
+                                            "border-color": "#eeeeee",
+                                            "border-width": "1px 0px 0px 0px",
                                         },
-                                        children=column3_layout(),
+                                        children=column3_content(),
                                     ),
                                 ],
                             ),
@@ -59,7 +67,7 @@ def app_layout():
     )
 
 
-def navbar():
+def navbar_layout():
     return dbc.Navbar(
         sticky="top",
         children=[
@@ -117,7 +125,7 @@ def navbar():
     )
 
 
-def column1_layout():
+def column1_content():
     return dbc.Container(
         fluid=True,
         style={"padding-bottom": "1rem", "padding-top": "1rem"},
@@ -154,7 +162,7 @@ def column1_layout():
                     dbc.Col(
                         dbc.Select(
                             id="yearly_stats_input",
-                            value="onset",
+                            value="mean",
                             bs_size="sm",
                             options=[
                                 {"label": "Mean", "value": "mean"},
@@ -195,7 +203,7 @@ def column1_layout():
     )
 
 
-def column2_layout():
+def column2_content():
     return dbc.Container(
         fluid=True,
         style={"padding": "0rem"},
@@ -228,12 +236,65 @@ def column2_layout():
                 style={
                     "width": "100%",
                     "height": "300px",
-                    # "position": "absolute",
                 },
             ),
         ],
     )
 
 
-def column3_layout():
-    return ["Column 3"]
+def column3_content():
+    return dbc.Container(
+        fluid=True,
+        style={"padding": "1rem"},
+        children=[
+            dbc.Tabs(
+                children=[
+                    dbc.Tab(
+                        tab1_content(),
+                        label="Description",
+                    ),
+                    dbc.Tab(tab2_content(), label="Charts"),
+                    dbc.Tab(tab3_content(), label="Tables"),
+                    dbc.Tab(tab4_content(), label="Documentation"),
+                ],
+            ),
+        ],
+    )
+
+
+def tab1_content():
+    return dbc.Container(
+        fluid=True,
+        style={"padding": "1rem"},
+        children=[
+            html.H5("Historical Onset and Cessation Date"),
+            html.P(
+                "The Maproom explores historical rainy season onset and cessation "
+                "dates based on user-defined definitions. The date when the rainy "
+                "season starts is critical to agriculture planification, in "
+                "particular for planting."
+            ),
+            html.P(
+                "By enabling the exploration of the history of onset dates, "
+                "the Maproom allows to understand the spatial and temporal variability "
+                "of this phenomenon and therefore characterize the risk for a successful "
+                "agricultural campaign associated with it."
+            ),
+            tab2_content(),
+        ],
+    )
+
+
+def tab2_content():
+    return html.Img(
+        style={"height": "300px"},
+        src="https://iridl.ldeo.columbia.edu/dlcharts/render/905cdac6e87a58586967e115a18e615d01530ddd?_wd=1200px&_ht=600px&_langs=en&_mimetype=image%2Fpng&region=bb%3A39.375%3A7.125%3A39.625%3A7.375%3Abb&waterBalanceCess=3&drySpellCess=10&plotrange2=15",
+    )
+
+
+def tab3_content():
+    return "tab 3"
+
+
+def tab4_content():
+    return "tab 4"
