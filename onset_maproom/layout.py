@@ -141,12 +141,6 @@ def column1_content():
             html.H5(
                 [
                     "Historical Onset and Cessation Date ",
-                    dbc.Button(
-                        "Update",
-                        size="sm",
-                        color="primary",
-                        disabled=True,
-                    ),
                 ]
             ),
             html.P(
