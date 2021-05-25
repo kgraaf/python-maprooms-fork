@@ -1,0 +1,7 @@
+mode: prod  # debug, devel or prod
+prefix: https://iridl.ldeo.columbia.edu
+core_path: /onset-maproom
+admin_path: /onset-maproom-admin
+tile_path: /onset-maproom-tiles
+support_email: help@iri.columbia.edu
+loglevel: info
