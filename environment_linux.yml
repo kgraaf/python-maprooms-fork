@@ -261,6 +261,7 @@ dependencies:
   - zstd=1.4.5=h6597ccf_2
   - pip:
     - dash-leaflet==0.1.13
+    - dash-bootstrap-components==0.12.2
     - docutils==0.16
     - geobuf==1.1.1
     - protobuf==3.13.0
