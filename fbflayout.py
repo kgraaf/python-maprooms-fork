@@ -127,6 +127,7 @@ def logo_layout():
 def command_layout():
     return html.Div(
         [
+            dcc.Input(id="geom_key", type="hidden"),
             html.Div(
                 [
                     html.Label("Mode:"),

@@ -1,4 +1,4 @@
-from typing import Any, Dict, Tuple, Optional
+from typing import Any, Dict, Tuple, Optional, Union
 import os
 import threading
 import time
@@ -525,6 +525,7 @@ def _(position):
 
 @APP.callback(
     Output("feature", "positions"),
+    Output("geom_key", "value"),
     Output("marker_popup", "children"),
     Input("location", "pathname"),
     Input("marker", "position"),
@@ -563,7 +564,7 @@ def _(pathname, position, mode, year):
     if positions is None:
         # raise PreventUpdate
         positions = ZERO_SHAPE
-    return positions, [html.H3(title), html.Div(content)]
+    return positions, attrs["key"], [html.H3(title), html.Div(content)]
 
 
 @APP.callback(
@@ -595,27 +596,24 @@ def _(issue_month, freq, positions, pathname, season):
     Input("issue_month", "value"),
     Input("freq", "value"),
     Input("feature", "positions"),
+    Input("geom_key", "value"),
     Input("mode", "value"),
     Input("year", "value"),
     Input("location", "pathname"),
     State("season", "value"),
 )
-def _(issue_month, freq, positions, mode, year, pathname, season):
+def _(issue_month, freq, positions, geom_key, mode, year, pathname, season):
     country_key = country(pathname)
     config = CONFIG["countries"][country_key]
     res = dict(
         country=country_key,
         mode=mode,
-        year=year,
+        issue_year=year,
         freq=freq,
-        season={
-            k: v
-            for k, v in config["seasons"][season].items()
-            if k in ("label", "target_month", "length")
-        },
+        season=season,
         issue_month=config["seasons"][season]["issue_months"][issue_month],
         bounds=None,
-        region=None,
+        region=geom_key,
     )
     # print("***:", res)
     url = CONFIG["gantt_url"] + urllib.parse.urlencode(dict(data=json.dumps(res)))
@@ -775,6 +773,122 @@ def stats():
         process_stats=ps,
     )
     return yaml_resp(rs)
+
+
+class InvalidRequest(Exception):
+    def __init__(self, message):
+        super().__init__()
+        self.message = message
+
+    def to_dict(self):
+        return {"message": self.message}
+
+
+@SERVER.errorhandler(InvalidRequest)
+def invalid_api_usage(e):
+    return flask.json.jsonify(e.to_dict()), 400
+
+
+def parse_arg(name, conversion=str, required=True, default=None, multiple=False):
+    assert not (multiple and default is not None)
+    assert not (required and default is not None)
+
+    vals = flask.request.args.getlist(name)
+    if len(vals) == 0:
+        if required:
+            raise InvalidRequest(f"{name} is required")
+        else:
+            vals = [default]
+    if len(vals) > 1 and not multiple:
+        raise InvalidRequest(f"{name} must be provided only once")
+    try:
+        vals = list(map(conversion, vals))
+    except Exception as e:
+        raise InvalidRequest(f"{name} must be interpretable as {conversion}") from e
+    if multiple:
+        return vals
+    else:
+        return vals[0]
+
+
+@SERVER.route("/pnep_percentile")
+def pnep_percentile():
+    """Let P(y) be the forecast probability of not exceeding the /freq/ percentile in year y.
+    Let r be the rank of P(issue_year) among all the P(y).
+    Returns r divided by the number of forecast years times 100,
+    unless the forecast for issue_year is not yet available in which case it returns null."""
+    # TODO better explanation
+
+    country_key = parse_arg("country_key")
+    mode = parse_arg("mode", int)
+    season = parse_arg("season")
+    issue_month = parse_arg("issue_month", int)
+    issue_year = parse_arg("issue_year", int)
+    freq = parse_arg("freq", float)
+    bounds = parse_arg("bounds", required=False)
+    region = parse_arg("region", required=False)
+
+    if bounds is None and region is None:
+        raise InvalidRequest("Either bounds or region must be provided")
+
+    config = CONFIG["countries"][country_key]
+    season_config = config["seasons"][season]
+    ns = config["datasets"]["pnep"]["var_names"]
+
+    s = (issue_year - 1960) * 12 + issue_month
+    l = (season_config["target_month"] - issue_month) % 12
+
+    pnep = open_pnep(country_key).data_array
+
+    percentile = None
+    if s in pnep[ns["issue"]]:
+        available = True
+        geom = retrieve_geometry2(country_key, mode, region)
+
+        pnep = pnep.sel({ns["pct"]: freq}, drop=True)
+        pnep = pnep.where(pnep[ns["issue"]] % 12 == issue_month, drop=True)
+
+        if ns["lead"] is not None:
+            pnep = pnep.sel({ns["lead"]: l}, drop=True)
+
+        # TODO why do we do this in the original?
+        # da2[ns["issue"]] = da2[ns["issue"]] + l
+
+        pnep = pingrid.average_over_trimmed(
+            pnep, geom, lon_name=ns["lon"], lat_name=ns["lat"], all_touched=True
+        )
+
+        selected_value = pnep.sel({ns["issue"]: s}, drop=True)
+        rank = (pnep >= selected_value).sum().values
+        percentile = rank / pnep[ns["issue"]].shape[0] * 100
+
+    return {"percentile": percentile}
+
+
+def retrieve_geometry2(country_key: str, mode: int, region_key: str):
+    config = CONFIG["countries"][country_key]
+    sc = config["shapes"][mode]
+    with DBPOOL.take() as cm:
+        conn = cm.resource
+        with conn:  # transaction
+            s = sql.SQL(sc["sql2"])
+            df = pd.read_sql(s, conn, params=parse_key(region_key))
+    if len(df) == 0:
+        raise InvalidRequest(f"invalid region {region_key}")
+    assert len(df) == 1
+    geom = df["the_geom"].iloc[0]
+    geom = wkb.loads(geom.tobytes())
+    return geom
+
+
+def parse_key(s):
+    if s[0] == "(":
+        assert s[-1] == ")"
+        s = s[1:-1]
+        s = s.split(",")
+    else:
+        s = [s]
+    return s
 
 
 if __name__ == "__main__":
