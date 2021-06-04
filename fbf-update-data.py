@@ -2,7 +2,7 @@ import xarray as xr
 import os
 import shutil
 
-datadir = "/data/aaron/fbf"
+datadir = "/data/aaron/fbf-candidate"
 base = "http://iridl.ldeo.columbia.edu"
 
 datasets = [
