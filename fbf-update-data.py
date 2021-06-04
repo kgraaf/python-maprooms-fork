@@ -1,5 +1,6 @@
 import xarray as xr
 import os
+import shutil
 
 datadir = "/data/aaron/fbf"
 base = "http://iridl.ldeo.columbia.edu"
@@ -57,4 +58,6 @@ for name, urlpath in datasets:
     else:
         print("Converting to zarr")
         ds = xr.open_dataset(ncfilepath, decode_times=False)
+        if os.path.exists(zarrpath):
+            shutil.rmtree(zarrpath)
         ds.to_zarr(zarrpath)
