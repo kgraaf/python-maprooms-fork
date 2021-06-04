@@ -321,7 +321,8 @@ def generate_tables(
     year_min, year_max = season_config["year_range"]
     season_length = season_config["length"]
     target_month = season_config["target_month"]
-    freq_min, freq_max = freq
+    freq_min = 5
+    freq_max = freq
 
     df2 = open_enso(season_length)
     df2 = df2[df2["country_key"] == country_key]
@@ -358,7 +359,7 @@ def generate_tables(
     df["rain_rank_pct"] = rain_rank_pct
 
     df["rain_yellow"] = (rain_rank_pct <= freq_max / 100).astype(int)
-    df["rain_brown"] = (rain_rank_pct <= freq_min / 100).astype(int)
+    df["rain_brown"] = (rain_rank_pct <= 0).astype(int)
 
     da2 = open_pnep(country_key).data_array
     ns = config["datasets"]["pnep"]["var_names"]
@@ -396,7 +397,7 @@ def generate_tables(
         method="first", na_option="keep", ascending=False, pct=True
     )
     df["pnep_min_rank_pct"] = pnep_min_rank_pct
-    df["pnep_brown"] = (pnep_min_rank_pct <= freq_min / 100).astype(int)
+    df["pnep_brown"] = (pnep_min_rank_pct <= 0).astype(int)
 
     df = df[::-1]
 
@@ -655,7 +656,7 @@ def _(issue_month, freq, positions, geom_key, mode, year, pathname, season):
 )
 def _(year, issue_month, freq, pathname, season):
     country_key = country(pathname)
-    _, freq_max = freq
+    freq_max = freq
     select_pnep(country_key, season, year, issue_month, freq_max)
     return f"{TILE_PFX}/pnep/{{z}}/{{x}}/{{y}}/{country_key}/{season}/{year}/{issue_month}/{freq_max}"
 
