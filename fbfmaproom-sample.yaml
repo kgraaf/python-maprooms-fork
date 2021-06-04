@@ -234,7 +234,7 @@ countries:
                 label: MAM
                 target_month: 3.5
                 length: 3.0
-                issue_months: [11, 0]
+                issue_months: [1]
                 year_range: [1983, 2021]
     niger:
         logo: Niger_IRI_120x48.png
