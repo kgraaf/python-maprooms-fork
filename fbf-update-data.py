@@ -1,7 +1,8 @@
 import xarray as xr
 import os
+import shutil
 
-datadir = "/data/aaron/fbf"
+datadir = "/data/aaron/fbf-candidate"
 base = "http://iridl.ldeo.columbia.edu"
 
 datasets = [
@@ -23,7 +24,7 @@ datasets = [
     ),
     (
         "rain-ethiopia",
-        "/home/.xchourio/.ACToday/.Ethiopia/.CPT/.NextGen/.MAM_PRCP/.Somali/.NextGen/.History/.obs/data.nc",
+        "/home/.xchourio/.ACToday/.Ethiopia/.CPT/.NextGen/.MAM_PRCP-First_Version/.Somali/.NextGen/.History/.obs/data.nc",
     ),
     (
         "pnep-ethiopia",
@@ -57,4 +58,6 @@ for name, urlpath in datasets:
     else:
         print("Converting to zarr")
         ds = xr.open_dataset(ncfilepath, decode_times=False)
+        if os.path.exists(zarrpath):
+            shutil.rmtree(zarrpath)
         ds.to_zarr(zarrpath)
