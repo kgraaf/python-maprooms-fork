@@ -552,6 +552,7 @@ def _(pathname, position, mode, year):
             py = (y0 + y1) / 2
             pys = "N" if py > 0.0 else "S" if py < 0.0 else ""
             title = f"{np.abs(py):.5f}° {pys} {np.abs(px):.5f}° {pxs}"
+        key = None
     else:
         geom, attrs = retrieve_geometry(country_key, (x, y), mode, year)
         if geom is not None:
@@ -561,10 +562,11 @@ def _(pathname, position, mode, year):
             content = (
                 fmt("Vulnerability") + fmt("Mean") + fmt("Stddev") + fmt("Normalized")
             )
+        key = attrs["key"]
     if positions is None:
         # raise PreventUpdate
         positions = ZERO_SHAPE
-    return positions, attrs["key"], [html.H3(title), html.Div(content)]
+    return positions, key, [html.H3(title), html.Div(content)]
 
 
 @APP.callback(
