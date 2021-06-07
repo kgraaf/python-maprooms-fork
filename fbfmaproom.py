@@ -610,7 +610,7 @@ def _(issue_month, freq, positions, geom_key, mode, year, pathname, season):
         country=country_key,
         mode=mode,
         issue_year=year,
-        freq=freq,
+        freq=freq[0],  # [0] is temporary until the whole app is switched to single slider
         season={
             "id": season,
             "label": season_config["label"],
