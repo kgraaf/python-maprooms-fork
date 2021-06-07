@@ -608,6 +608,14 @@ def _(issue_month, freq, positions, geom_key, mode, year, pathname, season):
     country_key = country(pathname)
     config = CONFIG["countries"][country_key]
     season_config = config["seasons"][season]
+    if mode == "pixel":
+        region = None
+    else:
+        label, _ = retrieve_geometry2(country_key, int(mode), geom_key)
+        region = {
+            "id": str(geom_key),
+            "label": label,
+        }
     res = dict(
         country=country_key,
         mode=mode,
@@ -621,7 +629,7 @@ def _(issue_month, freq, positions, geom_key, mode, year, pathname, season):
         },
         issue_month=config["seasons"][season]["issue_months"][issue_month],
         bounds=None,
-        region=str(geom_key),
+        region=region,
     )
     # print("***:", res)
     url = CONFIG["gantt_url"] + urllib.parse.urlencode(dict(data=json.dumps(res)))
@@ -851,7 +859,7 @@ def pnep_percentile():
     percentile = None
     if s in pnep[ns["issue"]]:
         available = True
-        geom = retrieve_geometry2(country_key, mode, region)
+        _, geom = retrieve_geometry2(country_key, mode, region)
 
         pnep = pnep.sel({ns["pct"]: freq}, drop=True)
         pnep = pnep.where(pnep[ns["issue"]] % 12 == issue_month, drop=True)
@@ -886,7 +894,7 @@ def retrieve_geometry2(country_key: str, mode: int, region_key: str):
     assert len(df) == 1
     geom = df["the_geom"].iloc[0]
     geom = wkb.loads(geom.tobytes())
-    return geom
+    return df["label"].iloc[0], geom
 
 
 def parse_key(s):
