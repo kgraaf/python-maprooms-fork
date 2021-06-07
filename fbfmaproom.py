@@ -605,12 +605,18 @@ def _(issue_month, freq, positions, pathname, season):
 def _(issue_month, freq, positions, geom_key, mode, year, pathname, season):
     country_key = country(pathname)
     config = CONFIG["countries"][country_key]
+    season_config = config["seasons"][season]
     res = dict(
         country=country_key,
         mode=mode,
         issue_year=year,
         freq=freq,
-        season=season,
+        season={
+            "id": season,
+            "label": season_config["label"],
+            "target_month": season_config["target_month"],
+            "length": season_config["length"]
+        },
         issue_month=config["seasons"][season]["issue_months"][issue_month],
         bounds=None,
         region=geom_key,
