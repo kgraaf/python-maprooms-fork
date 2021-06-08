@@ -6,14 +6,14 @@ import dash_leaflet as dlf
 import dash_leaflet.express as dlx
 
 
-def app_layout(table_columns):
+def app_layout():
     return html.Div(
         [
             dcc.Location(id="location", refresh=True),
             map_layout(),
             logo_layout(),
+            table_layout(),
             command_layout(),
-            table_layout(table_columns),
         ]
     )
 
@@ -200,6 +200,27 @@ def command_layout():
             ),
             html.Div(
                 [
+                    html.Label("Observations:"),
+                    dcc.Dropdown(
+                        id="observations",
+                        clearable=False,
+                        options=[
+                            dict(label="Rain", value="rain"),
+                            dict(label="NDVI", value="ndvi"),
+                            dict(label="SPI", value="spi"),
+                        ],
+                        value="rain",
+                    ),
+                ],
+                style={
+                    "width": "95px",
+                    "display": "inline-block",
+                    "padding": "10px",
+                    "vertical-align": "top",
+                },
+            ),
+            html.Div(
+                [
                     html.Label("Severity:"),
                     dcc.Dropdown(
                         id="severity",
@@ -232,7 +253,7 @@ def command_layout():
                     ),
                 ],
                 style={
-                    "width": "350px",
+                    "width": "340px",
                     "display": "inline-block",
                     "padding": "10px",
                     "vertical-align": "top",
@@ -276,7 +297,7 @@ def command_layout():
     )
 
 
-def table_layout(table_columns):
+def table_layout():
     return html.Div(
         [
             html.Div(id="log"),
@@ -284,7 +305,6 @@ def table_layout(table_columns):
                 [
                     table.DataTable(
                         id="summary",
-                        columns=table_columns,
                         page_action="none",
                         style_table={
                             "height": "auto",
@@ -324,7 +344,6 @@ def table_layout(table_columns):
                     ),
                     table.DataTable(
                         id="table",
-                        columns=table_columns,
                         page_action="none",
                         style_table={
                             "height": "350px",
@@ -350,24 +369,24 @@ def table_layout(table_columns):
                         style_data_conditional=[
                             {
                                 "if": {
-                                    "filter_query": "{rain_yellow} = 1 && {rain_brown} != 1",
-                                    "column_id": "rain_rank",
+                                    "filter_query": "{obs_yellow} = 1 && {obs_brown} != 1",
+                                    "column_id": "obs_rank",
                                 },
                                 "backgroundColor": "rgb(251, 177, 57)",
                                 "color": "black",
                             },
                             {
                                 "if": {
-                                    "filter_query": "{rain_brown} = 1 && {rain_yellow} != 1",
-                                    "column_id": "rain_rank",
+                                    "filter_query": "{obs_brown} = 1 && {obs_yellow} != 1",
+                                    "column_id": "obs_rank",
                                 },
                                 "backgroundColor": "rgb(161, 83, 22)",
                                 "color": "white",
                             },
                             {
                                 "if": {
-                                    "filter_query": "{rain_brown} = 1 && {rain_yellow} = 1",
-                                    "column_id": "rain_rank",
+                                    "filter_query": "{obs_brown} = 1 && {obs_yellow} = 1",
+                                    "column_id": "obs_rank",
                                 },
                                 "backgroundColor": "rgb(161, 83, 22)",
                                 "color": "rgb(255, 226, 178)",
