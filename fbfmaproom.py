@@ -813,7 +813,10 @@ def invalid_api_usage(e):
 
 NOT_PROVIDED = object()
 
-def parse_arg(name, conversion=str, required=True, default=NOT_PROVIDED, multiple=False):
+
+def parse_arg(
+    name, conversion=str, required=True, default=NOT_PROVIDED, multiple=False
+):
     assert not (multiple and default is not NOT_PROVIDED)
     assert not (required and default is not NOT_PROVIDED)
 
