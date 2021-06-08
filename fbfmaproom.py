@@ -610,12 +610,15 @@ def _(issue_month, freq, positions, geom_key, mode, year, pathname, season):
     season_config = config["seasons"][season]
     if mode == "pixel":
         region = None
+        [[[sw, _, ne, _, _]]] = positions
+        bounds = [sw, ne]
     else:
         label, _ = retrieve_geometry2(country_key, int(mode), geom_key)
         region = {
             "id": geom_key,
             "label": label,
         }
+        bounds = None
     res = dict(
         country=country_key,
         mode=mode,
@@ -630,7 +633,7 @@ def _(issue_month, freq, positions, geom_key, mode, year, pathname, season):
             "length": season_config["length"],
         },
         issue_month=config["seasons"][season]["issue_months"][issue_month],
-        bounds=None,
+        bounds=bounds,
         region=region,
         severity=1,  # TODO dummy value
     )
@@ -848,16 +851,24 @@ def pnep_percentile():
     # TODO better explanation
 
     country_key = parse_arg("country_key")
-    mode = parse_arg("mode", int)
+    mode = parse_arg("mode")
     season = parse_arg("season")
     issue_month = parse_arg("issue_month", int)
     season_year = parse_arg("season_year", int)
     freq = parse_arg("freq", float)
-    bounds = parse_arg("bounds", required=False)
+    bounds = parse_arg("bounds", json.loads, required=False)
     region = parse_arg("region", required=False)
 
-    if bounds is None and region is None:
-        raise InvalidRequest("Either bounds or region must be provided")
+    if mode == "pixel":
+        if bounds is None:
+            raise InvalidRequest("If mode is pixel then bounds must be provided")
+        if region is not None:
+            raise InvalidRequest("If mode is pixel then region must not be provided")
+    else:
+        if bounds is not None:
+            raise InvalidRequest("If mode is {mode} then bounds must not be provided")
+        if region is None:
+            raise InvalidRequest("If mode is {mode} then region must be provided")
 
     config = CONFIG["countries"][country_key]
     season_config = config["seasons"][season]
@@ -871,8 +882,11 @@ def pnep_percentile():
 
     percentile = None
     if s in pnep[ns["issue"]]:
-        available = True
-        _, geom = retrieve_geometry2(country_key, mode, region)
+        if mode == "pixel":
+            [[x0, y0], [x1, y1]] = bounds
+            geom = MultiPolygon([Polygon([(y0, x0), (y1, x0), (y1, x1), (y0, x1)])])
+        else:
+            _, geom = retrieve_geometry2(country_key, int(mode), region)
 
         pnep = pnep.sel({ns["pct"]: freq}, drop=True)
         pnep = pnep.where(pnep[ns["issue"]] % 12 == issue_month, drop=True)
