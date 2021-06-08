@@ -886,8 +886,8 @@ def pnep_percentile():
     percentile = None
     if s in pnep[ns["issue"]]:
         if mode == "pixel":
-            [[x0, y0], [x1, y1]] = bounds
-            geom = MultiPolygon([Polygon([(y0, x0), (y1, x0), (y1, x1), (y0, x1)])])
+            [[y0, x0], [y1, x1]] = bounds
+            geom = MultiPolygon([Polygon([(x0, y0), (x0, y1), (x1, y1), (x1, y0)])])
         else:
             _, geom = retrieve_geometry2(country_key, int(mode), region)
 
