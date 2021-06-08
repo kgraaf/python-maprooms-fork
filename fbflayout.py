@@ -205,11 +205,11 @@ def command_layout():
                         id="severity",
                         clearable=False,
                         options=[
-                            dict(label="Low", value="low"),
-                            dict(label="Medium", value="medium"),
-                            dict(label="High", value="high"),
+                            dict(label="Low", value=0),
+                            dict(label="Medium", value=1),
+                            dict(label="High", value=2),
                         ],
-                        value="low",
+                        value=0,
                     ),
                 ],
                 style={
