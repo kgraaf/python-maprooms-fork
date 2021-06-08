@@ -1,4 +1,4 @@
-from typing import Any, Dict, Tuple, Optional, Union
+from typing import Any, Dict, Tuple, Optional
 import os
 import threading
 import time
