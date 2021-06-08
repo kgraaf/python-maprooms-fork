@@ -629,7 +629,7 @@ def _(issue_month, freq, positions, geom_key, mode, year, pathname, season):
     res = dict(
         country=country_key,
         mode=mode,
-        issue_year=year,
+        season_year=year,
         freq=freq[0],  # [0] is temporary until the whole app is switched to single slider
         season={
             "id": season,
@@ -840,16 +840,16 @@ def parse_arg(name, conversion=str, required=True, default=None, multiple=False)
 @SERVER.route("/pnep_percentile")
 def pnep_percentile():
     """Let P(y) be the forecast probability of not exceeding the /freq/ percentile in year y.
-    Let r be the rank of P(issue_year) among all the P(y).
+    Let r be the rank of P(season_year) among all the P(y).
     Returns r divided by the number of forecast years times 100,
-    unless the forecast for issue_year is not yet available in which case it returns null."""
+    unless the forecast for season_year is not yet available in which case it returns null."""
     # TODO better explanation
 
     country_key = parse_arg("country_key")
     mode = parse_arg("mode", int)
     season = parse_arg("season")
     issue_month = parse_arg("issue_month", int)
-    issue_year = parse_arg("issue_year", int)
+    season_year = parse_arg("season_year", int)
     freq = parse_arg("freq", float)
     bounds = parse_arg("bounds", required=False)
     region = parse_arg("region", required=False)
@@ -861,8 +861,9 @@ def pnep_percentile():
     season_config = config["seasons"][season]
     ns = config["datasets"]["pnep"]["var_names"]
 
-    s = (issue_year - 1960) * 12 + issue_month
-    l = (season_config["target_month"] - issue_month) % 12
+    target_month = season_config["target_month"]
+    l = (target_month - issue_month) % 12
+    s = (season_year - 1960) * 12 + target_month - l
 
     pnep = open_pnep(country_key).data_array
 
