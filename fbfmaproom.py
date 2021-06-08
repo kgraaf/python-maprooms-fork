@@ -247,9 +247,7 @@ def retrieve_vulnerability(
                     sql.SQL("with v as ("),
                     sql.SQL(sc["vuln_sql"]),
                     sql.SQL("), g as ("),
-                    sql.SQL(sc["sql"]),
-                    sql.SQL(" "),
-                    sql.SQL(sc.get("sql_groupby", "")),
+                    region_query(country_key, mode),
                     sql.SQL(
                         """
                         ), a as (
@@ -289,6 +287,16 @@ def retrieve_vulnerability(
         lambda x: x if isinstance(x, MultiPolygon) else MultiPolygon([x])
     )
     return df
+
+
+def region_query(country_key, mode, region_key=None):
+    sc = CONFIG["countries"][country_key]["shapes"][int(mode)]
+    components = [sql.SQL(c) for c in [
+        sc["sql"],
+        sc["sql_constraint"] if region_key else None,
+        sc.get("sql_groupby"),
+    ] if c is not None]
+    return sql.Composed(components).join(" ")
 
 
 def generate_tables(
@@ -886,16 +894,10 @@ def pnep_percentile():
 def retrieve_geometry2(country_key: str, mode: int, region_key: str):
     config = CONFIG["countries"][country_key]
     sc = config["shapes"][mode]
+    s = region_query(country_key, mode, region_key)
     with DBPOOL.take() as cm:
         conn = cm.resource
         with conn:  # transaction
-            s = sql.Composed([
-                sql.SQL(sc["sql"]),
-                sql.SQL(" "),
-                sql.SQL(sc["sql_constraint"]),
-                sql.SQL(" "),
-                sql.SQL(sc.get("sql_groupby", "")),
-            ])
             df = pd.read_sql(s, conn, params=parse_key(region_key))
     if len(df) == 0:
         raise InvalidRequest(f"invalid region {region_key}")
