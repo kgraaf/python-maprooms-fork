@@ -291,11 +291,15 @@ def retrieve_vulnerability(
 
 def region_query(country_key, mode, region_key=None):
     sc = CONFIG["countries"][country_key]["shapes"][int(mode)]
-    components = [sql.SQL(c) for c in [
-        sc["sql"],
-        sc["sql_constraint"] if region_key else None,
-        sc.get("sql_groupby"),
-    ] if c is not None]
+    components = [
+        sql.SQL(c)
+        for c in [
+            sc["sql"],
+            sc["sql_constraint"] if region_key else None,
+            sc.get("sql_groupby"),
+        ]
+        if c is not None
+    ]
     return sql.Composed(components).join(" ")
 
 
@@ -630,12 +634,14 @@ def _(issue_month, freq, positions, geom_key, mode, year, pathname, season):
         country=country_key,
         mode=mode,
         season_year=year,
-        freq=freq[0],  # [0] is temporary until the whole app is switched to single slider
+        freq=freq[
+            0
+        ],  # [0] is temporary until the whole app is switched to single slider
         season={
             "id": season,
             "label": season_config["label"],
             "target_month": season_config["target_month"],
-            "length": season_config["length"]
+            "length": season_config["length"],
         },
         issue_month=config["seasons"][season]["issue_months"][issue_month],
         bounds=None,
