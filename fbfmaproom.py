@@ -808,22 +808,31 @@ def invalid_api_usage(e):
     return flask.json.jsonify(e.to_dict()), 400
 
 
-def parse_arg(name, conversion=str, required=True, default=None, multiple=False):
-    assert not (multiple and default is not None)
-    assert not (required and default is not None)
+NOT_PROVIDED = object()
 
-    vals = flask.request.args.getlist(name)
-    if len(vals) == 0:
+def parse_arg(name, conversion=str, required=True, default=NOT_PROVIDED, multiple=False):
+    assert not (multiple and default is not NOT_PROVIDED)
+    assert not (required and default is not NOT_PROVIDED)
+
+    raw_vals = flask.request.args.getlist(name)
+    if len(raw_vals) == 0:
         if required:
             raise InvalidRequest(f"{name} is required")
         else:
-            vals = [default]
-    if len(vals) > 1 and not multiple:
-        raise InvalidRequest(f"{name} must be provided only once")
-    try:
-        vals = list(map(conversion, vals))
-    except Exception as e:
-        raise InvalidRequest(f"{name} must be interpretable as {conversion}") from e
+            if default is NOT_PROVIDED:
+                if multiple:
+                    vals = []
+                else:
+                    vals = [None]
+            else:
+                vals = default
+    else:
+        if len(raw_vals) > 1 and not multiple:
+            raise InvalidRequest(f"{name} must be provided only once")
+        try:
+            vals = list(map(conversion, raw_vals))
+        except Exception as e:
+            raise InvalidRequest(f"{name} must be interpretable as {conversion}") from e
     if multiple:
         return vals
     else:
