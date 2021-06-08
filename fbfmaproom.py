@@ -646,6 +646,7 @@ def _(issue_month, freq, positions, geom_key, mode, year, pathname, season):
         issue_month=config["seasons"][season]["issue_months"][issue_month],
         bounds=None,
         region=region,
+        severity=1,  # TODO dummy value
     )
     # print("***:", res)
     url = CONFIG["gantt_url"] + urllib.parse.urlencode(dict(data=json.dumps(res)))
