@@ -562,7 +562,7 @@ def _(pathname, position, mode, year):
             content = (
                 fmt("Vulnerability") + fmt("Mean") + fmt("Stddev") + fmt("Normalized")
             )
-        key = attrs["key"]
+        key = str(attrs["key"])
     if positions is None:
         # raise PreventUpdate
         positions = ZERO_SHAPE
@@ -613,7 +613,7 @@ def _(issue_month, freq, positions, geom_key, mode, year, pathname, season):
     else:
         label, _ = retrieve_geometry2(country_key, int(mode), geom_key)
         region = {
-            "id": str(geom_key),
+            "id": geom_key,
             "label": label,
         }
     res = dict(
