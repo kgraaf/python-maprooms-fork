@@ -512,7 +512,8 @@ def _(season, pathname):
         issue_month_value,
     )
 
-    """
+
+"""
 @APP.callback(
     Output("log", "children"),
     Input("map", "click_lat_lng"),
