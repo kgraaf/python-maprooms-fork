@@ -892,9 +892,9 @@ def retrieve_geometry2(country_key: str, mode: int, region_key: str):
     if len(df) == 0:
         raise InvalidRequest(f"invalid region {region_key}")
     assert len(df) == 1
-    geom = df["the_geom"].iloc[0]
-    geom = wkb.loads(geom.tobytes())
-    return df["label"].iloc[0], geom
+    row = df.iloc[0]
+    geom = wkb.loads(row["the_geom"].tobytes())
+    return row["label"], geom
 
 
 def parse_key(s):
