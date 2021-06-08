@@ -248,6 +248,8 @@ def retrieve_vulnerability(
                     sql.SQL(sc["vuln_sql"]),
                     sql.SQL("), g as ("),
                     sql.SQL(sc["sql"]),
+                    sql.SQL(" "),
+                    sql.SQL(sc.get("sql_groupby", "")),
                     sql.SQL(
                         """
                         ), a as (
@@ -887,7 +889,13 @@ def retrieve_geometry2(country_key: str, mode: int, region_key: str):
     with DBPOOL.take() as cm:
         conn = cm.resource
         with conn:  # transaction
-            s = sql.SQL(sc["sql2"])
+            s = sql.Composed([
+                sql.SQL(sc["sql"]),
+                sql.SQL(" "),
+                sql.SQL(sc["sql_constraint"]),
+                sql.SQL(" "),
+                sql.SQL(sc.get("sql_groupby", "")),
+            ])
             df = pd.read_sql(s, conn, params=parse_key(region_key))
     if len(df) == 0:
         raise InvalidRequest(f"invalid region {region_key}")

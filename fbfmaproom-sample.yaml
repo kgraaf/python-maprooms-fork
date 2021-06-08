@@ -55,6 +55,7 @@ countries:
             - name: National
               sql: select adm0_code as key, adm0_name as label, ST_AsBinary(the_geom) as the_geom
                   from iridb.g2015_2012_0 where adm0_name = 'Malawi'
+              sql_constraint: and adm0_code = %s
               vuln_sql: select adm0_code as key, year, sum(vulnerability) as vuln
                   from public.fbf_vulnerability where adm0_name = 'Malawi' group by 1, 2
 
@@ -62,6 +63,7 @@ countries:
               sql: select (adm0_code, adm1_code) as key, adm1_name as label,
                   ST_AsBinary(the_geom) as the_geom from iridb.g2015_2014_1
                   where adm0_name = 'Malawi'
+              sql_constraint: and adm0_code = %s and adm1_code = %s
               vuln_sql: select (adm0_code, adm1_code) as key, year, sum(vulnerability) as vuln
                   from public.fbf_vulnerability where adm0_name = 'Malawi' group by 1, 2
 
@@ -69,6 +71,7 @@ countries:
               sql: select (adm0_code, adm1_code, adm2_code) as key, adm2_name as label,
                   ST_AsBinary(the_geom) as the_geom from iridb.g2015_2014_2
                   where adm0_name = 'Malawi'
+              sql_constraint: and adm0_code = %s and adm1_code = %s and adm2_code = %s
               vuln_sql: select (adm0_code, adm1_code, adm2_code) as key, year, sum(vulnerability) as vuln
                   from public.fbf_vulnerability where adm0_name = 'Malawi' group by 1, 2
 
@@ -128,10 +131,8 @@ countries:
               sql: select adm0_code as key, adm0_name as label, ST_AsBinary(ST_Union(the_geom)) as the_geom
                   from iridb.g2015_2014_1 g where adm0_name = 'Madagascar'
                   and adm1_name in ('Androy', 'Anosy', 'Atsimo Andrefana', 'Atsimo Atsinanana')
-                  group by 1, 2
-              sql2: select ST_AsBinary(ST_Union(the_geom)) as the_geom
-                  from iridb.g2015_2014_1
-                  where adm0_code = %s and adm1_name in ('Androy', 'Anosy', 'Atsimo Andrefana', 'Atsimo Atsinanana')
+              sql_constraint: and adm0_code = %s
+              sql_groupby: group by 1, 2
               vuln_sql: select adm0_code as key, year, sum(vulnerability) as vuln
                   from public.fbf_vulnerability where adm0_name = 'Madagascar' group by 1, 2
 
@@ -140,8 +141,7 @@ countries:
                   ST_AsBinary(the_geom) as the_geom from iridb.g2015_2014_1
                   where adm0_name = 'Madagascar'
                   and adm1_name in ('Androy', 'Anosy', 'Atsimo Andrefana', 'Atsimo Atsinanana')
-              sql2: select ST_AsBinary(the_geom) as the_geom from iridb.g2015_2014_1
-                  where adm0_code = %s and adm1_code = %s
+              sql_constraint: and adm0_code = %s and adm1_code = %s
               vuln_sql: select (adm0_code, adm1_code) as key, year, sum(vulnerability) as vuln
                   from public.fbf_vulnerability where adm0_name = 'Madagascar' group by 1, 2
 
@@ -150,8 +150,7 @@ countries:
                   ST_AsBinary(the_geom) as the_geom from iridb.g2015_2014_2
                   where adm0_name = 'Madagascar'
                   and adm1_name in ('Androy', 'Anosy', 'Atsimo Andrefana', 'Atsimo Atsinanana')
-              sql2: select ST_AsBinary(the_geom) as the_geom from iridb.g2015_2014_2
-                  where adm0_code = %s and adm1_code = %s and adm2_code = %s
+              sql_constraint: and adm0_code = %s and adm1_code = %s and adm2_code = %s
               vuln_sql: select (adm0_code, adm1_code, adm2_code) as key, year, sum(vulnerability) as vuln
                   from public.fbf_vulnerability where adm0_name = 'Madagascar' group by 1, 2
 
@@ -197,27 +196,21 @@ countries:
             - name: Regional
               sql: select (adm1_pcode) as key, adm1_en as label,
                   ST_AsBinary(the_geom) as the_geom from iridb.somali_region
-              sql2: select ST_AsBinary(the_geom) as the_geom
-                  from iridb.somali_region
-                  where adm1_pcode = %s
+              sql_constraint: where adm1_pcode = %s
               vuln_sql: select (adm1_pcode) as key, year, sum(vulnerability) as vuln
                   from public.fbf_vulnerability_ethiopia_somali group by 1, 2
 
             - name: Zonal
               sql: select (adm1_pcode, adm2_pcode) as key, adm2_en as label,
                   ST_AsBinary(the_geom) as the_geom from iridb.somali_zone
-              sql2: select ST_AsBinary(the_geom) as the_geom
-                  from iridb.somali_zone
-                  where adm1_pcode = %s and adm2_pcode = %s
+              sql_constraint: where adm1_pcode = %s and adm2_pcode = %s
               vuln_sql: select (adm1_pcode, adm2_pcode) as key, year, vulnerability as vuln
                   from public.fbf_vulnerability_ethiopia_somali
 
             - name: Woreda
               sql: select (adm1_pcode, adm2_pcode, adm3_pcode) as key, adm3_en as label,
                   ST_AsBinary(the_geom) as the_geom from iridb.somali_woreda
-              sql2: select ST_AsBinary(the_geom) as the_geom
-                  from iridb.somali_woreda
-                  where adm1_pcode = %s and adm2_pcode = %s and adm3_pcode = %s
+              sql_constraint: where adm1_pcode = %s and adm2_pcode = %s and adm3_pcode = %s
               vuln_sql: select (g.adm1_pcode, g.adm2_pcode, g.adm3_pcode) as key, g.adm3_en as label,
                   v.year, v.vulnerability as vuln from iridb.somali_woreda as g join
                   public.fbf_vulnerability_ethiopia_somali as v on (g.adm1_pcode=v.adm1_pcode and
@@ -263,6 +256,7 @@ countries:
             - name: National
               sql: select adm0_code as key, adm0_name as label, ST_AsBinary(the_geom) as the_geom
                   from iridb.g2015_2012_0 where adm0_name = 'Niger'
+              sql_constraint: and adm0_code = %s
               vuln_sql: select adm0_code as key, year, sum(vulnerability) as vuln
                   from public.fbf_vulnerability where adm0_name = 'Niger' group by 1, 2
 
@@ -270,6 +264,7 @@ countries:
               sql: select (adm0_code, adm1_code) as key, adm1_name as label,
                   ST_AsBinary(the_geom) as the_geom from iridb.g2015_2014_1
                   where adm0_name = 'Niger'
+              sql_constraint: and adm0_code = %s and adm1_code = %s
               vuln_sql: select (adm0_code, adm1_code) as key, year, sum(vulnerability) as vuln
                   from public.fbf_vulnerability where adm0_name = 'Niger' group by 1, 2
 
@@ -277,6 +272,7 @@ countries:
               sql: select (adm0_code, adm1_code, adm2_code) as key, adm2_name as label,
                   ST_AsBinary(the_geom) as the_geom from iridb.g2015_2014_2
                   where adm0_name = 'Niger'
+              sql_constraint: and adm0_code = %s and adm1_code = %s and adm2_code = %s
               vuln_sql: select (adm0_code, adm1_code, adm2_code) as key, year, sum(vulnerability) as vuln
                   from public.fbf_vulnerability where adm0_name = 'Niger' group by 1, 2
 
