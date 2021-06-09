@@ -871,12 +871,9 @@ def retrieve_geometry2(country_key: str, mode: int, region_key: str):
     sc = config["shapes"][mode]
     query = sql.Composed(
         [
-            sql.SQL(c)
-            for c in [
-                "with a as (",
-                sc["sql"],
-                ") select the_geom, label from a where key = %(key)s",
-            ]
+            sql.SQL("with a as (",),
+            sql.SQL(sc["sql"]),
+            sql.SQL(") select the_geom, label from a where key = %(key)s"),
         ]
     )
     with DBPOOL.take() as cm:
