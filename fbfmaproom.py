@@ -26,7 +26,7 @@ from psycopg2 import sql
 import __about__ as about
 import pyaconf
 import pingrid
-from pingrid import BGRA
+from pingrid import BGRA, InvalidRequest, parse_arg
 import fbflayout
 
 
@@ -49,6 +49,9 @@ TILE_PFX = CONFIG["tile_path"]
 ADMIN_PFX = CONFIG["admin_path"]
 
 SERVER = flask.Flask(__name__)
+
+SERVER.register_error_handler(InvalidRequest, pingrid.invalid_request)
+
 APP = dash.Dash(
     __name__,
     server=SERVER,
@@ -525,6 +528,7 @@ def _(position):
 
 @APP.callback(
     Output("feature", "positions"),
+    Output("geom_key", "value"),
     Output("marker_popup", "children"),
     Input("location", "pathname"),
     Input("marker", "position"),
@@ -551,6 +555,7 @@ def _(pathname, position, mode, year):
             py = (y0 + y1) / 2
             pys = "N" if py > 0.0 else "S" if py < 0.0 else ""
             title = f"{np.abs(py):.5f}° {pys} {np.abs(px):.5f}° {pxs}"
+        key = None
     else:
         geom, attrs = retrieve_geometry(country_key, (x, y), mode, year)
         if geom is not None:
@@ -560,10 +565,11 @@ def _(pathname, position, mode, year):
             content = (
                 fmt("Vulnerability") + fmt("Mean") + fmt("Stddev") + fmt("Normalized")
             )
+        key = str(attrs["key"])
     if positions is None:
         # raise PreventUpdate
         positions = ZERO_SHAPE
-    return positions, [html.H3(title), html.Div(content)]
+    return positions, key, [html.H3(title), html.Div(content)]
 
 
 @APP.callback(
@@ -595,27 +601,44 @@ def _(issue_month, freq, positions, pathname, season):
     Input("issue_month", "value"),
     Input("freq", "value"),
     Input("feature", "positions"),
+    Input("geom_key", "value"),
     Input("mode", "value"),
     Input("year", "value"),
     Input("location", "pathname"),
     State("season", "value"),
 )
-def _(issue_month, freq, positions, mode, year, pathname, season):
+def _(issue_month, freq, positions, geom_key, mode, year, pathname, season):
     country_key = country(pathname)
     config = CONFIG["countries"][country_key]
+    season_config = config["seasons"][season]
+    if mode == "pixel":
+        region = None
+        [[[sw, _, ne, _, _]]] = positions
+        bounds = [sw, ne]
+    else:
+        label, _ = retrieve_geometry2(country_key, int(mode), geom_key)
+        region = {
+            "id": geom_key,
+            "label": label,
+        }
+        bounds = None
     res = dict(
         country=country_key,
         mode=mode,
-        year=year,
-        freq=freq,
+        season_year=year,
+        freq=freq[
+            0
+        ],  # [0] is temporary until the whole app is switched to single slider
         season={
-            k: v
-            for k, v in config["seasons"][season].items()
-            if k in ("label", "target_month", "length")
+            "id": season,
+            "label": season_config["label"],
+            "target_month": season_config["target_month"],
+            "length": season_config["length"],
         },
         issue_month=config["seasons"][season]["issue_months"][issue_month],
-        bounds=None,
-        region=None,
+        bounds=bounds,
+        region=region,
+        severity=1,  # TODO dummy value
     )
     # print("***:", res)
     url = CONFIG["gantt_url"] + urllib.parse.urlencode(dict(data=json.dumps(res)))
@@ -775,6 +798,94 @@ def stats():
         process_stats=ps,
     )
     return yaml_resp(rs)
+
+
+@SERVER.route("/pnep_percentile")
+def pnep_percentile():
+    """Let P(y) be the forecast probability of not exceeding the /freq/ percentile in year y.
+    Let r be the rank of P(season_year) among all the P(y).
+    Returns r divided by the number of forecast years times 100,
+    unless the forecast for season_year is not yet available in which case it returns null."""
+    # TODO better explanation
+
+    country_key = parse_arg("country_key")
+    mode = parse_arg("mode")
+    season = parse_arg("season")
+    issue_month = parse_arg("issue_month", int)
+    season_year = parse_arg("season_year", int)
+    freq = parse_arg("freq", float)
+    bounds = parse_arg("bounds", json.loads, required=False)
+    region = parse_arg("region", required=False)
+
+    if mode == "pixel":
+        if bounds is None:
+            raise InvalidRequest("If mode is pixel then bounds must be provided")
+        if region is not None:
+            raise InvalidRequest("If mode is pixel then region must not be provided")
+    else:
+        if bounds is not None:
+            raise InvalidRequest("If mode is {mode} then bounds must not be provided")
+        if region is None:
+            raise InvalidRequest("If mode is {mode} then region must be provided")
+
+    config = CONFIG["countries"][country_key]
+    season_config = config["seasons"][season]
+    ns = config["datasets"]["pnep"]["var_names"]
+
+    target_month = season_config["target_month"]
+    l = (target_month - issue_month) % 12
+    s = (season_year - 1960) * 12 + target_month - l
+
+    pnep = open_pnep(country_key).data_array
+
+    percentile = None
+    if s in pnep[ns["issue"]]:
+        if mode == "pixel":
+            [[y0, x0], [y1, x1]] = bounds
+            geom = MultiPolygon([Polygon([(x0, y0), (x0, y1), (x1, y1), (x1, y0)])])
+        else:
+            _, geom = retrieve_geometry2(country_key, int(mode), region)
+
+        pnep = pnep.sel({ns["pct"]: freq}, drop=True)
+        pnep = pnep.where(pnep[ns["issue"]] % 12 == issue_month, drop=True)
+
+        if ns["lead"] is not None:
+            pnep = pnep.sel({ns["lead"]: l}, drop=True)
+
+        # TODO why do we do this in the original?
+        # da2[ns["issue"]] = da2[ns["issue"]] + l
+
+        pnep = pingrid.average_over_trimmed(
+            pnep, geom, lon_name=ns["lon"], lat_name=ns["lat"], all_touched=True
+        )
+
+        selected_value = pnep.sel({ns["issue"]: s}, drop=True)
+        rank = (pnep <= selected_value).sum().values
+        percentile = rank / pnep.notnull().count().values * 100
+
+    return {"percentile": percentile}
+
+
+def retrieve_geometry2(country_key: str, mode: int, region_key: str):
+    config = CONFIG["countries"][country_key]
+    sc = config["shapes"][mode]
+    query = sql.Composed(
+        [
+            sql.SQL("with a as (",),
+            sql.SQL(sc["sql"]),
+            sql.SQL(") select the_geom, label from a where key::text = %(key)s"),
+        ]
+    )
+    with DBPOOL.take() as cm:
+        conn = cm.resource
+        with conn:  # transaction
+            df = pd.read_sql(query, conn, params={"key": region_key})
+    if len(df) == 0:
+        raise InvalidRequest(f"invalid region {region_key}")
+    assert len(df) == 1
+    row = df.iloc[0]
+    geom = wkb.loads(row["the_geom"].tobytes())
+    return row["label"], geom
 
 
 if __name__ == "__main__":

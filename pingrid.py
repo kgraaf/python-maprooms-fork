@@ -17,6 +17,7 @@ from shapely.geometry.multipolygon import MultiPolygon
 from shapely.geometry.polygon import Polygon
 from shapely.geometry.multipoint import MultiPoint
 from shapely.geometry.polygon import LinearRing
+import flask
 
 
 def init_dbpool(name, config):
@@ -663,3 +664,35 @@ def poly_shapely_to_leaflet(poly):
 
 def ring_shapely_to_leaflet(ring):
     return [(y, x) for x, y in ring.coords]
+
+
+# Flask utils
+
+class InvalidRequest(Exception):
+    def __init__(self, message):
+        super().__init__()
+        self.message = message
+
+    def to_dict(self):
+        return {"message": self.message}
+
+
+def invalid_request(e):
+    return flask.json.jsonify(e.to_dict()), 400
+
+
+def parse_arg(name, conversion=str, required=True):
+    raw_vals = flask.request.args.getlist(name)
+    if len(raw_vals) > 1:
+        raise InvalidRequest(f"{name} was provided multiple times")
+    if len(raw_vals) == 0:
+        if required:
+            raise InvalidRequest(f"{name} is required")
+        else:
+            return None
+    try:
+        val = conversion(raw_vals[0])
+    except Exception as e:
+        raise InvalidRequest(f"{name} must be interpretable as {conversion}") from e
+
+    return val
