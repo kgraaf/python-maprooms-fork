@@ -6,7 +6,6 @@ dependencies:
   - dash
   - dash-daq
   - flask
-  - netcdf4  # for download script
   - numpy
   - opencv
   - pandas
