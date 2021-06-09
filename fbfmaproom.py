@@ -26,7 +26,7 @@ from psycopg2 import sql
 import __about__ as about
 import pyaconf
 import pingrid
-from pingrid import BGRA, InvalidRequest
+from pingrid import BGRA, InvalidRequest, parse_arg
 import fbflayout
 
 
@@ -798,37 +798,6 @@ def stats():
         process_stats=ps,
     )
     return yaml_resp(rs)
-
-
-def parse_arg(
-    name, conversion=str, required=True, default=None, multiple=False
-):
-    assert not (multiple and default is not None)
-    assert not (required and default is not None)
-
-    raw_vals = flask.request.args.getlist(name)
-    if len(raw_vals) == 0:
-        if required:
-            raise InvalidRequest(f"{name} is required")
-        else:
-            if default is None:
-                if multiple:
-                    vals = []
-                else:
-                    vals = [None]
-            else:
-                vals = default
-    else:
-        if len(raw_vals) > 1 and not multiple:
-            raise InvalidRequest(f"{name} must be provided only once")
-        try:
-            vals = list(map(conversion, raw_vals))
-        except Exception as e:
-            raise InvalidRequest(f"{name} must be interpretable as {conversion}") from e
-    if multiple:
-        return vals
-    else:
-        return vals[0]
 
 
 @SERVER.route("/pnep_percentile")
