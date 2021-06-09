@@ -693,11 +693,11 @@ def parse_arg(
         else:
             if default is None:
                 if multiple:
-                    vals = []
+                    assert False, "default not supported with multiple=True"
                 else:
                     vals = [None]
             else:
-                assert False, "default not supported with multiple=True"
+                vals = [default]
     else:
         if len(raw_vals) > 1 and not multiple:
             raise InvalidRequest(f"{name} must be provided only once")
