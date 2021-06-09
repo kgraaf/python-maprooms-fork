@@ -34,6 +34,14 @@ CONFIG = pyaconf.load(os.environ["CONFIG"])
 
 DBPOOL = pingrid.init_dbpool("dbpool", CONFIG)
 
+TABLE_COLUMNS = [
+    dict(id="year_label", name="Year"),
+    dict(id="enso_state", name="ENSO State"),
+    dict(id="forecast", name="Forecast, %"),
+    dict(id="rain_rank", name="Rain Rank"),
+    dict(id="bad_year", name="Reported Bad Years"),
+]
+
 ZERO_SHAPE = [[[[0, 0], [0, 0], [0, 0], [0, 0]]]]
 
 PFX = CONFIG["core_path"]
@@ -55,23 +63,7 @@ APP = dash.Dash(
 )
 APP.title = "FBF--Maproom"
 
-APP.layout = fbflayout.app_layout()
-
-
-def table_columns(obs_value):
-    obs_names = dict(
-        rain="Rain",
-        ndvi="NDVI",
-        spi="SPI",
-    )
-    tcs = [
-        dict(id="year_label", name="Year"),
-        dict(id="enso_state", name="ENSO State"),
-        dict(id="forecast", name="Forecast, %"),
-        dict(id="obs_rank", name=f"{obs_names[obs_value]} Rank"),
-        dict(id="bad_year", name="Reported Bad Years"),
-    ]
-    return tcs
+APP.layout = fbflayout.app_layout(TABLE_COLUMNS)
 
 
 def open_data_array(
@@ -357,17 +349,17 @@ def generate_tables(
 
     df = df[(df["year"] >= year_min) & (df["year"] <= year_max)]
 
-    df["obs_rank"] = df[ns["rain"]].rank(
+    df["rain_rank"] = df[ns["rain"]].rank(
         method="first", na_option="keep", ascending=True
     )
 
-    obs_rank_pct = df[ns["rain"]].rank(
+    rain_rank_pct = df[ns["rain"]].rank(
         method="first", na_option="keep", ascending=True, pct=True
     )
-    df["obs_rank_pct"] = obs_rank_pct
+    df["rain_rank_pct"] = rain_rank_pct
 
-    df["obs_yellow"] = (obs_rank_pct <= freq_max / 100).astype(int)
-    df["obs_brown"] = (obs_rank_pct <= 0).astype(int)
+    df["rain_yellow"] = (rain_rank_pct <= freq_max / 100).astype(int)
+    df["rain_brown"] = (rain_rank_pct <= 0).astype(int)
 
     da2 = open_pnep(country_key).data_array
     ns = config["datasets"]["pnep"]["var_names"]
@@ -413,13 +405,13 @@ def generate_tables(
 
     df = df[
         [c["id"] for c in table_columns]
-        + ["obs_yellow", "obs_brown", "pnep_yellow", "pnep_brown"]
+        + ["rain_yellow", "rain_brown", "pnep_yellow", "pnep_brown"]
     ]
 
     bad_year = df["bad_year"] == "Bad"
     dfs["enso_state"][:5] = hits_and_misses(df["enso_state"] == "El Niño", bad_year)
     dfs["forecast"][:5] = hits_and_misses(df["pnep_yellow"] == 1, bad_year)
-    dfs["obs_rank"][:5] = hits_and_misses(df["obs_yellow"] == 1, bad_year)
+    dfs["rain_rank"][:5] = hits_and_misses(df["rain_yellow"] == 1, bad_year)
 
     return df, dfs
 
@@ -584,29 +576,25 @@ def _(pathname, position, mode, year):
 @APP.callback(
     Output("table", "data"),
     Output("summary", "data"),
-    Output("table", "columns"),
-    Output("summary", "columns"),
     Input("issue_month", "value"),
     Input("freq", "value"),
     Input("feature", "positions"),
     Input("location", "pathname"),
-    Input("observations", "value"),
     State("season", "value"),
 )
-def _(issue_month, freq, positions, pathname, obs_value, season):
+def _(issue_month, freq, positions, pathname, season):
     country_key = country(pathname)
     config = CONFIG["countries"][country_key]
-    tcs = table_columns(obs_value)
     dft, dfs = generate_tables(
         country_key,
         config,
-        tcs,
+        TABLE_COLUMNS,
         issue_month,
         season,
         freq,
         positions,
     )
-    return dft.to_dict("records"), dfs.to_dict("records"), tcs, tcs
+    return dft.to_dict("records"), dfs.to_dict("records")
 
 
 @APP.callback(
