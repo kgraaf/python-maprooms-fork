@@ -684,8 +684,8 @@ def invalid_request(e):
 def parse_arg(
     name, conversion=str, required=True, default=None, multiple=False
 ):
-    assert not (multiple and default is not None)
-    assert not (required and default is not None)
+    # don't allow default with required
+    assert not (required and default is not None), "required and default are incompatible"
 
     raw_vals = flask.request.args.getlist(name)
     if len(raw_vals) == 0:
@@ -698,7 +698,7 @@ def parse_arg(
                 else:
                     vals = [None]
             else:
-                vals = default
+                assert False, "default not supported with multiple=True"
     else:
         if len(raw_vals) > 1 and not multiple:
             raise InvalidRequest(f"{name} must be provided only once")
