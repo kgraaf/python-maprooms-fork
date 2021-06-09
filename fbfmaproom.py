@@ -873,7 +873,7 @@ def retrieve_geometry2(country_key: str, mode: int, region_key: str):
         [
             sql.SQL("with a as (",),
             sql.SQL(sc["sql"]),
-            sql.SQL(") select the_geom, label from a where key = %(key)s"),
+            sql.SQL(") select the_geom, label from a where key::text = %(key)s"),
         ]
     )
     with DBPOOL.take() as cm:
