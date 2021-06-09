@@ -905,8 +905,8 @@ def pnep_percentile():
         )
 
         selected_value = pnep.sel({ns["issue"]: s}, drop=True)
-        rank = (pnep >= selected_value).sum().values
-        percentile = rank / pnep[ns["issue"]].shape[0] * 100
+        rank = (pnep <= selected_value).sum().values
+        percentile = rank / pnep.notnull().count().values * 100
 
     return {"percentile": percentile}
 
