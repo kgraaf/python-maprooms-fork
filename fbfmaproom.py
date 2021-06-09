@@ -875,30 +875,20 @@ def retrieve_geometry2(country_key: str, mode: int, region_key: str):
             for c in [
                 "with a as (",
                 sc["sql"],
-                ") select the_geom, label from a where key = %s",
+                ") select the_geom, label from a where key = %(key)s",
             ]
         ]
     )
     with DBPOOL.take() as cm:
         conn = cm.resource
         with conn:  # transaction
-            df = pd.read_sql(query, conn, params=parse_key(region_key))
+            df = pd.read_sql(query, conn, params={"key": region_key})
     if len(df) == 0:
         raise InvalidRequest(f"invalid region {region_key}")
     assert len(df) == 1
     row = df.iloc[0]
     geom = wkb.loads(row["the_geom"].tobytes())
     return row["label"], geom
-
-
-def parse_key(s):
-    if s[0] == "(":
-        assert s[-1] == ")"
-        s = s[1:-1]
-        s = s.split(",")
-    else:
-        s = [s]
-    return s
 
 
 if __name__ == "__main__":
