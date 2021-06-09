@@ -800,7 +800,7 @@ def stats():
     return yaml_resp(rs)
 
 
-@SERVER.route("/pnep_percentile")
+@SERVER.route(f"{PFX}/pnep_percentile")
 def pnep_percentile():
     """Let P(y) be the forecast probability of not exceeding the /freq/ percentile in year y.
     Let r be the rank of P(season_year) among all the P(y).
