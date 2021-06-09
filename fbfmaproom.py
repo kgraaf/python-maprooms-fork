@@ -26,7 +26,7 @@ from psycopg2 import sql
 import __about__ as about
 import pyaconf
 import pingrid
-from pingrid import BGRA
+from pingrid import BGRA, InvalidRequest
 import fbflayout
 
 
@@ -49,6 +49,9 @@ TILE_PFX = CONFIG["tile_path"]
 ADMIN_PFX = CONFIG["admin_path"]
 
 SERVER = flask.Flask(__name__)
+
+SERVER.register_error_handler(InvalidRequest, pingrid.invalid_request)
+
 APP = dash.Dash(
     __name__,
     server=SERVER,
@@ -795,20 +798,6 @@ def stats():
         process_stats=ps,
     )
     return yaml_resp(rs)
-
-
-class InvalidRequest(Exception):
-    def __init__(self, message):
-        super().__init__()
-        self.message = message
-
-    def to_dict(self):
-        return {"message": self.message}
-
-
-@SERVER.errorhandler(InvalidRequest)
-def invalid_api_usage(e):
-    return flask.json.jsonify(e.to_dict()), 400
 
 
 NOT_PROVIDED = object()
