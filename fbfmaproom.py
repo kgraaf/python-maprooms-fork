@@ -800,21 +800,18 @@ def stats():
     return yaml_resp(rs)
 
 
-NOT_PROVIDED = object()
-
-
 def parse_arg(
-    name, conversion=str, required=True, default=NOT_PROVIDED, multiple=False
+    name, conversion=str, required=True, default=None, multiple=False
 ):
-    assert not (multiple and default is not NOT_PROVIDED)
-    assert not (required and default is not NOT_PROVIDED)
+    assert not (multiple and default is not None)
+    assert not (required and default is not None)
 
     raw_vals = flask.request.args.getlist(name)
     if len(raw_vals) == 0:
         if required:
             raise InvalidRequest(f"{name} is required")
         else:
-            if default is NOT_PROVIDED:
+            if default is None:
                 if multiple:
                     vals = []
                 else:
