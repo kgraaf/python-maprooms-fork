@@ -684,7 +684,6 @@ def invalid_request(e):
 def parse_arg(
     name, conversion=str, required=True, default=None, multiple=False
 ):
-    # don't allow default with required
     assert not (required and default is not None), "required and default are incompatible"
 
     raw_vals = flask.request.args.getlist(name)
