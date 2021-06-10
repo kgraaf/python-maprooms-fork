@@ -44,3 +44,8 @@ tr {
     background-color: rgb(251, 177, 57);
     border-color: rgb(251, 177, 57);
 }
+
+.rc-slider-handle, .rc-slider-handle:active, .rc-slider-handle:focus,  .rc-slider-handle:hover {
+    background-color: rgb(251, 177, 57);
+    border-color: rgb(251, 177, 57);
+}

@@ -137,7 +137,7 @@ def command_layout():
                     ),
                 ],
                 style={
-                    "width": "100px",
+                    "width": "95px",
                     "display": "inline-block",
                     "padding": "10px",
                     "vertical-align": "top",
@@ -152,7 +152,7 @@ def command_layout():
                     ),
                 ],
                 style={
-                    "width": "100px",
+                    "width": "95px",
                     "display": "inline-block",
                     "padding": "10px",
                     "vertical-align": "top",
@@ -167,7 +167,7 @@ def command_layout():
                     ),
                 ],
                 style={
-                    "width": "100px",
+                    "width": "95px",
                     "display": "inline-block",
                     "padding": "10px",
                     "vertical-align": "top",
@@ -192,7 +192,28 @@ def command_layout():
                     ),
                 ],
                 style={
-                    "width": "100px",
+                    "width": "95px",
+                    "display": "inline-block",
+                    "padding": "10px",
+                    "vertical-align": "top",
+                },
+            ),
+            html.Div(
+                [
+                    html.Label("Severity:"),
+                    dcc.Dropdown(
+                        id="severity",
+                        clearable=False,
+                        options=[
+                            dict(label="Low", value=0),
+                            dict(label="Medium", value=1),
+                            dict(label="High", value=2),
+                        ],
+                        value=0,
+                    ),
+                ],
+                style={
+                    "width": "95px",
                     "display": "inline-block",
                     "padding": "10px",
                     "vertical-align": "top",
@@ -201,19 +222,17 @@ def command_layout():
             html.Div(
                 [
                     html.Label("Frequency of triggered forecasts:"),
-                    dcc.RangeSlider(
+                    dcc.Slider(
                         id="freq",
                         min=5,
                         max=95,
                         step=5,
-                        value=(15, 30),
+                        value=30,
                         marks={k: dict(label=f"{k}%") for k in range(10, 91, 10)},
-                        pushable=5,
-                        included=False,
                     ),
                 ],
                 style={
-                    "width": "400px",
+                    "width": "350px",
                     "display": "inline-block",
                     "padding": "10px",
                     "vertical-align": "top",
