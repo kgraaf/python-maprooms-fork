@@ -606,9 +606,10 @@ def _(issue_month, freq, positions, pathname, season):
     Input("mode", "value"),
     Input("year", "value"),
     Input("location", "pathname"),
+    Input("severity", "value"),
     State("season", "value"),
 )
-def _(issue_month, freq, positions, geom_key, mode, year, pathname, season):
+def _(issue_month, freq, positions, geom_key, mode, year, pathname, severity, season):
     country_key = country(pathname)
     config = CONFIG["countries"][country_key]
     season_config = config["seasons"][season]
@@ -627,9 +628,7 @@ def _(issue_month, freq, positions, geom_key, mode, year, pathname, season):
         country=country_key,
         mode=mode,
         season_year=year,
-        freq=freq[
-            0
-        ],  # [0] is temporary until the whole app is switched to single slider
+        freq=freq,
         season={
             "id": season,
             "label": season_config["label"],
@@ -639,7 +638,7 @@ def _(issue_month, freq, positions, geom_key, mode, year, pathname, season):
         issue_month=config["seasons"][season]["issue_months"][issue_month],
         bounds=bounds,
         region=region,
-        severity=1,  # TODO dummy value
+        severity=severity,
     )
     # print("***:", res)
     url = CONFIG["gantt_url"] + urllib.parse.urlencode(dict(data=json.dumps(res)))
