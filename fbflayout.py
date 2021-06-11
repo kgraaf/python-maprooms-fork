@@ -350,7 +350,7 @@ def table_layout(table_columns):
                         style_data_conditional=[
                             {
                                 "if": {
-                                    "filter_query": "{rain_yellow} = 1 && {rain_brown} != 1",
+                                    "filter_query": "{rain_yellow} = 1",
                                     "column_id": "rain_rank",
                                 },
                                 "backgroundColor": "rgb(251, 177, 57)",
@@ -358,43 +358,11 @@ def table_layout(table_columns):
                             },
                             {
                                 "if": {
-                                    "filter_query": "{rain_brown} = 1 && {rain_yellow} != 1",
-                                    "column_id": "rain_rank",
-                                },
-                                "backgroundColor": "rgb(161, 83, 22)",
-                                "color": "white",
-                            },
-                            {
-                                "if": {
-                                    "filter_query": "{rain_brown} = 1 && {rain_yellow} = 1",
-                                    "column_id": "rain_rank",
-                                },
-                                "backgroundColor": "rgb(161, 83, 22)",
-                                "color": "rgb(255, 226, 178)",
-                            },
-                            {
-                                "if": {
-                                    "filter_query": "{pnep_yellow} = 1 && {pnep_brown} != 1",
+                                    "filter_query": "{pnep_yellow} = 1",
                                     "column_id": "forecast",
                                 },
                                 "backgroundColor": "rgb(251, 177, 57)",
                                 "color": "black",
-                            },
-                            {
-                                "if": {
-                                    "filter_query": "{pnep_brown} = 1 && {pnep_yellow} != 1",
-                                    "column_id": "forecast",
-                                },
-                                "backgroundColor": "rgb(161, 83, 22)",
-                                "color": "white",
-                            },
-                            {
-                                "if": {
-                                    "filter_query": "{pnep_brown} = 1 && {pnep_yellow} = 1",
-                                    "column_id": "forecast",
-                                },
-                                "backgroundColor": "rgb(161, 83, 22)",
-                                "color": "rgb(255, 226, 178)",
                             },
                             {
                                 "if": {
