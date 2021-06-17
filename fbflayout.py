@@ -350,19 +350,51 @@ def table_layout(table_columns):
                         style_data_conditional=[
                             {
                                 "if": {
-                                    "filter_query": "{rain_yellow} = 1",
+                                    "filter_query": "{rain_yellow} = 1 && {severity} = 0",
                                     "column_id": "rain_rank",
                                 },
-                                "backgroundColor": "rgb(251, 177, 57)",
+                                "backgroundColor": "yellow",
                                 "color": "black",
                             },
                             {
                                 "if": {
-                                    "filter_query": "{pnep_yellow} = 1",
+                                    "filter_query": "{rain_yellow} = 1 && {severity} = 1",
+                                    "column_id": "rain_rank",
+                                },
+                                "backgroundColor": "orange",
+                                "color": "black",
+                            },
+                            {
+                                "if": {
+                                    "filter_query": "{rain_yellow} = 1 && {severity} = 2",
+                                    "column_id": "rain_rank",
+                                },
+                                "backgroundColor": "red",
+                                "color": "white",
+                            },
+                            {
+                                "if": {
+                                    "filter_query": "{pnep_yellow} = 1 && {severity} = 0",
                                     "column_id": "forecast",
                                 },
-                                "backgroundColor": "rgb(251, 177, 57)",
+                                "backgroundColor": "yellow",
                                 "color": "black",
+                            },
+                            {
+                                "if": {
+                                    "filter_query": "{pnep_yellow} = 1 && {severity} = 1",
+                                    "column_id": "forecast",
+                                },
+                                "backgroundColor": "orange",
+                                "color": "black",
+                            },
+                            {
+                                "if": {
+                                    "filter_query": "{pnep_yellow} = 1 && {severity} = 2",
+                                    "column_id": "forecast",
+                                },
+                                "backgroundColor": "red",
+                                "color": "white",
                             },
                             {
                                 "if": {

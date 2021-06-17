@@ -300,6 +300,7 @@ def generate_tables(
     season,
     freq,
     positions,
+    severity,
 ):
     df = pd.DataFrame({c["id"]: [] for c in table_columns})
 
@@ -330,6 +331,7 @@ def generate_tables(
     df["enso_state"] = df2["enso_state"]
     df["bad_year"] = df2["bad_year"].where(~df2["bad_year"].isna(), "")
     df["season"] = df2["month_since_01011960"]
+    df["severity"] = severity
     df = df.set_index("season")
 
     da = open_rain(country_key).data_array * season_length * 30
@@ -392,7 +394,7 @@ def generate_tables(
 
     df = df[
         [c["id"] for c in table_columns]
-        + ["rain_yellow", "pnep_yellow"]
+        + ["rain_yellow", "pnep_yellow", "severity"]
     ]
 
     bad_year = df["bad_year"] == "Bad"
@@ -567,9 +569,10 @@ def _(pathname, position, mode, year):
     Input("freq", "value"),
     Input("feature", "positions"),
     Input("location", "pathname"),
+    Input("severity", "value"),
     State("season", "value"),
 )
-def _(issue_month, freq, positions, pathname, season):
+def _(issue_month, freq, positions, pathname, severity, season):
     country_key = country(pathname)
     config = CONFIG["countries"][country_key]
     dft, dfs = generate_tables(
@@ -580,6 +583,7 @@ def _(issue_month, freq, positions, pathname, season):
         season,
         freq,
         positions,
+        severity,
     )
     return dft.to_dict("records"), dfs.to_dict("records")
 
