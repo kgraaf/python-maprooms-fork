@@ -29,15 +29,15 @@ tr {
 
 #freq.severity0 .rc-slider-handle {
     border: solid 1px;
-    background-color: yellow;
+    background-color: #fdfd96;
 }
 
 #freq.severity1 .rc-slider-handle {
     border: solid 1px;
-    background-color: orange;
+    background-color: #ffb347;
 }
 
 #freq.severity2 .rc-slider-handle {
     border: solid 1px;
-    background-color: red;
+    background-color: #ff6961;
 }

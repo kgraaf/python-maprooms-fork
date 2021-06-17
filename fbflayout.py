@@ -6,6 +6,8 @@ import dash_leaflet as dlf
 import dash_leaflet.express as dlx
 
 
+SEVERITY_COLORS = ["#fdfd96", "#ffb347", "#ff6961"]
+
 def app_layout(table_columns):
     return html.Div(
         [
@@ -353,7 +355,7 @@ def table_layout(table_columns):
                                     "filter_query": "{rain_yellow} = 1 && {severity} = 0",
                                     "column_id": "rain_rank",
                                 },
-                                "backgroundColor": "yellow",
+                                "backgroundColor": SEVERITY_COLORS[0],
                                 "color": "black",
                             },
                             {
@@ -361,7 +363,7 @@ def table_layout(table_columns):
                                     "filter_query": "{rain_yellow} = 1 && {severity} = 1",
                                     "column_id": "rain_rank",
                                 },
-                                "backgroundColor": "orange",
+                                "backgroundColor": SEVERITY_COLORS[1],
                                 "color": "black",
                             },
                             {
@@ -369,7 +371,7 @@ def table_layout(table_columns):
                                     "filter_query": "{rain_yellow} = 1 && {severity} = 2",
                                     "column_id": "rain_rank",
                                 },
-                                "backgroundColor": "red",
+                                "backgroundColor": SEVERITY_COLORS[2],
                                 "color": "white",
                             },
                             {
@@ -377,7 +379,7 @@ def table_layout(table_columns):
                                     "filter_query": "{pnep_yellow} = 1 && {severity} = 0",
                                     "column_id": "forecast",
                                 },
-                                "backgroundColor": "yellow",
+                                "backgroundColor": SEVERITY_COLORS[0],
                                 "color": "black",
                             },
                             {
@@ -385,7 +387,7 @@ def table_layout(table_columns):
                                     "filter_query": "{pnep_yellow} = 1 && {severity} = 1",
                                     "column_id": "forecast",
                                 },
-                                "backgroundColor": "orange",
+                                "backgroundColor": SEVERITY_COLORS[1],
                                 "color": "black",
                             },
                             {
@@ -393,7 +395,7 @@ def table_layout(table_columns):
                                     "filter_query": "{pnep_yellow} = 1 && {severity} = 2",
                                     "column_id": "forecast",
                                 },
-                                "backgroundColor": "red",
+                                "backgroundColor": SEVERITY_COLORS[2],
                                 "color": "white",
                             },
                             {
