@@ -585,6 +585,14 @@ def _(issue_month, freq, positions, pathname, season):
 
 
 @APP.callback(
+    Output("freq", "className"),
+    Input("severity", "value"),
+)
+def update_severity_color(value):
+    return f"severity{value}"
+
+
+@APP.callback(
     Output("gantt", "href"),
     Input("issue_month", "value"),
     Input("freq", "value"),

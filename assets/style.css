@@ -27,25 +27,17 @@ tr {
 /* thead, tbody { display: block; }
 */
 
-.rc-slider-handle {
+#freq.severity0 .rc-slider-handle {
     border: solid 1px;
+    background-color: yellow;
 }
 
-.rc-slider-handle-click-focused:focus {
-    border: solid 1px red;
+#freq.severity1 .rc-slider-handle {
+    border: solid 1px;
+    background-color: orange;
 }
 
-.rc-slider-handle-1, .rc-slider-handle-1:active, .rc-slider-handle-1:focus, .rc-slider-handle-1:hover  {
-    background-color: rgb(161, 83, 22);
-    border-color: rgb(161, 83, 22);
-}
-
-.rc-slider-handle-2, .rc-slider-handle-2:active, .rc-slider-handle-2:focus,  .rc-slider-handle-2:hover {
-    background-color: rgb(251, 177, 57);
-    border-color: rgb(251, 177, 57);
-}
-
-.rc-slider-handle, .rc-slider-handle:active, .rc-slider-handle:focus,  .rc-slider-handle:hover {
-    background-color: rgb(251, 177, 57);
-    border-color: rgb(251, 177, 57);
+#freq.severity2 .rc-slider-handle {
+    border: solid 1px;
+    background-color: red;
 }
