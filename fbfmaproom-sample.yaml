@@ -211,7 +211,7 @@ countries:
             rain:
                 path: /data/aaron/fbf/rain-ethiopia.zarr
                 var_names:
-                    rain: obs
+                    rain: prcp
                     lat: Y
                     lon: X
                     time: T

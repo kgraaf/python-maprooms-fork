@@ -24,7 +24,7 @@ datasets = [
     ),
     (
         "rain-ethiopia",
-        "/home/.xchourio/.ACToday/.Ethiopia/.CPT/.NextGen/.MAM_PRCP-First_Version/.Somali/.NextGen/.History/.obs/data.nc",
+        "/SOURCES/.UCSB/.CHIRPS/.v2p0/.daily-improved/.global/.0p25/.prcp/30/mul/X/39.875/47.875/RANGE/Y/3.625/10.875/RANGE/T/(Mar-May)/seasonalAverage//units/(mm/month)/def/data.nc",
     ),
     (
         "pnep-ethiopia",
