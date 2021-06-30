@@ -4,7 +4,8 @@ import dash_table as table
 import dash_daq as daq
 import dash_leaflet as dlf
 import dash_leaflet.express as dlx
-
+import dash_bootstrap_components as dbc
+import csv
 
 def app_layout(table_columns):
     return html.Div(
@@ -14,6 +15,7 @@ def app_layout(table_columns):
             logo_layout(),
             command_layout(),
             table_layout(table_columns),
+            disclaimer_layout(),
         ]
     )
 
@@ -113,23 +115,62 @@ def logo_layout():
         style={
             "position": "absolute",
             "top": "10px",
-            "width": "110px",
+            "width": "120px",
             "left": "90px",
             "z-index": "1000",
-            "height": "75px",
+            "height": "fit-content",
             "pointer-events": "auto",
             "padding-left": "10px",
             "padding-right": "10px",
         },
     )
 
+def disclaimer_layout():
+    return html.Div(
+        [html.H5("This is not an Official Government Maproom")],
+        id="disclaimer_panel",
+        className="info",
+        style={
+            "position": "absolute",
+            "width": "fit-content",
+            "z-index": "1000",
+            "height": "fit-content",
+            "bottom":"0",
+            "right":"0",
+            "pointer-events": "auto",
+            "padding-left": "10px",
+            "padding-right": "10px",
+        },
+    )
 
 def command_layout():
     return html.Div(
         [
             dcc.Input(id="geom_key", type="hidden"),
+            html.Div([
+                            dbc.Button("ℹ️", id="table_pop_up",),
+                            dbc.Popover([
+                                dbc.PopoverHeader("Help"),
+                                dbc.PopoverBody(
+                                [ html.P("Mode - Refers to the spatial resolution such as: National, Regional, District and Pixel level"),
+                                html.P("Issue month - Refers to the month in which the forecast is issued"),
+                                html.P("Season - Refers to the rainy season being forecasted"),
+                                html.P("Year - Refers to the year being forecasted"),
+                                html.P("Severity - Refers to the level of drought severity being targeted"),
+                                html.P("Frequency of triggered forecasts - The sliders are used to set the frequency of forecast triggered"),
+                                html.P("Map - The map shows the forecast and vulnerability for the selected year and spatial resolution. Click on the layers to view"),
+                                ]),
+                                        ],
+                            id="table_header_body",
+                            target="table_pop_up",
+                            placement="left",
+                            trigger='legacy'
+                            )
+                        ]
+                    ),
             html.Div(
                 [
+
                     html.Label("Mode:"),
                     dcc.Dropdown(
                         id="mode",
@@ -137,7 +178,7 @@ def command_layout():
                     ),
                 ],
                 style={
-                    "width": "95px",
+                    "width": "120px",
                     "display": "inline-block",
                     "padding": "10px",
                     "vertical-align": "top",
@@ -152,7 +193,7 @@ def command_layout():
                     ),
                 ],
                 style={
-                    "width": "95px",
+                    "width": "120px",
                     "display": "inline-block",
                     "padding": "10px",
                     "vertical-align": "top",
@@ -181,7 +222,7 @@ def command_layout():
                         type="number",
                         step=1,
                         style={
-                            "height": "32px",
+                            "height": "36px",
                             "width": "95%",
                             "border-color": "rgb(200, 200, 200)",
                             "border-width": "1px",
@@ -268,17 +309,43 @@ def command_layout():
             "right": "10px",
             "left": "230px",
             "z-index": "1000",
-            "height": "75px",
+            "height": "fit-content",
             "pointer-events": "auto",
             "padding-left": "10px",
             "padding-right": "10px",
         },
     )
 
-
 def table_layout(table_columns):
     return html.Div(
-        [
+        [            html.Div([
+                                    dbc.Button("ℹ️", id="pop_up", style={
+#                                        "position": "absolute",
+#                                        "top": "0px",
+#                                        "right": "0px",
+#                                        "z-index": "1000",
+                                    }),
+                                    dbc.Popover([
+                                        dbc.PopoverHeader("Help"),
+                                        dbc.PopoverBody(
+                                [ html.P("ENSO State - Displays whether an El Nino, Neutral or La Nina state occurred during the year"),
+                                html.P("Forecast - Displays all the historical flexible forecast for the selected issue month and location"),
+                                html.P("Rain Rank - Presents the ranking of the rainfall for the year compared to all the years"),
+                                html.P("Reported Bad Year - Historical drought years based on farmers recollection"),
+                                html.P("Worthy Action - Drought was forecasted and a ‘bad year’ occurred"),
+                                html.P("Act-in-Vain - Drought was forecasted but a ‘bad year’ did not occur"),
+                                html.P("Fail-to-Act - No drought was forecasted but a ‘bad year’ occurred"),
+                                html.P("Worthy-Inaction - No drought was forecasted, and no ‘bad year’ occurred"),
+                                html.P("Rate - Gives the percentage of worthy-action and worthy-inactions")],
+                                        ),
+                                                ],
+                                    id="header_body",
+                                    target="pop_up",
+                                    placement="left",
+                                    trigger='legacy'
+                                    )
+                                ]
+                            ),
             html.Div(id="log"),
             dcc.Loading(
                 [
@@ -442,7 +509,7 @@ def table_layout(table_columns):
             "top": "110px",
             "right": "10px",
             "z-index": "1000",
-            "height": "564px",
+            "height": "fit-content",
             "width": "600px",
             "pointer-events": "auto",
             "padding-left": "10px",
