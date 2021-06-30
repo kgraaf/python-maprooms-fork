@@ -852,18 +852,19 @@ def pnep_percentile():
         if ns["lead"] is not None:
             pnep = pnep.sel({ns["lead"]: l}, drop=True)
 
-        # TODO why do we do this in the original?
-        # da2[ns["issue"]] = da2[ns["issue"]] + l
-
         pnep = pingrid.average_over_trimmed(
             pnep, geom, lon_name=ns["lon"], lat_name=ns["lat"], all_touched=True
         )
 
-        selected_value = pnep.sel({ns["issue"]: s}, drop=True)
-        rank = (pnep <= selected_value).sum().values
-        percentile = rank / pnep.notnull().count().values * 100
+        selected_value = pnep.sel({ns["issue"]: s}, drop=True).item()
+        rank = (pnep > selected_value).sum().values
+        history_count = pnep.notnull().count().values - 1
+        percentile = rank / history_count * 100
 
-    return {"percentile": percentile}
+    return {
+        "probability": selected_value,
+        "triggered": bool(percentile <= freq),
+    }
 
 
 def retrieve_geometry2(country_key: str, mode: int, region_key: str):
