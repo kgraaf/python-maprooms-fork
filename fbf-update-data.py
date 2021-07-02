@@ -28,7 +28,7 @@ datasets = [
     ),
     (
         "pnep-ethiopia",
-        "/home/.xchourio/.ACToday/.Ethiopia/.CPT/.NextGen/.MAM_PRCP/.Somali/.NextGen/.FbF/.pne/P//P//percentile/0/5/5/95/NewEvenGRID/replaceGRID/data.nc",
+        "/home/.aaron/.Ethiopia/.CPT/.NextGen/.MAM_PRCP/.Somali/.NextGen/.FbF/.pne/P//P//percentile/0/5/5/95/NewEvenGRID/replaceGRID/data.nc",
     ),
     (
         'rain-niger',
