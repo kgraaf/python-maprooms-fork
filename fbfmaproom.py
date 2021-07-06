@@ -388,6 +388,8 @@ def generate_tables(
     df["pnep_max_rank_pct"] = pnep_max_rank_pct
     df["pnep_yellow"] = (pnep_max_rank_pct <= freq / 100).astype(int)
 
+    prob_thresh = df[df["pnep_yellow"] == 1]["pne"].min()
+
     df = df[::-1]
 
     # df.to_csv("df.csv")
@@ -402,7 +404,7 @@ def generate_tables(
     dfs["forecast"][:5] = hits_and_misses(df["pnep_yellow"] == 1, bad_year)
     dfs["rain_rank"][:5] = hits_and_misses(df["rain_yellow"] == 1, bad_year)
 
-    return df, dfs
+    return df, dfs, prob_thresh
 
 
 def hits_and_misses(c1, c2):
@@ -565,6 +567,7 @@ def _(pathname, position, mode, year):
 @APP.callback(
     Output("table", "data"),
     Output("summary", "data"),
+    Output("prob_thresh", "value"),
     Input("issue_month", "value"),
     Input("freq", "value"),
     Input("feature", "positions"),
@@ -575,7 +578,7 @@ def _(pathname, position, mode, year):
 def _(issue_month, freq, positions, pathname, severity, season):
     country_key = country(pathname)
     config = CONFIG["countries"][country_key]
-    dft, dfs = generate_tables(
+    dft, dfs, prob_thresh = generate_tables(
         country_key,
         config,
         TABLE_COLUMNS,
@@ -585,7 +588,7 @@ def _(issue_month, freq, positions, pathname, severity, season):
         positions,
         severity,
     )
-    return dft.to_dict("records"), dfs.to_dict("records")
+    return dft.to_dict("records"), dfs.to_dict("records"), prob_thresh
 
 
 @APP.callback(
@@ -606,9 +609,10 @@ def update_severity_color(value):
     Input("year", "value"),
     Input("location", "pathname"),
     Input("severity", "value"),
+    Input("prob_thresh", "value"),
     State("season", "value"),
 )
-def _(issue_month, freq, positions, geom_key, mode, year, pathname, severity, season):
+def _(issue_month, freq, positions, geom_key, mode, year, pathname, severity, prob_thresh, season):
     country_key = country(pathname)
     config = CONFIG["countries"][country_key]
     season_config = config["seasons"][season]
@@ -628,6 +632,7 @@ def _(issue_month, freq, positions, geom_key, mode, year, pathname, severity, se
         mode=mode,
         season_year=year,
         freq=freq,
+        prob_thresh=prob_thresh,
         season={
             "id": season,
             "label": season_config["label"],

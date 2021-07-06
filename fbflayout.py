@@ -130,6 +130,7 @@ def command_layout():
     return html.Div(
         [
             dcc.Input(id="geom_key", type="hidden"),
+            dcc.Input(id="prob_thresh", type="hidden"),
             html.Div(
                 [
                     html.Label("Mode:"),
