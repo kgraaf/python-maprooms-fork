@@ -134,7 +134,7 @@ def open_rain(country_key):
     )
 
 
-def slp(country_key, season, year, issue_month, freq_max):
+def slp(country_key, season, year, issue_month, freq):
     season_config = CONFIG["countries"][country_key]["seasons"][season]
     issue_month = season_config["issue_months"][issue_month]
     target_month = season_config["target_month"]
@@ -142,14 +142,14 @@ def slp(country_key, season, year, issue_month, freq_max):
     l = (target_month - issue_month) % 12
 
     s = pingrid.to_months_since(datetime.date(year, 1, 1)) + target_month - l
-    p = freq_max
+    p = freq
     return s, l, p
 
 
 @lru_cache
-def select_pnep(country_key, season, year, issue_month, freq_max):
+def select_pnep(country_key, season, year, issue_month, freq):
     config = CONFIG
-    s, l, p = slp(country_key, season, year, issue_month, freq_max)
+    s, l, p = slp(country_key, season, year, issue_month, freq)
     ns = config["countries"][country_key]["datasets"]["pnep"]["var_names"]
     e = open_pnep(country_key)
     da = e.data_array
@@ -300,6 +300,7 @@ def generate_tables(
     season,
     freq,
     positions,
+    severity,
 ):
     df = pd.DataFrame({c["id"]: [] for c in table_columns})
 
@@ -321,8 +322,6 @@ def generate_tables(
     year_min, year_max = season_config["year_range"]
     season_length = season_config["length"]
     target_month = season_config["target_month"]
-    freq_min = 5
-    freq_max = freq
 
     df2 = open_enso(season_length)
     df2 = df2[df2["country_key"] == country_key]
@@ -332,6 +331,7 @@ def generate_tables(
     df["enso_state"] = df2["enso_state"]
     df["bad_year"] = df2["bad_year"].where(~df2["bad_year"].isna(), "")
     df["season"] = df2["month_since_01011960"]
+    df["severity"] = severity
     df = df.set_index("season")
 
     da = open_rain(country_key).data_array * season_length * 30
@@ -358,13 +358,12 @@ def generate_tables(
     )
     df["rain_rank_pct"] = rain_rank_pct
 
-    df["rain_yellow"] = (rain_rank_pct <= freq_max / 100).astype(int)
-    df["rain_brown"] = (rain_rank_pct <= 0).astype(int)
+    df["rain_yellow"] = (rain_rank_pct <= freq / 100).astype(int)
 
     da2 = open_pnep(country_key).data_array
     ns = config["datasets"]["pnep"]["var_names"]
 
-    da2 = da2.sel({ns["pct"]: [freq_min, freq_max]}, drop=True)
+    da2 = da2.sel({ns["pct"]: freq}, drop=True)
 
     s = config["seasons"][season]["issue_months"][issue_month]
     l = (target_month - s) % 12
@@ -378,26 +377,16 @@ def generate_tables(
         da2, mpolygon, lon_name=ns["lon"], lat_name=ns["lat"], all_touched=True
     )
 
-    df4 = da2.to_dataframe().unstack()
-    df4.columns = df4.columns.to_flat_index()
-
-    df = df.join(df4, how="outer")
-
+    df = df.join(da2.to_dataframe(), how="outer")
     df = df[(df["year"] >= year_min) & (df["year"] <= year_max)]
 
-    df["forecast"] = df[(ns["pnep"], freq_max)].apply(lambda x: f"{x:.2f}")
+    df["forecast"] = df[ns["pnep"]].apply(lambda x: f"{x:.2f}")
 
-    pnep_max_rank_pct = df[(ns["pnep"], freq_max)].rank(
+    pnep_max_rank_pct = df[ns["pnep"]].rank(
         method="first", na_option="keep", ascending=False, pct=True
     )
     df["pnep_max_rank_pct"] = pnep_max_rank_pct
-    df["pnep_yellow"] = (pnep_max_rank_pct <= freq_max / 100).astype(int)
-
-    pnep_min_rank_pct = df[(ns["pnep"], freq_min)].rank(
-        method="first", na_option="keep", ascending=False, pct=True
-    )
-    df["pnep_min_rank_pct"] = pnep_min_rank_pct
-    df["pnep_brown"] = (pnep_min_rank_pct <= 0).astype(int)
+    df["pnep_yellow"] = (pnep_max_rank_pct <= freq / 100).astype(int)
 
     df = df[::-1]
 
@@ -405,7 +394,7 @@ def generate_tables(
 
     df = df[
         [c["id"] for c in table_columns]
-        + ["rain_yellow", "rain_brown", "pnep_yellow", "pnep_brown"]
+        + ["rain_yellow", "pnep_yellow", "severity"]
     ]
 
     bad_year = df["bad_year"] == "Bad"
@@ -580,9 +569,10 @@ def _(pathname, position, mode, year):
     Input("freq", "value"),
     Input("feature", "positions"),
     Input("location", "pathname"),
+    Input("severity", "value"),
     State("season", "value"),
 )
-def _(issue_month, freq, positions, pathname, season):
+def _(issue_month, freq, positions, pathname, severity, season):
     country_key = country(pathname)
     config = CONFIG["countries"][country_key]
     dft, dfs = generate_tables(
@@ -593,8 +583,17 @@ def _(issue_month, freq, positions, pathname, season):
         season,
         freq,
         positions,
+        severity,
     )
     return dft.to_dict("records"), dfs.to_dict("records")
+
+
+@APP.callback(
+    Output("freq", "className"),
+    Input("severity", "value"),
+)
+def update_severity_color(value):
+    return f"severity{value}"
 
 
 @APP.callback(
@@ -655,9 +654,8 @@ def _(issue_month, freq, positions, geom_key, mode, year, pathname, severity, se
 )
 def _(year, issue_month, freq, pathname, season):
     country_key = country(pathname)
-    freq_max = freq
-    select_pnep(country_key, season, year, issue_month, freq_max)
-    return f"{TILE_PFX}/pnep/{{z}}/{{x}}/{{y}}/{country_key}/{season}/{year}/{issue_month}/{freq_max}"
+    select_pnep(country_key, season, year, issue_month, freq)
+    return f"{TILE_PFX}/pnep/{{z}}/{{x}}/{{y}}/{country_key}/{season}/{year}/{issue_month}/{freq}"
 
 
 @APP.callback(
@@ -708,10 +706,10 @@ def tile(dae, tx, ty, tz, clipping=None, test_tile=False):
 
 
 @SERVER.route(
-    f"{TILE_PFX}/pnep/<int:tz>/<int:tx>/<int:ty>/<country_key>/<season>/<int:year>/<int:issue_month>/<int:freq_max>"
+    f"{TILE_PFX}/pnep/<int:tz>/<int:tx>/<int:ty>/<country_key>/<season>/<int:year>/<int:issue_month>/<int:freq>"
 )
-def pnep_tiles(tz, tx, ty, country_key, season, year, issue_month, freq_max):
-    dae = select_pnep(country_key, season, year, issue_month, freq_max)
+def pnep_tiles(tz, tx, ty, country_key, season, year, issue_month, freq):
+    dae = select_pnep(country_key, season, year, issue_month, freq)
     p = tuple(CONFIG["countries"][country_key]["marker"])
     clipping = retrieve_geometry(country_key, p, "0", None)
     resp = tile(dae, tx, ty, tz, clipping)
