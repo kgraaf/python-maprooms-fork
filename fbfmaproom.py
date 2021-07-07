@@ -817,6 +817,7 @@ def pnep_percentile():
     issue_month = parse_arg("issue_month", int)
     season_year = parse_arg("season_year", int)
     freq = parse_arg("freq", float)
+    prob_thresh = parse_arg("prob_thresh", float)
     bounds = parse_arg("bounds", json.loads, required=False)
     region = parse_arg("region", required=False)
 
@@ -849,24 +850,24 @@ def pnep_percentile():
         else:
             _, geom = retrieve_geometry2(country_key, int(mode), region)
 
-        pnep = pnep.sel({ns["pct"]: freq}, drop=True)
-        pnep = pnep.where(pnep[ns["issue"]] % 12 == issue_month, drop=True)
+        pnep = pnep.sel(
+            {
+                ns["pct"]: freq,
+                ns["issue"]: s
+            },
+            drop=True
+        )
 
         if ns["lead"] is not None:
             pnep = pnep.sel({ns["lead"]: l}, drop=True)
 
-        pnep = pingrid.average_over_trimmed(
+        forecast_prob = pingrid.average_over_trimmed(
             pnep, geom, lon_name=ns["lon"], lat_name=ns["lat"], all_touched=True
-        )
-
-        selected_value = pnep.sel({ns["issue"]: s}, drop=True).item()
-        rank = (pnep > selected_value).sum().values
-        history_count = pnep.notnull().count().values - 1
-        percentile = rank / history_count * 100
+        ).item()
 
     return {
-        "probability": selected_value,
-        "triggered": bool(percentile <= freq),
+        "probability": forecast_prob,
+        "triggered": bool(forecast_prob >= prob_thresh),
     }
 
 
