@@ -388,6 +388,8 @@ def generate_tables(
     df["pnep_max_rank_pct"] = pnep_max_rank_pct
     df["pnep_yellow"] = (pnep_max_rank_pct <= freq / 100).astype(int)
 
+    prob_thresh = df[df["pnep_yellow"] == 1]["pne"].min()
+
     df = df[::-1]
 
     # df.to_csv("df.csv")
@@ -402,7 +404,7 @@ def generate_tables(
     dfs["forecast"][:5] = hits_and_misses(df["pnep_yellow"] == 1, bad_year)
     dfs["rain_rank"][:5] = hits_and_misses(df["rain_yellow"] == 1, bad_year)
 
-    return df, dfs
+    return df, dfs, prob_thresh
 
 
 def hits_and_misses(c1, c2):
@@ -565,6 +567,7 @@ def _(pathname, position, mode, year):
 @APP.callback(
     Output("table", "data"),
     Output("summary", "data"),
+    Output("prob_thresh", "value"),
     Input("issue_month", "value"),
     Input("freq", "value"),
     Input("feature", "positions"),
@@ -575,7 +578,7 @@ def _(pathname, position, mode, year):
 def _(issue_month, freq, positions, pathname, severity, season):
     country_key = country(pathname)
     config = CONFIG["countries"][country_key]
-    dft, dfs = generate_tables(
+    dft, dfs, prob_thresh = generate_tables(
         country_key,
         config,
         TABLE_COLUMNS,
@@ -585,7 +588,7 @@ def _(issue_month, freq, positions, pathname, severity, season):
         positions,
         severity,
     )
-    return dft.to_dict("records"), dfs.to_dict("records")
+    return dft.to_dict("records"), dfs.to_dict("records"), prob_thresh
 
 
 @APP.callback(
@@ -606,9 +609,10 @@ def update_severity_color(value):
     Input("year", "value"),
     Input("location", "pathname"),
     Input("severity", "value"),
+    Input("prob_thresh", "value"),
     State("season", "value"),
 )
-def _(issue_month, freq, positions, geom_key, mode, year, pathname, severity, season):
+def _(issue_month, freq, positions, geom_key, mode, year, pathname, severity, prob_thresh, season):
     country_key = country(pathname)
     config = CONFIG["countries"][country_key]
     season_config = config["seasons"][season]
@@ -628,6 +632,7 @@ def _(issue_month, freq, positions, geom_key, mode, year, pathname, severity, se
         mode=mode,
         season_year=year,
         freq=freq,
+        prob_thresh=prob_thresh,
         season={
             "id": season,
             "label": season_config["label"],
@@ -812,6 +817,7 @@ def pnep_percentile():
     issue_month = parse_arg("issue_month", int)
     season_year = parse_arg("season_year", int)
     freq = parse_arg("freq", float)
+    prob_thresh = parse_arg("prob_thresh", float)
     bounds = parse_arg("bounds", json.loads, required=False)
     region = parse_arg("region", required=False)
 
@@ -844,24 +850,24 @@ def pnep_percentile():
         else:
             _, geom = retrieve_geometry2(country_key, int(mode), region)
 
-        pnep = pnep.sel({ns["pct"]: freq}, drop=True)
-        pnep = pnep.where(pnep[ns["issue"]] % 12 == issue_month, drop=True)
+        pnep = pnep.sel(
+            {
+                ns["pct"]: freq,
+                ns["issue"]: s
+            },
+            drop=True
+        )
 
         if ns["lead"] is not None:
             pnep = pnep.sel({ns["lead"]: l}, drop=True)
 
-        pnep = pingrid.average_over_trimmed(
+        forecast_prob = pingrid.average_over_trimmed(
             pnep, geom, lon_name=ns["lon"], lat_name=ns["lat"], all_touched=True
-        )
-
-        selected_value = pnep.sel({ns["issue"]: s}, drop=True).item()
-        rank = (pnep > selected_value).sum().values
-        history_count = pnep.notnull().count().values - 1
-        percentile = rank / history_count * 100
+        ).item()
 
     return {
-        "probability": selected_value,
-        "triggered": bool(percentile <= freq),
+        "probability": forecast_prob,
+        "triggered": bool(forecast_prob >= prob_thresh),
     }
 
 
