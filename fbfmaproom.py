@@ -388,7 +388,7 @@ def generate_tables(
     df["pnep_max_rank_pct"] = pnep_max_rank_pct
     df["pnep_yellow"] = (pnep_max_rank_pct <= freq / 100).astype(int)
 
-    prob_thresh = df[df["pnep_yellow"] == 1]["pne"].min()
+    prob_thresh = df[df["pnep_yellow"] == 1][ns["pnep"]].min()
 
     df = df[::-1]
 
