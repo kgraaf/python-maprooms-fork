@@ -127,7 +127,7 @@ def logo_layout():
 
 def disclaimer_layout():
     return html.Div(
-        [html.H5("This is not an Official Government Maproom")],
+        [html.H5("This is not an official Government Maproom.")],
         id="disclaimer_panel",
         className="info",
         style={
@@ -147,37 +147,33 @@ def command_layout():
     return html.Div(
         [
             dcc.Input(id="geom_key", type="hidden"),
-            html.Div([
-                            dbc.Button("ℹ️", id="table_pop_up",),
-                            dbc.Popover([
-                                dbc.PopoverHeader("Help"),
-                                dbc.PopoverBody(
-                                [ html.P("Mode - Refers to the spatial resolution such as: National, Regional, District and Pixel level"),
-                                html.P("Issue month - Refers to the month in which the forecast is issued"),
-                                html.P("Season - Refers to the rainy season being forecasted"),
-                                html.P("Year - Refers to the year being forecasted"),
-                                html.P("Severity - Refers to the level of drought severity being targeted"),
-                                html.P("Frequency of triggered forecasts - The sliders are used to set the frequency of forecast triggered"),
-                                html.P("Map - The map shows the forecast and vulnerability for the selected year and spatial resolution. Click on the layers to view"),
-                                ]),
-                                        ],
-                            id="table_header_body",
-                            target="table_pop_up",
-                            placement="left",
-                            trigger='legacy'
-                            )
-                        ]
-                    ),
             html.Div(
                 [
 
                     html.Label("Mode:"),
+                    html.Div([
+                                    dbc.Button("ℹ️", id="mode_pop_up",
+                                    className="button"),
+                                    dbc.Popover([
+                                        dbc.PopoverHeader("Help"),
+                                        dbc.PopoverBody(
+                                        [ html.P("Mode - Refers to the spatial resolution such as: National, Regional, District and Pixel level")
+                                        ]),
+                                                ],
+                                    id="mode_header_body",
+                                    target="mode_pop_up",
+                                    placement="right",
+                                    trigger='legacy'
+                                    )
+                                ]
+                            ),
                     dcc.Dropdown(
                         id="mode",
                         clearable=False,
                     ),
                 ],
                 style={
+                    "position": "relative",
                     "width": "120px",
                     "display": "inline-block",
                     "padding": "10px",
@@ -187,12 +183,29 @@ def command_layout():
             html.Div(
                 [
                     html.Label("Issue month:"),
+                    html.Div([
+                                    dbc.Button("ℹ️", id="issue_pop_up",
+                                    className="button"),
+                                    dbc.Popover([
+                                        dbc.PopoverHeader("Help"),
+                                        dbc.PopoverBody(
+                                        [ html.P("Mode - Refers to the month in which the forecast is issued")
+                                        ]),
+                                                ],
+                                    id="issue_header_body",
+                                    target="issue_pop_up",
+                                    placement="right",
+                                    trigger='legacy'
+                                    )
+                                ]
+                            ),
                     dcc.Dropdown(
                         id="issue_month",
                         clearable=False,
                     ),
                 ],
                 style={
+                    "position": "relative",
                     "width": "120px",
                     "display": "inline-block",
                     "padding": "10px",
@@ -202,12 +215,29 @@ def command_layout():
             html.Div(
                 [
                     html.Label("Season:"),
+                    html.Div([
+                                    dbc.Button("ℹ️", id="season_pop_up",
+                                    className="button"),
+                                    dbc.Popover([
+                                        dbc.PopoverHeader("Help"),
+                                        dbc.PopoverBody(
+                                        [ html.P("Season - Refers to the rainy season being forecasted")
+                                        ]),
+                                                ],
+                                    id="season_header_body",
+                                    target="season_pop_up",
+                                    placement="right",
+                                    trigger='legacy'
+                                    )
+                                ]
+                            ),
                     dcc.Dropdown(
                         id="season",
                         clearable=False,
                     ),
                 ],
                 style={
+                    "position": "relative",
                     "width": "95px",
                     "display": "inline-block",
                     "padding": "10px",
@@ -217,13 +247,29 @@ def command_layout():
             html.Div(
                 [
                     html.Label("Year:"),
+                    html.Div([
+                                    dbc.Button("ℹ️", id="year_pop_up",
+                                    className="button"),
+                                    dbc.Popover([
+                                        dbc.PopoverHeader("Help"),
+                                        dbc.PopoverBody(
+                                        [ html.P("Season - Refers to the rainy season being forecasted")
+                                        ]),
+                                                ],
+                                    id="year_header_body",
+                                    target="year_pop_up",
+                                    placement="right",
+                                    trigger='legacy'
+                                    )
+                                ]
+                            ),
                     dcc.Input(
                         id="year",
                         type="number",
                         step=1,
                         style={
                             "height": "36px",
-                            "width": "95%",
+                            "width": "98%",
                             "border-color": "rgb(200, 200, 200)",
                             "border-width": "1px",
                             "border-style": "solid",
@@ -233,6 +279,7 @@ def command_layout():
                     ),
                 ],
                 style={
+                    "position": "relative",
                     "width": "95px",
                     "display": "inline-block",
                     "padding": "10px",
@@ -242,6 +289,22 @@ def command_layout():
             html.Div(
                 [
                     html.Label("Severity:"),
+                    html.Div([
+                                    dbc.Button("ℹ️", id="severity_pop_up",
+                                    className="button"),
+                                    dbc.Popover([
+                                        dbc.PopoverHeader("Help"),
+                                        dbc.PopoverBody(
+                                        [ html.P("Severity - Refers to the level of drought severity being targeted")
+                                        ]),
+                                                ],
+                                    id="severity_header_body",
+                                    target="severity_pop_up",
+                                    placement="right",
+                                    trigger='legacy'
+                                    )
+                                ]
+                            ),
                     dcc.Dropdown(
                         id="severity",
                         clearable=False,
@@ -254,6 +317,7 @@ def command_layout():
                     ),
                 ],
                 style={
+                    "position": "relative",
                     "width": "95px",
                     "display": "inline-block",
                     "padding": "10px",
@@ -263,6 +327,22 @@ def command_layout():
             html.Div(
                 [
                     html.Label("Frequency of triggered forecasts:"),
+                    html.Div([
+                                    dbc.Button("ℹ️", id="frequency_pop_up",
+                                    className="button"),
+                                    dbc.Popover([
+                                        dbc.PopoverHeader("Help"),
+                                        dbc.PopoverBody(
+                                        [ html.P("Frequency of triggered forecasts - The sliders are used to set the frequency of forecast triggered")
+                                        ]),
+                                                ],
+                                    id="frequency_header_body",
+                                    target="frequency_pop_up",
+                                    placement="right",
+                                    trigger='legacy'
+                                    )
+                                ]
+                            ),
                     dcc.Slider(
                         id="freq",
                         min=5,
@@ -273,6 +353,7 @@ def command_layout():
                     ),
                 ],
                 style={
+                    "position": "relative",
                     "width": "350px",
                     "display": "inline-block",
                     "padding": "10px",
@@ -319,12 +400,10 @@ def command_layout():
 def table_layout(table_columns):
     return html.Div(
         [            html.Div([
-                                    dbc.Button("ℹ️", id="pop_up", style={
-#                                        "position": "absolute",
-#                                        "top": "0px",
-#                                        "right": "0px",
-#                                        "z-index": "1000",
-                                    }),
+                                    dbc.Button("ℹ️", id="pop_up",
+                                    style={
+                                        "padding": "0px"
+                                    }                                    ),
                                     dbc.Popover([
                                         dbc.PopoverHeader("Help"),
                                         dbc.PopoverBody(
@@ -352,11 +431,6 @@ def table_layout(table_columns):
                     table.DataTable(
                         id="summary",
                         columns=table_columns,
-                        page_action="none",
-                        style_table={
-                            "height": "auto",
-                            "overflowY": "scroll",
-                        },
                         css=[
                             {
                                 "selector": "tr:first-child",

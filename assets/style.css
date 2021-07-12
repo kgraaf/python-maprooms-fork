@@ -49,3 +49,11 @@ tr {
     background-color: rgb(251, 177, 57);
     border-color: rgb(251, 177, 57);
 }
+
+.button {
+         font-size: 70%;
+         position: absolute;
+         right: 12px;
+         top: 10px;
+         padding: 0px;
+}
