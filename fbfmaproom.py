@@ -28,6 +28,7 @@ import pyaconf
 import pingrid
 from pingrid import BGRA, InvalidRequest, parse_arg
 import fbflayout
+import dash_bootstrap_components as dbc
 
 
 CONFIG = pyaconf.load(os.environ["CONFIG"])
@@ -54,6 +55,7 @@ SERVER.register_error_handler(InvalidRequest, pingrid.invalid_request)
 
 APP = dash.Dash(
     __name__,
+    external_stylesheets=[dbc.themes.SIMPLEX],
     server=SERVER,
     url_base_pathname=f"{PFX}/",
     meta_tags=[
@@ -191,7 +193,7 @@ def open_enso(season_length):
                 sql.SQL(
                     """
                     select lower(adm0_name) as country_key, month_since_01011960,
-                        enso_state, bad_year 
+                        enso_state, bad_year
                     from {schema}.{table}
                     """
                 ).format(

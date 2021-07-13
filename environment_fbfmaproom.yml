@@ -20,3 +20,4 @@ dependencies:
     - dash-leaflet
     - pyaconf
     - queuepool
+    - dash-bootstrap-components

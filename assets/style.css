@@ -41,3 +41,11 @@ tr {
     border: solid 1px;
     background-color: #ff6961;
 }
+
+.button {
+         font-size: 70%;
+         position: absolute;
+         right: 12px;
+         top: 10px;
+         padding: 0px;
+}

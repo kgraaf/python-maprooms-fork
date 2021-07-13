@@ -4,7 +4,8 @@ import dash_table as table
 import dash_daq as daq
 import dash_leaflet as dlf
 import dash_leaflet.express as dlx
-
+import dash_bootstrap_components as dbc
+import csv
 
 SEVERITY_COLORS = ["#fdfd96", "#ffb347", "#ff6961"]
 
@@ -16,6 +17,7 @@ def app_layout(table_columns):
             logo_layout(),
             command_layout(),
             table_layout(table_columns),
+            disclaimer_layout(),
         ]
     )
 
@@ -115,16 +117,33 @@ def logo_layout():
         style={
             "position": "absolute",
             "top": "10px",
-            "width": "110px",
+            "width": "120px",
             "left": "90px",
             "z-index": "1000",
-            "height": "75px",
+            "height": "fit-content",
             "pointer-events": "auto",
             "padding-left": "10px",
             "padding-right": "10px",
         },
     )
 
+def disclaimer_layout():
+    return html.Div(
+        [html.H5("This is not an official Government Maproom.")],
+        id="disclaimer_panel",
+        className="info",
+        style={
+            "position": "absolute",
+            "width": "fit-content",
+            "z-index": "1000",
+            "height": "fit-content",
+            "bottom":"0",
+            "right":"0",
+            "pointer-events": "auto",
+            "padding-left": "10px",
+            "padding-right": "10px",
+        },
+    )
 
 def command_layout():
     return html.Div(
@@ -133,14 +152,32 @@ def command_layout():
             dcc.Input(id="prob_thresh", type="hidden"),
             html.Div(
                 [
+
                     html.Label("Mode:"),
+                    html.Div([
+                                    dbc.Button("ℹ️", id="mode_pop_up",
+                                    className="button"),
+                                    dbc.Popover([
+                                        dbc.PopoverHeader("Help"),
+                                        dbc.PopoverBody(
+                                        [ html.P("Mode - Refers to the spatial resolution such as: National, Regional, District and Pixel level")
+                                        ]),
+                                                ],
+                                    id="mode_header_body",
+                                    target="mode_pop_up",
+                                    placement="right",
+                                    trigger='legacy'
+                                    )
+                                ]
+                            ),
                     dcc.Dropdown(
                         id="mode",
                         clearable=False,
                     ),
                 ],
                 style={
-                    "width": "95px",
+                    "position": "relative",
+                    "width": "120px",
                     "display": "inline-block",
                     "padding": "10px",
                     "vertical-align": "top",
@@ -149,13 +186,30 @@ def command_layout():
             html.Div(
                 [
                     html.Label("Issue month:"),
+                    html.Div([
+                                    dbc.Button("ℹ️", id="issue_pop_up",
+                                    className="button"),
+                                    dbc.Popover([
+                                        dbc.PopoverHeader("Help"),
+                                        dbc.PopoverBody(
+                                        [ html.P("Mode - Refers to the month in which the forecast is issued")
+                                        ]),
+                                                ],
+                                    id="issue_header_body",
+                                    target="issue_pop_up",
+                                    placement="right",
+                                    trigger='legacy'
+                                    )
+                                ]
+                            ),
                     dcc.Dropdown(
                         id="issue_month",
                         clearable=False,
                     ),
                 ],
                 style={
-                    "width": "95px",
+                    "position": "relative",
+                    "width": "120px",
                     "display": "inline-block",
                     "padding": "10px",
                     "vertical-align": "top",
@@ -164,12 +218,29 @@ def command_layout():
             html.Div(
                 [
                     html.Label("Season:"),
+                    html.Div([
+                                    dbc.Button("ℹ️", id="season_pop_up",
+                                    className="button"),
+                                    dbc.Popover([
+                                        dbc.PopoverHeader("Help"),
+                                        dbc.PopoverBody(
+                                        [ html.P("Season - Refers to the rainy season being forecasted")
+                                        ]),
+                                                ],
+                                    id="season_header_body",
+                                    target="season_pop_up",
+                                    placement="right",
+                                    trigger='legacy'
+                                    )
+                                ]
+                            ),
                     dcc.Dropdown(
                         id="season",
                         clearable=False,
                     ),
                 ],
                 style={
+                    "position": "relative",
                     "width": "95px",
                     "display": "inline-block",
                     "padding": "10px",
@@ -179,13 +250,29 @@ def command_layout():
             html.Div(
                 [
                     html.Label("Year:"),
+                    html.Div([
+                                    dbc.Button("ℹ️", id="year_pop_up",
+                                    className="button"),
+                                    dbc.Popover([
+                                        dbc.PopoverHeader("Help"),
+                                        dbc.PopoverBody(
+                                        [ html.P("Season - Refers to the rainy season being forecasted")
+                                        ]),
+                                                ],
+                                    id="year_header_body",
+                                    target="year_pop_up",
+                                    placement="right",
+                                    trigger='legacy'
+                                    )
+                                ]
+                            ),
                     dcc.Input(
                         id="year",
                         type="number",
                         step=1,
                         style={
-                            "height": "32px",
-                            "width": "95%",
+                            "height": "36px",
+                            "width": "98%",
                             "border-color": "rgb(200, 200, 200)",
                             "border-width": "1px",
                             "border-style": "solid",
@@ -195,6 +282,7 @@ def command_layout():
                     ),
                 ],
                 style={
+                    "position": "relative",
                     "width": "95px",
                     "display": "inline-block",
                     "padding": "10px",
@@ -204,6 +292,22 @@ def command_layout():
             html.Div(
                 [
                     html.Label("Severity:"),
+                    html.Div([
+                                    dbc.Button("ℹ️", id="severity_pop_up",
+                                    className="button"),
+                                    dbc.Popover([
+                                        dbc.PopoverHeader("Help"),
+                                        dbc.PopoverBody(
+                                        [ html.P("Severity - Refers to the level of drought severity being targeted")
+                                        ]),
+                                                ],
+                                    id="severity_header_body",
+                                    target="severity_pop_up",
+                                    placement="right",
+                                    trigger='legacy'
+                                    )
+                                ]
+                            ),
                     dcc.Dropdown(
                         id="severity",
                         clearable=False,
@@ -216,6 +320,7 @@ def command_layout():
                     ),
                 ],
                 style={
+                    "position": "relative",
                     "width": "95px",
                     "display": "inline-block",
                     "padding": "10px",
@@ -225,6 +330,22 @@ def command_layout():
             html.Div(
                 [
                     html.Label("Frequency of triggered forecasts:"),
+                    html.Div([
+                                    dbc.Button("ℹ️", id="frequency_pop_up",
+                                    className="button"),
+                                    dbc.Popover([
+                                        dbc.PopoverHeader("Help"),
+                                        dbc.PopoverBody(
+                                        [ html.P("Frequency of triggered forecasts - The sliders are used to set the frequency of forecast triggered")
+                                        ]),
+                                                ],
+                                    id="frequency_header_body",
+                                    target="frequency_pop_up",
+                                    placement="right",
+                                    trigger='legacy'
+                                    )
+                                ]
+                            ),
                     dcc.Slider(
                         id="freq",
                         min=5,
@@ -235,6 +356,7 @@ def command_layout():
                     ),
                 ],
                 style={
+                    "position": "relative",
                     "width": "350px",
                     "display": "inline-block",
                     "padding": "10px",
@@ -271,28 +393,47 @@ def command_layout():
             "right": "10px",
             "left": "230px",
             "z-index": "1000",
-            "height": "75px",
+            "height": "fit-content",
             "pointer-events": "auto",
             "padding-left": "10px",
             "padding-right": "10px",
         },
     )
 
-
 def table_layout(table_columns):
     return html.Div(
-        [
+        [            html.Div([
+                                    dbc.Button("ℹ️", id="pop_up",
+                                    style={
+                                        "padding": "0px"
+                                    }                                    ),
+                                    dbc.Popover([
+                                        dbc.PopoverHeader("Help"),
+                                        dbc.PopoverBody(
+                                [ html.P("ENSO State - Displays whether an El Nino, Neutral or La Nina state occurred during the year"),
+                                html.P("Forecast - Displays all the historical flexible forecast for the selected issue month and location"),
+                                html.P("Rain Rank - Presents the ranking of the rainfall for the year compared to all the years"),
+                                html.P("Reported Bad Year - Historical drought years based on farmers recollection"),
+                                html.P("Worthy Action - Drought was forecasted and a ‘bad year’ occurred"),
+                                html.P("Act-in-Vain - Drought was forecasted but a ‘bad year’ did not occur"),
+                                html.P("Fail-to-Act - No drought was forecasted but a ‘bad year’ occurred"),
+                                html.P("Worthy-Inaction - No drought was forecasted, and no ‘bad year’ occurred"),
+                                html.P("Rate - Gives the percentage of worthy-action and worthy-inactions")],
+                                        ),
+                                                ],
+                                    id="header_body",
+                                    target="pop_up",
+                                    placement="left",
+                                    trigger='legacy'
+                                    )
+                                ]
+                            ),
             html.Div(id="log"),
             dcc.Loading(
                 [
                     table.DataTable(
                         id="summary",
                         columns=table_columns,
-                        page_action="none",
-                        style_table={
-                            "height": "auto",
-                            "overflowY": "scroll",
-                        },
                         css=[
                             {
                                 "selector": "tr:first-child",
@@ -445,7 +586,7 @@ def table_layout(table_columns):
             "top": "110px",
             "right": "10px",
             "z-index": "1000",
-            "height": "564px",
+            "height": "fit-content",
             "width": "600px",
             "pointer-events": "auto",
             "padding-left": "10px",
