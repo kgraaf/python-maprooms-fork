@@ -210,7 +210,7 @@ def open_enso(season_length):
         lambda x: pingrid.from_months_since(x - season_length / 2).year
     )
     df["end_year"] = df["month_since_01011960"].apply(
-        lambda x: pingrid.from_months_since(x + season_length / 2).year
+        lambda x: (pingrid.from_months_since(x + season_length / 2) - datetime.timedelta(days=1)).year
     )
     df["label"] = df.apply(
         lambda d: str(d["begin_year"])
