@@ -5,7 +5,6 @@ import dash_daq as daq
 import dash_leaflet as dlf
 import dash_leaflet.express as dlx
 import dash_bootstrap_components as dbc
-import csv
 
 SEVERITY_COLORS = ["#fdfd96", "#ffb347", "#ff6961"]
 
@@ -21,6 +20,25 @@ def app_layout(table_columns):
         ]
     )
 
+def help_layout(buttonname, message):
+        return  html.Div(
+                          [
+                            dbc.Button("ℹ️", id=f"{buttonname}_pop_up",
+                            className="help"),
+                            dbc.Popover(
+                                        [
+                                        dbc.PopoverHeader("Help"),
+                                        dbc.PopoverBody(
+                                            [html.P(f"{message}")]
+                                                       ),
+                                        ],
+                                        id=f"{buttonname}_header_body",
+                                        target=f"{buttonname}_pop_up",
+                                        placement="right",
+                                        trigger='legacy'
+                                      )
+                            ]
+                        )
 
 def map_layout():
     return dlf.Map(
@@ -154,22 +172,8 @@ def command_layout():
                 [
 
                     html.Label("Mode:"),
-                    html.Div([
-                                    dbc.Button("ℹ️", id="mode_pop_up",
-                                    className="button"),
-                                    dbc.Popover([
-                                        dbc.PopoverHeader("Help"),
-                                        dbc.PopoverBody(
-                                        [ html.P("The spatial resolution such as National, Regional, District or Pixel level")
-                                        ]),
-                                                ],
-                                    id="mode_header_body",
-                                    target="mode_pop_up",
-                                    placement="right",
-                                    trigger='legacy'
-                                    )
-                                ]
-                            ),
+                    help_layout("mode", \
+                    "The spatial resolution such as National, Regional, District or Pixel level"),
                     dcc.Dropdown(
                         id="mode",
                         clearable=False,
@@ -186,22 +190,8 @@ def command_layout():
             html.Div(
                 [
                     html.Label("Issue month:"),
-                    html.Div([
-                                    dbc.Button("ℹ️", id="issue_pop_up",
-                                    className="button"),
-                                    dbc.Popover([
-                                        dbc.PopoverHeader("Help"),
-                                        dbc.PopoverBody(
-                                        [ html.P("The month in which the forecast is issued")
-                                        ]),
-                                                ],
-                                    id="issue_header_body",
-                                    target="issue_pop_up",
-                                    placement="right",
-                                    trigger='legacy'
-                                    )
-                                ]
-                            ),
+                    help_layout("issue", \
+                    "The month in which the forecast is issued"),
                     dcc.Dropdown(
                         id="issue_month",
                         clearable=False,
@@ -218,22 +208,7 @@ def command_layout():
             html.Div(
                 [
                     html.Label("Season:"),
-                    html.Div([
-                                    dbc.Button("ℹ️", id="season_pop_up",
-                                    className="button"),
-                                    dbc.Popover([
-                                        dbc.PopoverHeader("Help"),
-                                        dbc.PopoverBody(
-                                        [ html.P("The rainy season being forecasted")
-                                        ]),
-                                                ],
-                                    id="season_header_body",
-                                    target="season_pop_up",
-                                    placement="right",
-                                    trigger='legacy'
-                                    )
-                                ]
-                            ),
+                    help_layout("season", "The rainy season being forecasted"),
                     dcc.Dropdown(
                         id="season",
                         clearable=False,
@@ -250,22 +225,8 @@ def command_layout():
             html.Div(
                 [
                     html.Label("Year:"),
-                    html.Div([
-                                    dbc.Button("ℹ️", id="year_pop_up",
-                                    className="button"),
-                                    dbc.Popover([
-                                        dbc.PopoverHeader("Help"),
-                                        dbc.PopoverBody(
-                                        [ html.P("The year whose forecast is displayed on the map")
-                                        ]),
-                                                ],
-                                    id="year_header_body",
-                                    target="year_pop_up",
-                                    placement="right",
-                                    trigger='legacy'
-                                    )
-                                ]
-                            ),
+                    help_layout("year", \
+                    "The year whose forecast is displayed on the map"),
                     dcc.Input(
                         id="year",
                         type="number",
@@ -292,22 +253,8 @@ def command_layout():
             html.Div(
                 [
                     html.Label("Severity:"),
-                    html.Div([
-                                    dbc.Button("ℹ️", id="severity_pop_up",
-                                    className="button"),
-                                    dbc.Popover([
-                                        dbc.PopoverHeader("Help"),
-                                        dbc.PopoverBody(
-                                        [ html.P("The level of drought severity being targeted")
-                                        ]),
-                                                ],
-                                    id="severity_header_body",
-                                    target="severity_pop_up",
-                                    placement="right",
-                                    trigger='legacy'
-                                    )
-                                ]
-                            ),
+                    help_layout("severity", \
+                    "The level of drought severity being targeted"),
                     dcc.Dropdown(
                         id="severity",
                         clearable=False,
@@ -330,22 +277,8 @@ def command_layout():
             html.Div(
                 [
                     html.Label("Frequency of triggered forecasts:"),
-                    html.Div([
-                                    dbc.Button("ℹ️", id="frequency_pop_up",
-                                    className="button"),
-                                    dbc.Popover([
-                                        dbc.PopoverHeader("Help"),
-                                        dbc.PopoverBody(
-                                        [ html.P("The slider is used to set the frequency of forecast triggered")
-                                        ]),
-                                                ],
-                                    id="frequency_header_body",
-                                    target="frequency_pop_up",
-                                    placement="right",
-                                    trigger='legacy'
-                                    )
-                                ]
-                            ),
+                    help_layout("frequency", \
+                    "The slider is used to set the frequency of forecast triggered"),
                     dcc.Slider(
                         id="freq",
                         min=5,
@@ -363,12 +296,12 @@ def command_layout():
                     "vertical-align": "top",
                 },
             ),
-            html.Div(
+            html.Div([
                 dcc.Loading(
                     html.A(
-                        html.Img(
-                            src="assets/ganttit.png",
-                            style={"cursor": "pointer"},
+                        dbc.Button(
+                            "Gantt it!",
+                            color="info",
                         ),
                         id="gantt",
                         target="_blank",
@@ -377,8 +310,11 @@ def command_layout():
                     parent_style={"height": "100%"},
                     style={"opacity": 0.2},
                 ),
+                    help_layout("gantt", \
+                    "Gantt it!- Early action activities planning tool in a format of a Gantt chart")],
                 style={
-                    "width": "100px",
+                    "position": "relative",
+                    "width": "110px",
                     "display": "inline-block",
                     "padding": "10px",
                     "vertical-align": "top",
@@ -434,6 +370,11 @@ def table_layout(table_columns):
                     table.DataTable(
                         id="summary",
                         columns=table_columns,
+                        page_action="none",
+                        style_table={
+                            "height": "auto",
+                            "overflowY": "scroll",
+                        },
                         css=[
                             {
                                 "selector": "tr:first-child",
