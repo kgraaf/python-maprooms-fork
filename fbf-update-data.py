@@ -31,6 +31,14 @@ datasets = [
         "/home/.aaron/.Ethiopia/.CPT/.NextGen/.MAM_PRCP/.Somali/.NextGen/.FbF/.pne/P//P//percentile/0/5/5/95/NewEvenGRID/replaceGRID/data.nc",
     ),
     (
+        "rain-ethiopia-ond",
+        "/SOURCES/.UCSB/.CHIRPS/.v2p0/.daily-improved/.global/.0p25/.prcp/30/mul/X/39.875/47.875/RANGE/Y/3.625/10.875/RANGE/T/(Oct-Dec)/seasonalAverage//units/(mm/month)/def/data.nc",
+    ),
+    (
+        "pnep-ethiopia-ond",
+        "/home/.aaron/.Ethiopia/.CPT/.NextGen/.OND_PRCP/.Somali/.NextGen/.FbF/.pne/P//P//percentile/0/5/5/95/NewEvenGRID/replaceGRID/data.nc",
+    ),
+    (
         'rain-niger',
         '/home/.remic/.DNM/.Forecasts/.NextGen/.PRCPPRCP_CCAFCST_JAS/.NextGen/.FbF/.obs/data.nc'
     ),
