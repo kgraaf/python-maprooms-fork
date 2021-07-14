@@ -160,7 +160,7 @@ def command_layout():
                                     dbc.Popover([
                                         dbc.PopoverHeader("Help"),
                                         dbc.PopoverBody(
-                                        [ html.P("Mode - Refers to the spatial resolution such as: National, Regional, District and Pixel level")
+                                        [ html.P("The spatial resolution such as National, Regional, District or Pixel level")
                                         ]),
                                                 ],
                                     id="mode_header_body",
@@ -192,7 +192,7 @@ def command_layout():
                                     dbc.Popover([
                                         dbc.PopoverHeader("Help"),
                                         dbc.PopoverBody(
-                                        [ html.P("Mode - Refers to the month in which the forecast is issued")
+                                        [ html.P("The month in which the forecast is issued")
                                         ]),
                                                 ],
                                     id="issue_header_body",
@@ -224,7 +224,7 @@ def command_layout():
                                     dbc.Popover([
                                         dbc.PopoverHeader("Help"),
                                         dbc.PopoverBody(
-                                        [ html.P("Season - Refers to the rainy season being forecasted")
+                                        [ html.P("The rainy season being forecasted")
                                         ]),
                                                 ],
                                     id="season_header_body",
@@ -256,7 +256,7 @@ def command_layout():
                                     dbc.Popover([
                                         dbc.PopoverHeader("Help"),
                                         dbc.PopoverBody(
-                                        [ html.P("Season - Refers to the rainy season being forecasted")
+                                        [ html.P("The year whose forecast is displayed on the map")
                                         ]),
                                                 ],
                                     id="year_header_body",
@@ -298,7 +298,7 @@ def command_layout():
                                     dbc.Popover([
                                         dbc.PopoverHeader("Help"),
                                         dbc.PopoverBody(
-                                        [ html.P("Severity - Refers to the level of drought severity being targeted")
+                                        [ html.P("The level of drought severity being targeted")
                                         ]),
                                                 ],
                                     id="severity_header_body",
@@ -336,7 +336,7 @@ def command_layout():
                                     dbc.Popover([
                                         dbc.PopoverHeader("Help"),
                                         dbc.PopoverBody(
-                                        [ html.P("Frequency of triggered forecasts - The sliders are used to set the frequency of forecast triggered")
+                                        [ html.P("The slider is used to set the frequency of forecast triggered")
                                         ]),
                                                 ],
                                     id="frequency_header_body",
