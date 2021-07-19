@@ -4,10 +4,11 @@ import dash
 import dash_html_components as html
 import dash_bootstrap_components as dbc
 from dash.dependencies import Output, Input, State
+import dash_leaflet as dlf
 import pyaconf
 import pingrid
 import layout
-
+import charts
 
 CONFIG = pyaconf.load(os.environ["CONFIG"])
 
@@ -46,14 +47,99 @@ def toggle_navbar_collapse(n, is_open):
 
 
 @APP.callback(
-    Output("map", "style"),
-    Input("date_input", "value"),
+    Output("probability-collapse", "is_open"),
+    Output("probExcThresh1", "value"),
+    Output("poeunits", "value"),
+    Input("yearly_stats_input", "value"),
 )
-def toggle_layout(value):
-    return {
-        "width": "100%",
-        "height": "93vh" if value == "onset" else "45vh",
+def change_form_layout(value):
+    return value == "pe", 30, "/percent"
+
+
+@APP.callback(
+    Output("layers_group", "children"),
+    Output("lat_inp", "value"),
+    Output("lng_inp", "value"),
+    Input("map", "click_lat_lng")
+)
+def map_click(click_lat_lng):
+    return [
+        dlf.Marker(
+            position=click_lat_lng,
+            children=dlf.Tooltip("({:.3f}, {:.3f})".format(*click_lat_lng))
+        ),
+        click_lat_lng[0],
+        click_lat_lng[1]
+    ]
+
+
+@APP.callback(
+    Output("onset_date0", "src"),
+    Output("onset_date1", "src"),
+    Output("cess_date0", "src"),
+    Output("cess_date1", "src"),
+    Output("pdf_link", "href"),
+    Output("onset_cess_table", "children"),
+    Input("lat_inp", "value"),
+    Input("lng_inp", "value"),
+    Input("earlyStartDay", "value"),
+    Input("earlyStartMonth", "value"),
+    Input("searchDays", "value"),
+    Input("wetThreshold", "value"),
+    Input("runningDays", "value"),
+    Input("runningTotal", "value"),
+    Input("minRainyDays", "value"),
+    Input("dryDays", "value"),
+    Input("drySpell", "value"),
+    Input("earlyCessDay", "value"),
+    Input("earlyCessMonth", "value"),
+    Input("searchDaysCess", "value"),
+    Input("waterBalanceCess", "value"),
+    Input("drySpellCess", "value"),
+    Input("plotrange1", "value"),
+    Input("plotrange2", "value"),
+)
+def update_charts(lat, lng, earlyStartDay, earlyStartMonth, searchDays, wetThreshold, \
+                  runningDays, runningTotal, minRainyDays, dryDays, \
+                  drySpell, earlyCessDay, earlyCessMonth, searchDaysCess, waterBalanceCess, drySpellCess \
+    , plotrange1, plotrange2):
+    params = {
+        "earlyStart": str(earlyStartDay) + "%20" + str(earlyStartMonth),
+        "searchDays": searchDays,
+        "wetThreshold": wetThreshold,
+        "runningDays": runningDays,
+        "runningTotal": runningTotal,
+        "minRainyDays": minRainyDays,
+        "dryDays": dryDays,
+        "drySpell": drySpell,
+        "earlyCess": str(earlyCessDay) + "%20" + str(earlyCessMonth),
+        "searchDaysCess": searchDaysCess,
+        "waterBalanceCess": waterBalanceCess,
+        "drySpellCess": drySpellCess,
+        "plotrange1": plotrange1,
+        "plotrange2": plotrange2
     }
+
+    tab_data = charts.table(lat, lng, params)
+
+    table_header = [
+        html.Thead(html.Tr([html.Th("Year"), html.Th("Onset Date"), html.Th("Cessation Date")]))
+    ]
+
+    table_body = html.Tbody(
+        [ html.Tr([html.Td(r[0]), html.Td(r[1]), html.Td(r[2])]) for r in tab_data ]
+    )
+
+    return [
+        charts.onset_date(lat, lng, params),
+        charts.prob_exceed(lat, lng, params),
+        charts.cess_date(lat, lng, params),
+        charts.cess_exceed(lat, lng, params),
+        charts.pdf(lat, lng, params),
+        table_header + [ table_body ]
+    ]
+
+
 
 
 if __name__ == "__main__":

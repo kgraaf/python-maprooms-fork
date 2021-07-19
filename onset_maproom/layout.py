@@ -3,7 +3,7 @@ import dash_html_components as html
 import dash_bootstrap_components as dbc
 import dash_table as table
 import dash_leaflet as dlf
-
+from widgets import *
 
 IRI_BLUE = "rgb(25,57,138)"
 IRI_GRAY = "rgb(113,112,116)"
@@ -144,109 +144,192 @@ def column1_content():
                 ]
             ),
             html.P(
-                "The Maproom explores historical rainy season onset and cessation "
-                "dates based on user-defined definitions. The date when the rainy "
-                "season starts is critical to agriculture planification, in "
-                "particular for planting."
+                """
+                The Maproom explores historical rainy season onset and
+                cessation dates based on user-defined definitions. The
+                date when the rainy season starts is critical to
+                agriculture planification, in particular for planting.
+                """
             ),
             html.P(
-                "By enabling the exploration of the history of onset dates, "
-                "the Maproom allows to understand the spatial and temporal variability "
-                "of this phenomenon and therefore characterize the risk for a successful "
-                "agricultural campaign associated with it."
+                """
+                By enabling the exploration of the history of onset
+                dates, the Maproom allows to understand the spatial
+                and temporal variability of this phenomenon and
+                therefore characterize the risk for a successful
+                agricultural campaign associated with it.
+                """
             ),
-            dbc.FormGroup(
-                [
-                    dbc.Label("Date:", size="sm", html_for="date_input", width="auto"),
-                    dbc.Col(
-                        dbc.Select(
-                            id="date_input",
-                            value="onset",
-                            bs_size="sm",
-                            options=[
-                                {"label": "Onset", "value": "onset"},
-                                {"label": "Cessation", "value": "cessation"},
-                            ],
-                        ),
-                        width="auto",
-                    ),
-                ],
-                row=True,
-                inline=True,
+
+            Block("Location",
+                  dbc.FormGroup(
+                      [
+                          dbc.Label("Latitude:", size="sm", html_for="lat_inp", width="auto"),
+                          dbc.Col(
+                              dbc.Input(id="lat_inp", type="number", step="0.01"),
+                              width="auto",
+                          ),
+                      ],
+                      row=True,
+                      inline=True,
+                  ),
+                  dbc.FormGroup(
+                      [
+                          dbc.Label("Longitude:", size="sm", html_for="lng_inp", width="auto"),
+                          dbc.Col(
+                              dbc.Input(id="lng_inp", type="number", step="0.01"),
+                              width="auto",
+                          ),
+                      ],
+                      row=True,
+                      inline=True,
+                  ),
             ),
-            dbc.FormGroup(
-                [
-                    dbc.Label(
-                        "Yearly statistics:",
-                        size="sm",
-                        html_for="yearly_stats_input",
-                        width="auto",
-                    ),
-                    dbc.Col(
-                        dbc.Select(
-                            id="yearly_stats_input",
-                            value="mean",
-                            bs_size="sm",
-                            options=[
-                                {"label": "Mean", "value": "mean"},
-                                {"label": "Standard deviation", "value": "stddev"},
-                                {"label": "Probability of exceedance", "value": "pe"},
-                            ],
-                        ),
-                        width="auto",
-                    ),
-                ],
-                row=True,
-                inline=True,
+
+            Block("Date",
+                  dbc.Select(
+                      id="date_input",
+                      value="onset",
+                      bs_size="sm",
+                      options=[
+                          {"label": "Onset", "value": "onset"},
+                          {"label": "Cessation", "value": "cessation"},
+                      ],
+                  ),
             ),
-            dbc.FormGroup(
-                [
-                    dbc.Label(
-                        "Wet day definition:",
-                        size="sm",
-                        html_for="wet_day_def_input",
-                        width="auto",
-                    ),
-                    dbc.Col(
-                        dbc.Input(
-                            id="wet_day_def_input",
-                            value=0,
-                            bs_size="sm",
-                            type="number",
-                            min=0,
-                            max=10,
-                            step=1,
-                        ),
-                        width="auto",
-                    ),
-                ],
-                row=True,
-                inline=True,
+
+            Block("Yearly Statistics",
+                  dbc.Select(
+                      id="yearly_stats_input",
+                      value="mean",
+                      bs_size="sm",
+                      options=[
+                          {"label": "Mean", "value": "mean"},
+                          {"label": "Standard deviation", "value": "stddev"},
+                          {"label": "Probability of exceedance", "value": "pe"},
+                      ],
+                  ),
+                  dbc.Collapse(
+                      Sentence(
+                          Number("probExcThresh1", 30, min=0, max=999),
+                          "days since Early Start, as",
+                          Units("poeunits"),
+                      ),
+                      id="probability-collapse",
+                  )
+            ),
+
+            Block("Search Period",
+                  Sentence(
+                      "From Early Start date of",
+                      Date("earlyStart", 1, "Jun"),
+                      "and within the next",
+                      Number("searchDays", 90, min=0, max=9999),
+                      "days"
+                  )
+            ),
+
+            Block("Wet Day Definition",
+                  Sentence(
+                      "Rainfall amount greater than",
+                      Number("wetThreshold", 1, min=0, max=99999),
+                      "mm",
+                  )
+            ),
+
+            Block("Onset Date Definition",
+                  Sentence(
+                      "First window of",
+                      Number("runningDays", 5, min=0, max=999),
+                      "days that totals",
+                      Number("runningTotal", 20, min=0, max=99999),
+                      "mm or more and with at least",
+                      Number("minRainyDays", 3, min=0, max=999),
+                      "wet days and that is not followed by a",
+                      Number("dryDays", 7, min=0, max=999),
+                      "day dry spell within the next",
+                      Number("drySpell", 21, min=0, max=9999),
+                      "days",
+                  )
+            ),
+
+            Block("Cessation Date Definition",
+                  Sentence(
+                      "First date after",
+                      Date("earlyCess", 1, "Sep"),
+                      "in",
+                      Number("searchDaysCess", 90, min=0, max=99999),
+                      "days when the soil water balance falls below",
+                      Number("waterBalanceCess", 5, min=0, max=999),
+                      "mm for a period of",
+                      Number("drySpellCess", 3, min=0, max=999),
+                      "days",
+                  )
+            ),
+
+            Block("Local Plots Range",
+                  Sentence(
+                      Number("plotrange1", 0, min=0, max=9999),
+                      "to",
+                      Number("plotrange2", 60, min=0, max=9999),
+                      "days"
+                  )
+            ),
+
+            html.P(
+                """
+                The definition of the onset can be set up in the
+                Control Bar at the top and is looking at a
+                significantly wet event (e.g. 20mm in 3 days) that is
+                not followed by a dry spell (e.g. 7-day dry spell in
+                the following 21 days). The actual date is the first
+                wet day of the wet event. The onset date is computed
+                on-the-fly for each year according to the definition,
+                and is expressed in days since an early start date
+                (e.g. Jun. 1st). The search for the onset date is made
+                from that early start date and for a certain number of
+                following days (e.g. 60 days). The early start date
+                serves as a reference and should be picked so that it
+                is ahead of the expected onset date. Generally, two
+                rainy seasons are expected in the region: Belg
+                (Feb-May) and Kiremt (Jun-Sep).
+                """
             ),
             html.P(
-                "This map shows the monthly geopotential height climatology "
-                "and anomalies at the 250 hPa pressure level in the atmosphere using "
-                "the 1981-2010 base period for the month shown."
+                """
+                Then the map shows yearly statistics of the onset
+                date: the mean (by default), standard deviation or
+                probability of exceeding a chosen number of
+                days. Clicking on the map will then produce a local
+                yearly time series of onset dates, as well as a table
+                with the actual date (as opposed to days since early
+                start); and a probability of exceeding graph.
+                """
             ),
             html.P(
-                "Monthly geopotential height climatology values are shown as "
-                "grey contours with a contour interval of 60 geopotential meters (gpm). "
-                "Positive geopotential height anomalies are shown in yellow and orange, "
-                "and negative anomalies are shown in shades of blue and are also "
-                "expressed in units of gpm."
+                """
+                Note that if the criteria to define the onset date are
+                not met within the search period, the analysis will
+                return a missing value. And if the analysis returns 0
+                (days since the early start), it is likely that the
+                early start date picked is within the rainy season.
+                """
             ),
             html.H5("Dataset Documentation"),
             html.P(
-                "Monthly Geopotential Height Anomaly at 250 hPa. "
-                "Data: NCEP-NCAR Reanalysis monthly geopotential height at "
-                "250 hPa on a 2.5° lat/lon grid."
+                """
+                Reconstructed rainfall on a 0.0375˚ x 0.0375˚ lat/lon
+                grid (about 4km) from National Meteorology Agency. The
+                time series (1981 to 2017) were created by combining
+                quality-controlled station observations in NMA’s
+                archive with satellite rainfall estimates.
+                """
             ),
         ],
         fluid=True,
         className="scrollable-panel",
         style={"padding-bottom": "1rem", "padding-top": "1rem"},
     )
-
 
 def column2_content():
     return dbc.Container(
@@ -273,14 +356,15 @@ def column2_content():
                         position="topleft",
                         id="layers_control",
                     ),
+                    dlf.LayerGroup(id="layers_group"),
                     dlf.ScaleControl(imperial=False, position="bottomleft"),
                 ],
                 id="map",
-                center=[3.5, -74],
+                center=[8.9806, 38.7578],
                 zoom=7,
                 style={
                     "width": "100%",
-                    "height": "93vh",
+                    "height": "50vh",
                 },
             ),
         ],
@@ -289,14 +373,64 @@ def column2_content():
     )
 
 
+
+
 def column3_content():
-    return html.Img(
-        style={"width": "600px"},
-        src=(
-            "https://iridl.ldeo.columbia.edu/dlcharts/render/"
-            "905cdac6e87a58586967e115a18e615d01530ddd?_wd=1200px&_ht=600px"
-            "&_langs=en&_mimetype=image%2Fpng"
-            "&region=bb%3A39.375%3A7.125%3A39.625%3A7.375%3Abb"
-            "&waterBalanceCess=3&drySpellCess=10&plotrange2=15"
-        ),
+    return dbc.Tabs(
+        [
+            dbc.Tab(
+                [
+                    html.Img(
+                        style={"width": "600px"},
+                        id="onset_date0",
+                        src="",
+                    ),
+                    html.Img(
+                        style={"width": "600px"},
+                        id="onset_date1",
+                        src=""
+                    )
+                ],
+                label="Onset Dates"
+            ),
+
+            dbc.Tab(
+                [
+                    html.Img(
+                        style={"width": "600px"},
+                        id="cess_date0",
+                        src="",
+                    ),
+                    html.Img(
+                        style={"width": "600px"},
+                        id="cess_date1",
+                        src=""
+                    )
+                ],
+                label="Cessation Dates"
+            ),
+
+            dbc.Tab(
+                dbc.Table([], id="onset_cess_table", bordered=True, className="m-2"),
+                label="Table"
+            ),
+
+            dbc.Tab(
+                html.A("PDF Batch Report", id="pdf_link", href="#"),
+                label="PDF"
+            ),
+        ],
+        className="mt-4",
     )
+
+
+    # return html.Img(
+    #     style={"width": "600px"},
+    #     src=(
+    #         "https://iridl.ldeo.columbia.edu/dlcharts/render/"
+    #         "905cdac6e87a58586967e115a18e615d01530ddd?_wd=1200px&_ht=600px"
+    #         "&_langs=en&_mimetype=image%2Fpng"
+    #         "&region=bb%3A39.375%3A7.125%3A39.625%3A7.375%3Abb"
+    #         "&waterBalanceCess=3&drySpellCess=10&plotrange2=15"
+    #     ),
+    # )
