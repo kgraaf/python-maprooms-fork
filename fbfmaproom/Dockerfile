@@ -16,7 +16,7 @@ RUN curl -L \
     bash /miniconda-installer.sh -b -p /conda && \
     eval "$('/conda/bin/conda' 'shell.bash' 'hook' 2> /dev/null)" && \
     conda config --set auto_update_conda False && \
-    conda install conda==4.10.1
+    conda install conda==4.10.3
 
 # conda environment
 COPY fbfmaproom/environment_linux.yml /build/environment.yml
