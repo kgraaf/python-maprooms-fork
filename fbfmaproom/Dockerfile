@@ -19,7 +19,7 @@ RUN curl -L \
     conda install conda==4.10.1
 
 # conda environment
-COPY environment_fbfmaproom_linux.yml /build/environment.yml
+COPY fbfmaproom/environment_linux.yml /build/environment.yml
 RUN eval "$('/conda/bin/conda' 'shell.bash' 'hook' 2> /dev/null)" && \
     conda env create -f /build/environment.yml
 
@@ -30,13 +30,14 @@ RUN eval "$('/conda/bin/conda' 'shell.bash' 'hook' 2> /dev/null)" && \
     pip install mod_wsgi==4.7.1
 
 # httpd config
-COPY docker/httpd.conf /etc/httpd/conf/httpd.conf
+COPY fbfmaproom/docker/httpd.conf /etc/httpd/conf/httpd.conf
 # The following is bad security practice if running httpd as
 # root, but we will run it as apache.
 RUN chmod g+rwx /run/httpd
 
 # install application
-COPY . /app/
+COPY fbfmaproom/ /app/
+COPY pingrid.py /app/pingrid.py
 
 USER apache:apache
 WORKDIR /app
