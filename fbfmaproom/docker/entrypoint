@@ -1,10 +1,5 @@
 #!/bin/bash
 
-whoami
-ls -ld /run/httpd
-ls -la /run/httpd
-rm -f /run/httpd/httpd.pid
-ls -la /run/httpd
 eval "$('/conda/bin/conda' 'shell.bash' 'hook' 2> /dev/null)"
 conda activate fbfmaproom2
 exec "$@"
