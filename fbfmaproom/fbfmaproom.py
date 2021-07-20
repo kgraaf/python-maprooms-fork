@@ -210,7 +210,10 @@ def open_enso(season_length):
         lambda x: pingrid.from_months_since(x - season_length / 2).year
     )
     df["end_year"] = df["month_since_01011960"].apply(
-        lambda x: (pingrid.from_months_since(x + season_length / 2) - datetime.timedelta(days=1)).year
+        lambda x: (
+            pingrid.from_months_since(x + season_length / 2)
+            - datetime.timedelta(days=1)
+        ).year
     )
     df["label"] = df.apply(
         lambda d: str(d["begin_year"])
@@ -397,8 +400,7 @@ def generate_tables(
     # df.to_csv("df.csv")
 
     df = df[
-        [c["id"] for c in table_columns]
-        + ["rain_yellow", "pnep_yellow", "severity"]
+        [c["id"] for c in table_columns] + ["rain_yellow", "pnep_yellow", "severity"]
     ]
 
     bad_year = df["bad_year"] == "Bad"
@@ -614,7 +616,18 @@ def update_severity_color(value):
     Input("prob_thresh", "value"),
     State("season", "value"),
 )
-def _(issue_month, freq, positions, geom_key, mode, year, pathname, severity, prob_thresh, season):
+def _(
+    issue_month,
+    freq,
+    positions,
+    geom_key,
+    mode,
+    year,
+    pathname,
+    severity,
+    prob_thresh,
+    season,
+):
     country_key = country(pathname)
     config = CONFIG["countries"][country_key]
     season_config = config["seasons"][season]
@@ -852,13 +865,7 @@ def pnep_percentile():
         else:
             _, geom = retrieve_geometry2(country_key, int(mode), region)
 
-        pnep = pnep.sel(
-            {
-                ns["pct"]: freq,
-                ns["issue"]: s
-            },
-            drop=True
-        )
+        pnep = pnep.sel({ns["pct"]: freq, ns["issue"]: s}, drop=True)
 
         if ns["lead"] is not None:
             pnep = pnep.sel({ns["lead"]: l}, drop=True)
@@ -878,7 +885,9 @@ def retrieve_geometry2(country_key: str, mode: int, region_key: str):
     sc = config["shapes"][mode]
     query = sql.Composed(
         [
-            sql.SQL("with a as (",),
+            sql.SQL(
+                "with a as (",
+            ),
             sql.SQL(sc["sql"]),
             sql.SQL(") select the_geom, label from a where key::text = %(key)s"),
         ]

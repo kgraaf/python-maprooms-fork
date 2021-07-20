@@ -173,7 +173,9 @@ def extent(da: xr.DataArray, dim: str, default: Optional[Extent] = None) -> Exte
 
 
 def extents(
-    da: xr.DataArray, dims: Optional[List[str]] = None, defaults: Optional[List[Extent]] = None
+    da: xr.DataArray,
+    dims: Optional[List[str]] = None,
+    defaults: Optional[List[Extent]] = None,
 ) -> List[Extent]:
     if dims is None:
         dims = da.dims
@@ -667,6 +669,7 @@ def ring_shapely_to_leaflet(ring):
 
 
 # Flask utils
+
 
 class InvalidRequest(Exception):
     def __init__(self, message):
