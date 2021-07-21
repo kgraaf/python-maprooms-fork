@@ -42,4 +42,4 @@ COPY pingrid.py /app/pingrid.py
 USER apache:apache
 WORKDIR /app
 ENTRYPOINT ["/app/docker/entrypoint"]
-CMD ["/usr/sbin/httpd", "-D", "FOREGROUND"]
+CMD ["/app/docker/service"]
