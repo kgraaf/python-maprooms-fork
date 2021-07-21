@@ -416,7 +416,7 @@ def column3_content():
             ),
 
             dbc.Tab(
-                html.A("PDF Batch Report", id="pdf_link", href="#"),
+                html.A("PDF Batch Report", id="pdf_link", href="#", target='_blank'),
                 label="PDF"
             ),
         ],
