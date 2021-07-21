@@ -3,7 +3,7 @@ import dash_html_components as html
 import dash_bootstrap_components as dbc
 import dash_table as table
 import dash_leaflet as dlf
-from widgets import *
+from widgets import Block, Sentence, Date, Units, Number
 
 IRI_BLUE = "rgb(25,57,138)"
 IRI_GRAY = "rgb(113,112,116)"
