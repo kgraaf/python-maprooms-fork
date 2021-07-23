@@ -55,22 +55,23 @@ def toggle_navbar_collapse(n, is_open):
 def change_form_layout(value):
     return value == "pe", 30, "/percent"
 
+def get_coords(click_lat_lng):
+    if click_lat_lng is not None:
+        return click_lat_lng
+    else:
+        return [layout.INIT_LAT, layout.INIT_LNG]
 
 @APP.callback(
     Output("layers_group", "children"),
-    Output("lat_inp", "value"),
-    Output("lng_inp", "value"),
     Input("map", "click_lat_lng")
 )
 def map_click(click_lat_lng):
-    return [
-        dlf.Marker(
-            position=click_lat_lng,
-            children=dlf.Tooltip("({:.3f}, {:.3f})".format(*click_lat_lng))
-        ),
-        click_lat_lng[0],
-        click_lat_lng[1]
-    ]
+    lat_lng = get_coords(click_lat_lng)
+
+    return dlf.Marker(
+        position=lat_lng,
+        children=dlf.Tooltip("({:.3f}, {:.3f})".format(*lat_lng))
+    )
 
 
 @APP.callback(
@@ -80,8 +81,7 @@ def map_click(click_lat_lng):
     Output("cess_date1", "src"),
     Output("pdf_link", "href"),
     Output("onset_cess_table", "children"),
-    Input("lat_inp", "value"),
-    Input("lng_inp", "value"),
+    Input("map", "click_lat_lng"),
     Input("earlyStartDay", "value"),
     Input("earlyStartMonth", "value"),
     Input("searchDays", "value"),
@@ -99,10 +99,11 @@ def map_click(click_lat_lng):
     Input("plotrange1", "value"),
     Input("plotrange2", "value"),
 )
-def update_charts(lat, lng, earlyStartDay, earlyStartMonth, searchDays, wetThreshold, \
+def update_charts(click_lat_lng, earlyStartDay, earlyStartMonth, searchDays, wetThreshold, \
                   runningDays, runningTotal, minRainyDays, dryDays, \
                   drySpell, earlyCessDay, earlyCessMonth, searchDaysCess, waterBalanceCess, drySpellCess \
     , plotrange1, plotrange2):
+    lat, lng = get_coords(click_lat_lng)
     params = {
         "earlyStart": str(earlyStartDay) + "%20" + str(earlyStartMonth),
         "searchDays": searchDays,

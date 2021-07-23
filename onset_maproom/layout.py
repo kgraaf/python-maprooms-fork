@@ -8,6 +8,8 @@ from widgets import Block, Sentence, Date, Units, Number
 IRI_BLUE = "rgb(25,57,138)"
 IRI_GRAY = "rgb(113,112,116)"
 LIGHT_GRAY = "#eeeeee"
+INIT_LAT = 9.03
+INIT_LNG = 38.74
 
 
 def app_layout():
@@ -159,31 +161,6 @@ def column1_content():
                 therefore characterize the risk for a successful
                 agricultural campaign associated with it.
                 """
-            ),
-
-            Block("Location",
-                  dbc.FormGroup(
-                      [
-                          dbc.Label("Latitude:", size="sm", html_for="lat_inp", width="auto"),
-                          dbc.Col(
-                              dbc.Input(id="lat_inp", type="number", step="0.01"),
-                              width="auto",
-                          ),
-                      ],
-                      row=True,
-                      inline=True,
-                  ),
-                  dbc.FormGroup(
-                      [
-                          dbc.Label("Longitude:", size="sm", html_for="lng_inp", width="auto"),
-                          dbc.Col(
-                              dbc.Input(id="lng_inp", type="number", step="0.01"),
-                              width="auto",
-                          ),
-                      ],
-                      row=True,
-                      inline=True,
-                  ),
             ),
 
             Block("Date",
@@ -360,7 +337,7 @@ def column2_content():
                     dlf.ScaleControl(imperial=False, position="bottomleft"),
                 ],
                 id="map",
-                center=[8.9806, 38.7578],
+                center=[INIT_LAT, INIT_LNG],
                 zoom=7,
                 style={
                     "width": "100%",
