@@ -20,7 +20,7 @@ def app_layout():
             dbc.Row(
                 [
                     dbc.Col(
-                        column1_content(),
+                        controls_layout(),
                         sm=12,
                         md=4,
                         style={
@@ -35,7 +35,7 @@ def app_layout():
                             dbc.Row(
                                 [
                                     dbc.Col(
-                                        column2_content(),
+                                        map_layout(),
                                         width=12,
                                         style={
                                             "background-color": "white",
@@ -47,7 +47,7 @@ def app_layout():
                             dbc.Row(
                                 [
                                     dbc.Col(
-                                        column3_content(),
+                                        results_layout(),
                                         width=12,
                                         style={
                                             "background-color": "white",
@@ -137,7 +137,7 @@ def navbar_layout():
     )
 
 
-def column1_content():
+def controls_layout():
     return dbc.Container(
         [
             html.H5(
@@ -308,7 +308,7 @@ def column1_content():
         style={"padding-bottom": "1rem", "padding-top": "1rem"},
     )
 
-def column2_content():
+def map_layout():
     return dbc.Container(
         [
             dlf.Map(
@@ -352,7 +352,7 @@ def column2_content():
 
 
 
-def column3_content():
+def results_layout():
     return dbc.Tabs(
         [
             dbc.Tab(
