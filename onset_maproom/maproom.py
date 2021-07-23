@@ -75,10 +75,10 @@ def map_click(click_lat_lng):
 
 
 @APP.callback(
-    Output("onset_date0", "src"),
-    Output("onset_date1", "src"),
-    Output("cess_date0", "src"),
-    Output("cess_date1", "src"),
+    Output("onset_date_graph", "src"),
+    Output("onset_date_exceeding", "src"),
+    Output("cess_date_graph", "src"),
+    Output("cess_date_exceeding", "src"),
     Output("pdf_link", "href"),
     Output("onset_cess_table", "children"),
     Input("map", "click_lat_lng"),

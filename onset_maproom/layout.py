@@ -359,12 +359,12 @@ def column3_content():
                 [
                     dbc.Spinner(html.Img(
                         style={"width": "600px"},
-                        id="onset_date0",
+                        id="onset_date_graph",
                         src="",
                     )),
                     dbc.Spinner(html.Img(
                         style={"width": "600px"},
-                        id="onset_date1",
+                        id="onset_date_exceeding",
                         src=""
                     ))
                 ],
@@ -375,12 +375,12 @@ def column3_content():
                 [
                     dbc.Spinner(html.Img(
                         style={"width": "600px"},
-                        id="cess_date0",
+                        id="cess_date_graph",
                         src="",
                     )),
                     dbc.Spinner(html.Img(
                         style={"width": "600px"},
-                        id="cess_date1",
+                        id="cess_date_exceeding",
                         src=""
                     ))
                 ],
