@@ -357,38 +357,39 @@ def column3_content():
         [
             dbc.Tab(
                 [
-                    html.Img(
+                    dbc.Spinner(html.Img(
                         style={"width": "600px"},
                         id="onset_date0",
                         src="",
-                    ),
-                    html.Img(
+                    )),
+                    dbc.Spinner(html.Img(
                         style={"width": "600px"},
                         id="onset_date1",
                         src=""
-                    )
+                    ))
                 ],
                 label="Onset Dates"
             ),
 
             dbc.Tab(
                 [
-                    html.Img(
+                    dbc.Spinner(html.Img(
                         style={"width": "600px"},
                         id="cess_date0",
                         src="",
-                    ),
-                    html.Img(
+                    )),
+                    dbc.Spinner(html.Img(
                         style={"width": "600px"},
                         id="cess_date1",
                         src=""
-                    )
+                    ))
                 ],
                 label="Cessation Dates"
             ),
 
             dbc.Tab(
-                dbc.Table([], id="onset_cess_table", bordered=True, className="m-2"),
+                dbc.Spinner(
+                    dbc.Table([], id="onset_cess_table", bordered=True, className="m-2")),
                 label="Table"
             ),
 

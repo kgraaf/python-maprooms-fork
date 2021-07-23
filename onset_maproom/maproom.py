@@ -121,15 +121,20 @@ def update_charts(click_lat_lng, earlyStartDay, earlyStartMonth, searchDays, wet
         "plotrange2": plotrange2
     }
 
-    tab_data = charts.table(lat, lng, params)
+    try:
+        tab_data = charts.table(lat, lng, params)
+        table_header = [
+            html.Thead(html.Tr([html.Th("Year"),
+                                html.Th("Onset Date"),
+                                html.Th("Cessation Date")]))
+        ]
+        table_body = html.Tbody(
+            [ html.Tr([html.Td(r[0]), html.Td(r[1]), html.Td(r[2])]) for r in tab_data ]
+        )
+        table_elem = table_header + [ table_body ]
+    except:
+        table_elem = []
 
-    table_header = [
-        html.Thead(html.Tr([html.Th("Year"), html.Th("Onset Date"), html.Th("Cessation Date")]))
-    ]
-
-    table_body = html.Tbody(
-        [ html.Tr([html.Td(r[0]), html.Td(r[1]), html.Td(r[2])]) for r in tab_data ]
-    )
 
     return [
         charts.onset_date(lat, lng, params),
@@ -137,7 +142,7 @@ def update_charts(click_lat_lng, earlyStartDay, earlyStartMonth, searchDays, wet
         charts.cess_date(lat, lng, params),
         charts.cess_exceed(lat, lng, params),
         charts.pdf(lat, lng, params),
-        table_header + [ table_body ]
+        table_elem
     ]
 
 
