@@ -105,7 +105,7 @@ def update_charts(click_lat_lng, earlyStartDay, earlyStartMonth, searchDays, wet
     , plotrange1, plotrange2):
     lat, lng = get_coords(click_lat_lng)
     params = {
-        "earlyStart": str(earlyStartDay) + "%20" + str(earlyStartMonth),
+        "earlyStart": earlyStartDay + "%20" + earlyStartMonth,
         "searchDays": searchDays,
         "wetThreshold": wetThreshold,
         "runningDays": runningDays,
@@ -113,7 +113,7 @@ def update_charts(click_lat_lng, earlyStartDay, earlyStartMonth, searchDays, wet
         "minRainyDays": minRainyDays,
         "dryDays": dryDays,
         "drySpell": drySpell,
-        "earlyCess": str(earlyCessDay) + "%20" + str(earlyCessMonth),
+        "earlyCess": earlyCessDay + "%20" + earlyCessMonth,
         "searchDaysCess": searchDaysCess,
         "waterBalanceCess": waterBalanceCess,
         "drySpellCess": drySpellCess,
