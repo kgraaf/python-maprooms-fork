@@ -321,7 +321,7 @@ def generate_tables(
     dfs = dfs.append(dfs2)
 
     if positions == ZERO_SHAPE:
-        return df, dfs
+        return df, dfs, 0
 
     season_config = config["seasons"][season]
     year_min, year_max = season_config["year_range"]
