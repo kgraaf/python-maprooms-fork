@@ -304,7 +304,8 @@ def generate_tables(
     issue_month,
     season,
     freq,
-    positions,
+    mode,
+    geom_key,
     severity,
 ):
     df = pd.DataFrame({c["id"]: [] for c in table_columns})
@@ -320,7 +321,7 @@ def generate_tables(
     dfs2 = pd.DataFrame({c["id"]: [c["name"]] for c in table_columns})
     dfs = dfs.append(dfs2)
 
-    if positions == ZERO_SHAPE:
+    if geom_key is None:
         return df, dfs, 0
 
     season_config = config["seasons"][season]
@@ -342,7 +343,11 @@ def generate_tables(
     da = open_rain(country_key).data_array * season_length * 30
     ns = config["datasets"]["rain"]["var_names"]
 
-    mpolygon = pingrid.mpoly_leaflet_to_shapely(positions)
+    if mode == "pixel":
+        [[y0, x0], [y1, x1]] = json.parse(geom_key)
+        mpolygon = MultiPolygon([Polygon([(x0, y0), (x0, y1), (x1, y1), (x1, y0)])])
+    else:
+        _, mpolygon = retrieve_geometry2(country_key, int(mode), geom_key)
 
     da = pingrid.average_over_trimmed(
         da, mpolygon, lon_name=ns["lon"], lat_name=ns["lat"], all_touched=True
@@ -538,6 +543,7 @@ def _(pathname, position, mode, year):
     title = "No Data"
     content = []
     positions = None
+    key = None
     if mode == "pixel":
         (x0, y0), (x1, y1) = calculate_bounds(
             (x, y), c["resolution"], c.get("origin", (0, 0))
@@ -551,7 +557,7 @@ def _(pathname, position, mode, year):
             py = (y0 + y1) / 2
             pys = "N" if py > 0.0 else "S" if py < 0.0 else ""
             title = f"{np.abs(py):.5f}° {pys} {np.abs(px):.5f}° {pxs}"
-        key = None
+        key = str([[y0, x0], [y1, x1]])
     else:
         geom, attrs = retrieve_geometry(country_key, (x, y), mode, year)
         if geom is not None:
@@ -561,7 +567,7 @@ def _(pathname, position, mode, year):
             content = (
                 fmt("Vulnerability") + fmt("Mean") + fmt("Stddev") + fmt("Normalized")
             )
-        key = str(attrs["key"])
+            key = str(attrs["key"])
     if positions is None:
         # raise PreventUpdate
         positions = ZERO_SHAPE
@@ -574,12 +580,13 @@ def _(pathname, position, mode, year):
     Output("prob_thresh", "value"),
     Input("issue_month", "value"),
     Input("freq", "value"),
-    Input("feature", "positions"),
+    Input("mode", "value"),
+    Input("geom_key", "value"),
     Input("location", "pathname"),
     Input("severity", "value"),
     State("season", "value"),
 )
-def _(issue_month, freq, positions, pathname, severity, season):
+def _(issue_month, freq, mode, geom_key, pathname, severity, season):
     country_key = country(pathname)
     config = CONFIG["countries"][country_key]
     dft, dfs, prob_thresh = generate_tables(
@@ -589,7 +596,8 @@ def _(issue_month, freq, positions, pathname, severity, season):
         issue_month,
         season,
         freq,
-        positions,
+        mode,
+        geom_key,
         severity,
     )
     return dft.to_dict("records"), dfs.to_dict("records"), prob_thresh
@@ -607,7 +615,6 @@ def update_severity_color(value):
     Output("gantt", "href"),
     Input("issue_month", "value"),
     Input("freq", "value"),
-    Input("feature", "positions"),
     Input("geom_key", "value"),
     Input("mode", "value"),
     Input("year", "value"),
@@ -619,7 +626,6 @@ def update_severity_color(value):
 def _(
     issue_month,
     freq,
-    positions,
     geom_key,
     mode,
     year,
@@ -633,8 +639,7 @@ def _(
     season_config = config["seasons"][season]
     if mode == "pixel":
         region = None
-        [[[sw, _, ne, _, _]]] = positions
-        bounds = [sw, ne]
+        bounds = json.parse(geom_key)
     else:
         label, _ = retrieve_geometry2(country_key, int(mode), geom_key)
         region = {
