@@ -344,7 +344,7 @@ def generate_tables(
     ns = config["datasets"]["rain"]["var_names"]
 
     if mode == "pixel":
-        [[y0, x0], [y1, x1]] = json.parse(geom_key)
+        [[y0, x0], [y1, x1]] = json.loads(geom_key)
         mpolygon = MultiPolygon([Polygon([(x0, y0), (x0, y1), (x1, y1), (x1, y0)])])
     else:
         _, mpolygon = retrieve_geometry2(country_key, int(mode), geom_key)
@@ -639,7 +639,7 @@ def _(
     season_config = config["seasons"][season]
     if mode == "pixel":
         region = None
-        bounds = json.parse(geom_key)
+        bounds = json.loads(geom_key)
     else:
         label, _ = retrieve_geometry2(country_key, int(mode), geom_key)
         region = {
