@@ -20,7 +20,7 @@ generalized further in the future.
 
 * Run application as follows:
 
-    `PYTHONPATH=.. CONFIG=config-sample.yaml python maproom.py`
+    `CONFIG=config-sample.yaml python maproom.py`
 
 * Navigate your browser to `http://127.0.0.1:8050/onset-maproom/`
 
