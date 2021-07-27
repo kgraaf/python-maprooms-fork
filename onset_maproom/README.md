@@ -10,13 +10,13 @@ generalized further in the future.
 
 * Install Miniconda: https://docs.conda.io/en/latest/miniconda.html
 
-* Create conda environment `maproom` as follows:
+* Create conda environment `enactsmaproom` as follows:
 
-    `conda env create -f environment.yml -n maproom`
+    `conda env create -f environment.yml -n enactsmaproom`
 
-* Activate conda environment `maproom` as follows:
+* Activate conda environment `enactsmaproom` as follows:
 
-    `conda activate maproom`
+    `conda activate enactsmaproom`
 
 * Run application as follows:
 
@@ -24,7 +24,7 @@ generalized further in the future.
 
 * Navigate your browser to `http://127.0.0.1:8050/onset-maproom/`
 
-* When done using the maproom stop Dash with CTRL-C and deactivate the `maproom` environment with:
+* When done using the maproom stop Dash with CTRL-C and deactivate the `enactsmaproom` environment with:
 
     `conda deactivate`
 
