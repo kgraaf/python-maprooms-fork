@@ -308,18 +308,18 @@ def generate_tables(
     geom_key,
     severity,
 ):
-    df = pd.DataFrame({c["id"]: [] for c in table_columns})
+    main_df = pd.DataFrame({c["id"]: [] for c in table_columns})
 
-    dfs = pd.DataFrame({c["id"]: [] for c in table_columns})
-    dfs["year_label"] = [
+    summary_df = pd.DataFrame({c["id"]: [] for c in table_columns})
+    summary_df["year_label"] = [
         "Worthy-action:",
         "Act-in-vain:",
         "Fail-to-act:",
         "Worthy-Inaction:",
         "Rate:",
     ]
-    dfs2 = pd.DataFrame({c["id"]: [c["name"]] for c in table_columns})
-    dfs = dfs.append(dfs2)
+    headings_df = pd.DataFrame({c["id"]: [c["name"]] for c in table_columns})
+    summary_df = summary_df.append(headings_df)
 
     if geom_key is None:
         return df, dfs, 0
@@ -329,91 +329,91 @@ def generate_tables(
     season_length = season_config["length"]
     target_month = season_config["target_month"]
 
-    df2 = open_enso(season_length)
-    df2 = df2[df2["country_key"] == country_key]
+    enso_badyear_df = open_enso(season_length)
+    enso_badyear_df = enso_badyear_df[enso_badyear_df["country_key"] == country_key]
 
-    df["year"] = df2["year"]
-    df["year_label"] = df2["label"]
-    df["enso_state"] = df2["enso_state"]
-    df["bad_year"] = df2["bad_year"].where(~df2["bad_year"].isna(), "")
-    df["season"] = df2["month_since_01011960"]
-    df["severity"] = severity
-    df = df.set_index("season")
+    main_df["year"] = enso_badyear_df["year"]
+    main_df["year_label"] = enso_badyear_df["label"]
+    main_df["enso_state"] = enso_badyear_df["enso_state"]
+    main_df["bad_year"] = enso_badyear_df["bad_year"].where(~enso_badyear_df["bad_year"].isna(), "")
+    main_df["season"] = enso_badyear_df["month_since_01011960"]
+    main_df["severity"] = severity
+    main_df = main_df.set_index("season")
 
-    da = open_rain(country_key).data_array * season_length * 30
+    rain_da = open_rain(country_key).data_array * season_length * 30
     ns = config["datasets"]["rain"]["var_names"]
 
     if mode == "pixel":
-        [[y0, x0], [y1, x1]] = json.parse(geom_key)
+        [[y0, x0], [y1, x1]] = json.loads(geom_key)
         mpolygon = MultiPolygon([Polygon([(x0, y0), (x0, y1), (x1, y1), (x1, y0)])])
     else:
         _, mpolygon = retrieve_geometry2(country_key, int(mode), geom_key)
 
-    da = pingrid.average_over_trimmed(
-        da, mpolygon, lon_name=ns["lon"], lat_name=ns["lat"], all_touched=True
+    rain_da = pingrid.average_over_trimmed(
+        rain_da, mpolygon, lon_name=ns["lon"], lat_name=ns["lat"], all_touched=True
     )
 
-    df3 = da.to_dataframe()
+    rain_df = rain_da.to_dataframe()
 
-    df = df.join(df3, how="outer")
+    main_df = main_df.join(rain_df, how="outer")
 
-    df = df[(df["year"] >= year_min) & (df["year"] <= year_max)]
+    main_df = main_df[(main_df["year"] >= year_min) & (main_df["year"] <= year_max)]
 
-    df["rain_rank"] = df[ns["rain"]].rank(
+    main_df["rain_rank"] = main_df[ns["rain"]].rank(
         method="first", na_option="keep", ascending=True
     )
 
-    rain_rank_pct = df[ns["rain"]].rank(
+    rain_rank_pct = main_df[ns["rain"]].rank(
         method="first", na_option="keep", ascending=True, pct=True
     )
-    df["rain_rank_pct"] = rain_rank_pct
+    main_df["rain_rank_pct"] = rain_rank_pct
 
-    df["rain_yellow"] = (rain_rank_pct <= freq / 100).astype(int)
+    main_df["rain_yellow"] = (rain_rank_pct <= freq / 100).astype(int)
 
-    da2 = open_pnep(country_key).data_array
+    pnep_da = open_pnep(country_key).data_array
     ns = config["datasets"]["pnep"]["var_names"]
 
-    da2 = da2.sel({ns["pct"]: freq}, drop=True)
+    pnep_da = pnep_da.sel({ns["pct"]: freq}, drop=True)
 
     s = config["seasons"][season]["issue_months"][issue_month]
     l = (target_month - s) % 12
 
-    da2 = da2.where(da2[ns["issue"]] % 12 == s, drop=True)
+    pnep_da = pnep_da.where(pnep_da[ns["issue"]] % 12 == s, drop=True)
     if ns["lead"] is not None:
-        da2 = da2.sel({ns["lead"]: l}, drop=True)
-    da2[ns["issue"]] = da2[ns["issue"]] + l
+        pnep_da = pnep_da.sel({ns["lead"]: l}, drop=True)
+    pnep_da[ns["issue"]] = pnep_da[ns["issue"]] + l
 
-    da2 = pingrid.average_over_trimmed(
-        da2, mpolygon, lon_name=ns["lon"], lat_name=ns["lat"], all_touched=True
+    pnep_da = pingrid.average_over_trimmed(
+        pnep_da, mpolygon, lon_name=ns["lon"], lat_name=ns["lat"], all_touched=True
     )
 
-    df = df.join(da2.to_dataframe(), how="outer")
-    df = df[(df["year"] >= year_min) & (df["year"] <= year_max)]
+    main_df = main_df.join(pnep_da.to_dataframe(), how="outer")
+    main_df = main_df[(main_df["year"] >= year_min) & (main_df["year"] <= year_max)]
 
-    df["forecast"] = df[ns["pnep"]].apply(lambda x: f"{x:.2f}")
+    main_df["forecast"] = main_df[ns["pnep"]].apply(lambda x: f"{x:.2f}")
 
-    pnep_max_rank_pct = df[ns["pnep"]].rank(
+    pnep_max_rank_pct = main_df[ns["pnep"]].rank(
         method="first", na_option="keep", ascending=False, pct=True
     )
-    df["pnep_max_rank_pct"] = pnep_max_rank_pct
-    df["pnep_yellow"] = (pnep_max_rank_pct <= freq / 100).astype(int)
+    main_df["pnep_max_rank_pct"] = pnep_max_rank_pct
+    main_df["pnep_yellow"] = (pnep_max_rank_pct <= freq / 100).astype(int)
 
-    prob_thresh = df[df["pnep_yellow"] == 1][ns["pnep"]].min()
+    prob_thresh = main_df[main_df["pnep_yellow"] == 1][ns["pnep"]].min()
 
-    df = df[::-1]
+    main_df = main_df[::-1]
 
-    # df.to_csv("df.csv")
+    # main_df.to_csv("main_df.csv")
 
-    df = df[
+    main_df = main_df[
         [c["id"] for c in table_columns] + ["rain_yellow", "pnep_yellow", "severity"]
     ]
 
-    bad_year = df["bad_year"] == "Bad"
-    dfs["enso_state"][:5] = hits_and_misses(df["enso_state"] == "El Niño", bad_year)
-    dfs["forecast"][:5] = hits_and_misses(df["pnep_yellow"] == 1, bad_year)
-    dfs["rain_rank"][:5] = hits_and_misses(df["rain_yellow"] == 1, bad_year)
+    bad_year = main_df["bad_year"] == "Bad"
+    summary_df["enso_state"][:5] = hits_and_misses(main_df["enso_state"] == "El Niño", bad_year)
+    summary_df["forecast"][:5] = hits_and_misses(main_df["pnep_yellow"] == 1, bad_year)
+    summary_df["rain_rank"][:5] = hits_and_misses(main_df["rain_yellow"] == 1, bad_year)
 
-    return df, dfs, prob_thresh
+    return main_df, summary_df, prob_thresh
 
 
 def hits_and_misses(c1, c2):
@@ -639,7 +639,7 @@ def _(
     season_config = config["seasons"][season]
     if mode == "pixel":
         region = None
-        bounds = json.parse(geom_key)
+        bounds = json.loads(geom_key)
     else:
         label, _ = retrieve_geometry2(country_key, int(mode), geom_key)
         region = {
