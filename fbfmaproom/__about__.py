@@ -4,4 +4,4 @@
 name = "fbfmaproom"
 author = "IRI, Columbia University"
 email = "help@iri.columbia.edu"
-version = "2.8.3"
+version = "2.8.4"
