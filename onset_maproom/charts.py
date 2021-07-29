@@ -4,8 +4,6 @@ import calc
 
 PREFIX = "https://iridl.ldeo.columbia.edu/dlcharts/render/"
 
-calc.RR_MRG
-
 def _bounding_box(lat, lng):
     diff = 0.25
     lng_lo = lng - diff
