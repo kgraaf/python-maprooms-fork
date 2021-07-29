@@ -4,8 +4,10 @@ import xarray as xr
 import datetime as dt
 from pathlib import Path
 
+#Read daily files of daily rainfall data
+#Concatenate them agains time index made up from filenames
 RR_MRG_PATH = Path("/Data/data23/NMA_Ethiopia_v7/ALL_NEW/Rainfall/daily/")
-RR_MRG_FILE = list(sorted(RR_MRG_PATH.glob("rr_mrg_200001*_ALL.nc")))
+RR_MRG_FILE = list(sorted(RR_MRG_PATH.glob("rr_mrg_200*_ALL.nc")))
 rr_mrg = xr.concat(
   [xr.open_dataset(f) for f in RR_MRG_FILE],
   pd.Index(
