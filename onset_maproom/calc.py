@@ -21,3 +21,20 @@ rr_mrg = xr.concat(
   )
 )
 
+params_onset = {
+  "earlyStart": "1 Feb",
+  "searchDays": 60,
+  "wetThreshold": 0,
+  "runningDays": 3,
+  "runningTotal": 20,
+  "minRainyDays": 1,
+  "dryDays": 7,
+  "drySpell": 21,
+}
+
+def pyonset_date(params):
+    this_onset_date = params
+    return this_onset_date
+
+toto = pyonset_date(params_onset)
+print(toto)
