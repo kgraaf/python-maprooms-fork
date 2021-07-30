@@ -1,45 +1,15 @@
 import numpy as np
 import pandas as pd
 import xarray as xr
-import datetime as dt
 from pathlib import Path
 
-#Read daily files of daily rainfall data
-#Concatenate them against added time dim made up from filenames
-#Reading only 6 months of data for the sake of saving time for testing
+#Tools to read Zarr version of daily ENACTS rainfall data
 
-RR_MRG_PATH = Path("/Data/data23/NMA_Ethiopia_v7/ALL_NEW/Rainfall/daily/")
-RR_MRG_FILE = list(sorted(RR_MRG_PATH.glob("rr_mrg_20000*_ALL.nc")))
+RR_MRG_ZARR = Path("/data/remic/mydatafiles/Ethiopia/NMA_Ethiopia_v7/ALL_NEW/Rainfall/daily/rr_mrg_ALL/")
 
-def add_time_dim(xda):
-    xda = xda.expand_dims(time = [dt.datetime(
-      int(xda.encoding["source"].partition("rr_mrg_")[2].partition("_")[0][0:4]),
-      int(xda.encoding["source"].partition("rr_mrg_")[2].partition("_")[0][4:6]),
-      int(xda.encoding["source"].partition("rr_mrg_")[2].partition("_")[0][6:8])
-    )])
-    return xda
-
-rr_mrg = xr.open_mfdataset(
-  RR_MRG_FILE,
-  preprocess = add_time_dim,
-  parallel=False
-)
-
-#This is just for the record, prior to using open_mfdataset
-#will remove if open_mf_dataset good to go
-
-#rr_mrg = xr.concat(
-#  [xr.open_dataset(f) for f in RR_MRG_FILE],
-#  pd.Index(
-#    [dt.datetime(
-#      int(i.stem.partition("rr_mrg_")[2].partition("_")[0][0:4]),
-#      int(i.stem.partition("rr_mrg_")[2].partition("_")[0][4:6]),
-#      int(i.stem.partition("rr_mrg_")[2].partition("_")[0][6:8])
-#    )
-#    for i in RR_MRG_FILE],
-#    name="time"
-#  )
-#)
+def read_zarr_data(zarr_path):
+  zarr_data = xr.open_zarr(zarr_path)
+  return zarr_data
 
 #Setting up the stage to make an onset_date function
 
@@ -54,9 +24,11 @@ params_onset = {
   "drySpell": 21,
 }
 
-def pyonset_date(params):
-    this_onset_date = params
-    return this_onset_date
+def pyonset_date(dailyRain, params):
+  rr_mrg = read_zarr_data(dailyRain)
+  this_onset_date = rr_mrg
+  return this_onset_date
 
-toto = pyonset_date(params_onset)
-print(toto)
+#Dummy to test that the reading works
+#that_onset_date = pyonset_date(RR_MRG_ZARR, params_onset)
+#print(that_onset_date)
