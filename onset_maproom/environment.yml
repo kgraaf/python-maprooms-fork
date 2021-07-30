@@ -16,7 +16,6 @@ dependencies:
   - yaml
   - zarr
   - netcdf4
-  - h5netcdf
   - dask
   - pip
   - pip:
