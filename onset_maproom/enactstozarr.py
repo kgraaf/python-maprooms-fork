@@ -26,5 +26,5 @@ rr_mrg = xr.open_mfdataset(
 )
 
 rr_mrg.to_zarr(
-  store="/data/remic/mydatafiles/Ethiopia/NMA_Ethiopia_v7/ALL_NEW/Rainfall/daily/rr_mrg_ALL//" 
+  store="/data/remic/mydatafiles/Ethiopia/NMA_Ethiopia_v7/ALL_NEW/Rainfall/daily/rr_mrg_ALL/" 
 )
