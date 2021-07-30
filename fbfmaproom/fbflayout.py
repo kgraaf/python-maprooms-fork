@@ -26,11 +26,10 @@ def help_layout(buttonname, message):
     id_name = buttonname.split()[0]
     return html.Div(
         [
-            html.Label(f"{buttonname}:",
-                    id=f"{id_name}_mode",
-                    style={"cursor": "pointer"}),
-            dbc.Tooltip(f"{message}",
-                        target=f"{id_name}_mode")
+            html.Label(
+                f"{buttonname}:", id=f"{id_name}_mode", style={"cursor": "pointer"}
+            ),
+            dbc.Tooltip(f"{message}", target=f"{id_name}_mode"),
         ]
     )
 
@@ -167,7 +166,10 @@ def command_layout():
             dcc.Input(id="prob_thresh", type="hidden"),
             html.Div(
                 [
-                    help_layout("Mode", "The spatial resolution such as National, Regional, District or Pixel level"),
+                    help_layout(
+                        "Mode",
+                        "The spatial resolution such as National, Regional, District or Pixel level",
+                    ),
                     dcc.Dropdown(
                         id="mode",
                         clearable=False,
@@ -292,17 +294,15 @@ def command_layout():
                 [
                     dcc.Loading(
                         html.A(
-                        [
-                            dbc.Button(
-                                "Gantt it!",
-                                color="info",
-                                id="gantt_button"
-                            ),
-                            dbc.Tooltip(
-            "Gantt it!- Early action activities planning tool in a format of a Gantt chart",
-            target="gantt_button",
-                            )
-                        ],
+                            [
+                                dbc.Button(
+                                    "Gantt it!", color="info", id="gantt_button"
+                                ),
+                                dbc.Tooltip(
+                                    "Gantt it!- Early action activities planning tool in a format of a Gantt chart",
+                                    target="gantt_button",
+                                ),
+                            ],
                             id="gantt",
                             target="_blank",
                         ),
@@ -372,87 +372,57 @@ def table_layout(table_columns):
                             "background-color": "rgba(255, 255, 255, 0)",
                         },
                         tooltip_conditional=[
-                                                {
-                                                    'if': {
-                                                    'row_index': 0,
-                                                    'column_id': 'year_label'
-                                                    },
-                                                    'type': 'markdown',
-                                                    'value': 'Drought was forecasted and a ‘bad year’ occurred'
-                                                },
-                                                {
-                                                    'if': {
-                                                    'row_index': 1,
-                                                    'column_id': 'year_label'
-                                                    },
-                                                    'type': 'markdown',
-                                                    'value': 'Drought was forecasted but a ‘bad year’ did not occur'
-                                                },
-                                                {
-                                                    'if': {
-                                                    'row_index': 2,
-                                                    'column_id': 'year_label'
-                                                    },
-                                                    'type': 'markdown',
-                                                    'value': 'No drought was forecasted but a ‘bad year’ occurred'
-                                                },
-                                                {
-                                                    'if': {
-                                                    'row_index': 3,
-                                                    'column_id': 'year_label'
-                                                    },
-                                                    'type': 'markdown',
-                                                    'value': 'No drought was forecasted, and no ‘bad year’ occurred'
-                                                },
-                                                {
-                                                    'if': {
-                                                        'row_index': 4,
-                                                        'column_id': 'year_label'
-                                                    },
-                                                    'type': 'markdown',
-                                                    'value': 'Gives the percentage of worthy-action and worthy-inactions'
-                                                },
-                                                {
-                                                    'if': {
-                                                        'row_index': 5,
-                                                        'column_id': 'year_label'
-                                                    },
-                                                    'type': 'markdown',
-                                                    'value': 'The year whose forecast is displayed on the map'
-                                                },
-                                                {
-                                                    'if': {
-                                                        'row_index': 5,
-                                                        'column_id': 'enso_state'
-                                                    },
-                                                    'type': 'markdown',
-                                                    'value': 'Displays whether an El Nino, Neutral or La Nina state occurred during the year'
-                                                },
-                                                {
-                                                    'if': {
-                                                        'row_index': 5,
-                                                        'column_id': 'forecast'
-                                                    },
-                                                    'type': 'markdown',
-                                                    'value': 'Displays all the historical flexible forecast for the selected issue month and location'
-                                                },
-                                                {
-                                                    'if': {
-                                                        'row_index': 5,
-                                                        'column_id': 'rain_rank'
-                                                    },
-                                                    'type': 'markdown',
-                                                    'value': 'Presents the ranking of the rainfall for the year compared to all the years'
-                                                },
-                                                {
-                                                    'if': {
-                                                        'row_index': 5,
-                                                        'column_id': 'bad_year'
-                                                    },
-                                                    'type': 'markdown',
-                                                    'value': 'Historical drought years based on farmers recollection'
-                                                },
-                                            ],
+                            {
+                                "if": {"row_index": 0, "column_id": "year_label"},
+                                "type": "markdown",
+                                "value": "Drought was forecasted and a ‘bad year’ occurred",
+                            },
+                            {
+                                "if": {"row_index": 1, "column_id": "year_label"},
+                                "type": "markdown",
+                                "value": "Drought was forecasted but a ‘bad year’ did not occur",
+                            },
+                            {
+                                "if": {"row_index": 2, "column_id": "year_label"},
+                                "type": "markdown",
+                                "value": "No drought was forecasted but a ‘bad year’ occurred",
+                            },
+                            {
+                                "if": {"row_index": 3, "column_id": "year_label"},
+                                "type": "markdown",
+                                "value": "No drought was forecasted, and no ‘bad year’ occurred",
+                            },
+                            {
+                                "if": {"row_index": 4, "column_id": "year_label"},
+                                "type": "markdown",
+                                "value": "Gives the percentage of worthy-action and worthy-inactions",
+                            },
+                            {
+                                "if": {"row_index": 5, "column_id": "year_label"},
+                                "type": "markdown",
+                                "value": "The year whose forecast is displayed on the map",
+                            },
+                            {
+                                "if": {"row_index": 5, "column_id": "enso_state"},
+                                "type": "markdown",
+                                "value": "Displays whether an El Nino, Neutral or La Nina state occurred during the year",
+                            },
+                            {
+                                "if": {"row_index": 5, "column_id": "forecast"},
+                                "type": "markdown",
+                                "value": "Displays all the historical flexible forecast for the selected issue month and location",
+                            },
+                            {
+                                "if": {"row_index": 5, "column_id": "rain_rank"},
+                                "type": "markdown",
+                                "value": "Presents the ranking of the rainfall for the year compared to all the years",
+                            },
+                            {
+                                "if": {"row_index": 5, "column_id": "bad_year"},
+                                "type": "markdown",
+                                "value": "Historical drought years based on farmers recollection",
+                            },
+                        ],
                         style_data_conditional=[
                             {
                                 "if": {
