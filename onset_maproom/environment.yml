@@ -17,6 +17,7 @@ dependencies:
   - zarr
   - netcdf4
   - h5netcdf
+  - dask
   - pip
   - pip:
     - dash-leaflet

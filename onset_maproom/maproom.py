@@ -149,4 +149,4 @@ def update_charts(click_lat_lng, earlyStartDay, earlyStartMonth, searchDays, wet
 
 
 if __name__ == "__main__":
-    APP.run_server("0.0.0.0", 8051,debug=CONFIG["mode"] != "prod")
+    APP.run_server(debug=CONFIG["mode"] != "prod")
