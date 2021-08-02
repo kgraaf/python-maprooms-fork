@@ -1,11 +1,17 @@
+import os
 import numpy as np
 import pandas as pd
 import xarray as xr
 from pathlib import Path
+import pyaconf
+
+CONFIG = pyaconf.load(os.environ["CONFIG"])
+
+DR_PATH = CONFIG["daily_rainfall_path"]
 
 #Tools to read Zarr version of daily ENACTS rainfall data
 
-RR_MRG_ZARR = Path("/data/remic/mydatafiles/Ethiopia/NMA_Ethiopia_v7/ALL_NEW/Rainfall/daily/rr_mrg_ALL/")
+RR_MRG_ZARR = Path(DR_PATH)
 
 def read_zarr_data(zarr_path):
   zarr_data = xr.open_zarr(zarr_path)

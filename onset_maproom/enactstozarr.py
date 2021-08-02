@@ -1,14 +1,20 @@
+import os
 import numpy as np
 import pandas as pd
 import xarray as xr
 import datetime as dt
 from pathlib import Path
+import pyaconf
+
+CONFIG = pyaconf.load(os.environ["CONFIG"])
+
+RR_MRG_NC_PATH = CONFIG["rr_mrg_nc_path"]
 
 #Read daily files of daily rainfall data
 #Concatenate them against added time dim made up from filenames
 #Reading only 6 months of data for the sake of saving time for testing
 
-RR_MRG_PATH = Path("/Data/data23/NMA_Ethiopia_v7/ALL_NEW/Rainfall/daily/")
+RR_MRG_PATH = Path(RR_MRG_NC_PATH)
 RR_MRG_FILE = list(sorted(RR_MRG_PATH.glob("*.nc")))
 
 def add_time_dim(xda):
