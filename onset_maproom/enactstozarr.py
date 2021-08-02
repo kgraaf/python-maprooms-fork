@@ -9,6 +9,7 @@ import pyaconf
 CONFIG = pyaconf.load(os.environ["CONFIG"])
 
 RR_MRG_NC_PATH = CONFIG["rr_mrg_nc_path"]
+RR_MRG_ZARR_PATH = CONFIG["rr_mrg_zarr_path"]
 
 #Read daily files of daily rainfall data
 #Concatenate them against added time dim made up from filenames
@@ -32,5 +33,5 @@ rr_mrg = xr.open_mfdataset(
 )
 
 rr_mrg.to_zarr(
-  store="/data/remic/mydatafiles/Ethiopia/NMA_Ethiopia_v7/ALL_NEW/Rainfall/daily/rr_mrg_ALL/" 
+  store = RR_MRG_ZARR_PATH
 )
