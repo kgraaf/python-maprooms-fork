@@ -29,7 +29,12 @@ def help_layout(buttonname, message):
             html.Label(
                 f"{buttonname}:", id=f"{id_name}_mode", style={"cursor": "pointer"}
             ),
-            dbc.Tooltip(f"{message}", target=f"{id_name}_mode"),
+            dbc.Tooltip(
+                f"{message}",
+                target=f"{id_name}_mode",
+                hide_arrow=True,
+                innerClassName="tooltiptext",
+            ),
         ]
     )
 
@@ -301,6 +306,8 @@ def command_layout():
                                 dbc.Tooltip(
                                     "Gantt it!- Early action activities planning tool in a format of a Gantt chart",
                                     target="gantt_button",
+                                    innerClassName="tooltiptext",
+                                    hide_arrow=True,
                                 ),
                             ],
                             id="gantt",
