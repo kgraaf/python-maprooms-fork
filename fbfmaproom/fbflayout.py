@@ -23,18 +23,17 @@ def app_layout(table_columns):
 
 
 def help_layout(buttonname, message):
+    id_name = buttonname.split()[0]
     return html.Div(
         [
-            dbc.Button("ℹ️", id=f"{buttonname}_pop_up", className="help"),
-            dbc.Popover(
-                [
-                    dbc.PopoverHeader("Help"),
-                    dbc.PopoverBody([html.P(f"{message}")]),
-                ],
-                id=f"{buttonname}_header_body",
-                target=f"{buttonname}_pop_up",
-                placement="right",
-                trigger="legacy",
+            html.Label(
+                f"{buttonname}:", id=f"{id_name}_mode", style={"cursor": "pointer"}
+            ),
+            dbc.Tooltip(
+                f"{message}",
+                target=f"{id_name}_mode",
+                hide_arrow=True,
+                innerClassName="tooltiptext",
             ),
         ]
     )
@@ -172,9 +171,8 @@ def command_layout():
             dcc.Input(id="prob_thresh", type="hidden"),
             html.Div(
                 [
-                    html.Label("Mode:"),
                     help_layout(
-                        "mode",
+                        "Mode",
                         "The spatial resolution such as National, Regional, District or Pixel level",
                     ),
                     dcc.Dropdown(
@@ -192,8 +190,7 @@ def command_layout():
             ),
             html.Div(
                 [
-                    html.Label("Issue month:"),
-                    help_layout("issue", "The month in which the forecast is issued"),
+                    help_layout("Issue", "The month in which the forecast is issued"),
                     dcc.Dropdown(
                         id="issue_month",
                         clearable=False,
@@ -209,8 +206,7 @@ def command_layout():
             ),
             html.Div(
                 [
-                    html.Label("Season:"),
-                    help_layout("season", "The rainy season being forecasted"),
+                    help_layout("Season", "The rainy season being forecasted"),
                     dcc.Dropdown(
                         id="season",
                         clearable=False,
@@ -226,9 +222,8 @@ def command_layout():
             ),
             html.Div(
                 [
-                    html.Label("Year:"),
                     help_layout(
-                        "year", "The year whose forecast is displayed on the map"
+                        "Year", "The year whose forecast is displayed on the map"
                     ),
                     dcc.Input(
                         id="year",
@@ -255,9 +250,8 @@ def command_layout():
             ),
             html.Div(
                 [
-                    html.Label("Severity:"),
                     help_layout(
-                        "severity", "The level of drought severity being targeted"
+                        "Severity", "The level of drought severity being targeted"
                     ),
                     dcc.Dropdown(
                         id="severity",
@@ -280,9 +274,8 @@ def command_layout():
             ),
             html.Div(
                 [
-                    html.Label("Frequency of triggered forecasts:"),
                     help_layout(
-                        "frequency",
+                        "Frequency of triggered forecasts",
                         "The slider is used to set the frequency of forecast triggered",
                     ),
                     dcc.Slider(
@@ -306,21 +299,24 @@ def command_layout():
                 [
                     dcc.Loading(
                         html.A(
-                            dbc.Button(
-                                "Gantt it!",
-                                color="info",
-                            ),
+                            [
+                                dbc.Button(
+                                    "Gantt it!", color="info", id="gantt_button"
+                                ),
+                                dbc.Tooltip(
+                                    "Gantt it!- Early action activities planning tool in a format of a Gantt chart",
+                                    target="gantt_button",
+                                    innerClassName="tooltiptext",
+                                    hide_arrow=True,
+                                ),
+                            ],
                             id="gantt",
                             target="_blank",
                         ),
                         type="dot",
                         parent_style={"height": "100%"},
                         style={"opacity": 0.2},
-                    ),
-                    help_layout(
-                        "gantt",
-                        "Gantt it!- Early action activities planning tool in a format of a Gantt chart",
-                    ),
+                    )
                 ],
                 style={
                     "position": "relative",
@@ -350,51 +346,6 @@ def command_layout():
 def table_layout(table_columns):
     return html.Div(
         [
-            html.Div(
-                [
-                    dbc.Button("ℹ️", id="pop_up", style={"padding": "0px"}),
-                    dbc.Popover(
-                        [
-                            dbc.PopoverHeader("Help"),
-                            dbc.PopoverBody(
-                                [
-                                    html.P(
-                                        "ENSO State - Displays whether an El Nino, Neutral or La Nina state occurred during the year"
-                                    ),
-                                    html.P(
-                                        "Forecast - Displays all the historical flexible forecast for the selected issue month and location"
-                                    ),
-                                    html.P(
-                                        "Rain Rank - Presents the ranking of the rainfall for the year compared to all the years"
-                                    ),
-                                    html.P(
-                                        "Reported Bad Year - Historical drought years based on farmers recollection"
-                                    ),
-                                    html.P(
-                                        "Worthy Action - Drought was forecasted and a ‘bad year’ occurred"
-                                    ),
-                                    html.P(
-                                        "Act-in-Vain - Drought was forecasted but a ‘bad year’ did not occur"
-                                    ),
-                                    html.P(
-                                        "Fail-to-Act - No drought was forecasted but a ‘bad year’ occurred"
-                                    ),
-                                    html.P(
-                                        "Worthy-Inaction - No drought was forecasted, and no ‘bad year’ occurred"
-                                    ),
-                                    html.P(
-                                        "Rate - Gives the percentage of worthy-action and worthy-inactions"
-                                    ),
-                                ],
-                            ),
-                        ],
-                        id="header_body",
-                        target="pop_up",
-                        placement="left",
-                        trigger="legacy",
-                    ),
-                ]
-            ),
             html.Div(id="log"),
             dcc.Loading(
                 [
@@ -427,6 +378,58 @@ def table_layout(table_columns):
                             "border": "1px solid rgb(150, 150, 150)",
                             "background-color": "rgba(255, 255, 255, 0)",
                         },
+                        tooltip_conditional=[
+                            {
+                                "if": {"row_index": 0, "column_id": "year_label"},
+                                "type": "markdown",
+                                "value": "Drought was forecasted and a ‘bad year’ occurred",
+                            },
+                            {
+                                "if": {"row_index": 1, "column_id": "year_label"},
+                                "type": "markdown",
+                                "value": "Drought was forecasted but a ‘bad year’ did not occur",
+                            },
+                            {
+                                "if": {"row_index": 2, "column_id": "year_label"},
+                                "type": "markdown",
+                                "value": "No drought was forecasted but a ‘bad year’ occurred",
+                            },
+                            {
+                                "if": {"row_index": 3, "column_id": "year_label"},
+                                "type": "markdown",
+                                "value": "No drought was forecasted, and no ‘bad year’ occurred",
+                            },
+                            {
+                                "if": {"row_index": 4, "column_id": "year_label"},
+                                "type": "markdown",
+                                "value": "Gives the percentage of worthy-action and worthy-inactions",
+                            },
+                            {
+                                "if": {"row_index": 5, "column_id": "year_label"},
+                                "type": "markdown",
+                                "value": "The year whose forecast is displayed on the map",
+                            },
+                            {
+                                "if": {"row_index": 5, "column_id": "enso_state"},
+                                "type": "markdown",
+                                "value": "Displays whether an El Nino, Neutral or La Nina state occurred during the year",
+                            },
+                            {
+                                "if": {"row_index": 5, "column_id": "forecast"},
+                                "type": "markdown",
+                                "value": "Displays all the historical flexible forecast for the selected issue month and location",
+                            },
+                            {
+                                "if": {"row_index": 5, "column_id": "rain_rank"},
+                                "type": "markdown",
+                                "value": "Presents the ranking of the rainfall for the year compared to all the years",
+                            },
+                            {
+                                "if": {"row_index": 5, "column_id": "bad_year"},
+                                "type": "markdown",
+                                "value": "Historical drought years based on farmers recollection",
+                            },
+                        ],
                         style_data_conditional=[
                             {
                                 "if": {
