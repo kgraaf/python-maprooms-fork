@@ -1,40 +1,34 @@
-import os
 import numpy as np
 import pandas as pd
 import xarray as xr
-from pathlib import Path
-import pyaconf
-
-CONFIG = pyaconf.load(os.environ["CONFIG"])
-
-DR_PATH = CONFIG["daily_rainfall_path"]
 
 #Tools to read Zarr version of daily ENACTS rainfall data
-
-RR_MRG_ZARR = Path(DR_PATH)
 
 def read_zarr_data(zarr_path):
   zarr_data = xr.open_zarr(zarr_path)
   return zarr_data
 
-#Setting up the stage to make an onset_date function
+#Onset Date function
 
-params_onset = {
-  "earlyStart": "1 Feb",
-  "searchDays": 60,
-  "wetThreshold": 0,
-  "runningDays": 3,
-  "runningTotal": 20,
-  "minRainyDays": 1,
-  "dryDays": 7,
-  "drySpell": 21,
-}
+def pyonset_date_dummy(dailyRain, params):
+  this_onset_date = xr.Dataset()
+  this_onset_date['time'] = dailyRain.time[
+    (dailyRain['time'].dt.day==int(params["earlyStart"].partition(" ")[0]))
+    &
+    (dailyRain['time'].dt.strftime("%b")==params["earlyStart"].partition(" ")[2])
+  ]
+  for i in dailyRain.coords:
+    if i != "time":
+      this_onset_date[i] = dailyRain[i]
+  this_onset_date["onset"] = np.random.randint(0, high=params["searchDays"], size=this_onset_date.shape)
 
-def pyonset_date(dailyRain, params):
-  rr_mrg = read_zarr_data(dailyRain)
-  this_onset_date = rr_mrg
+#  this_onset_date = xr.Dataset()
+#  this_onset_date["onset"] = dailyRain.precip[
+#    (dailyRain['time'].dt.day==int(params["earlyStart"].partition(" ")[0]))
+#    &
+#    (dailyRain['time'].dt.strftime("%b")==params["earlyStart"].partition(" ")[2])
+#  ]
+#  this_onset_date["onset"] = np.random.randint(0, high=params["searchDays"], size=this_onset_date["onset"].shape)
+#  this_onset_date["onset"] = np.random.default_rng().integers(low=0, high=params["searchDays"], size=this_onset_date.sizes['time'])
   return this_onset_date
 
-#Dummy to test that the reading works
-#that_onset_date = pyonset_date(RR_MRG_ZARR, params_onset)
-#print(that_onset_date)

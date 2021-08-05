@@ -5,16 +5,25 @@ import dash_html_components as html
 import dash_bootstrap_components as dbc
 from dash.dependencies import Output, Input, State
 import dash_leaflet as dlf
+from pathlib import Path
 import pyaconf
 import pingrid
 import layout
 import charts
+import calc
 
 CONFIG = pyaconf.load(os.environ["CONFIG"])
 
 PFX = CONFIG["core_path"]
 TILE_PFX = CONFIG["tile_path"]
 ADMIN_PFX = CONFIG["admin_path"]
+
+#Reads daily data
+
+CONFIG = pyaconf.load(os.environ["CONFIG"])
+DR_PATH = CONFIG["daily_rainfall_path"]
+RR_MRG_ZARR = Path(DR_PATH)
+rr_mrg = calc.read_zarr_data(RR_MRG_ZARR)
 
 SERVER = flask.Flask(__name__)
 APP = dash.Dash(
@@ -105,7 +114,7 @@ def update_charts(click_lat_lng, earlyStartDay, earlyStartMonth, searchDays, wet
     , plotrange1, plotrange2):
     lat, lng = get_coords(click_lat_lng)
     params = {
-        "earlyStart": earlyStartDay + "%20" + earlyStartMonth,
+        "earlyStart": str(earlyStartDay) + " " + earlyStartMonth,
         "searchDays": searchDays,
         "wetThreshold": wetThreshold,
         "runningDays": runningDays,
@@ -113,7 +122,7 @@ def update_charts(click_lat_lng, earlyStartDay, earlyStartMonth, searchDays, wet
         "minRainyDays": minRainyDays,
         "dryDays": dryDays,
         "drySpell": drySpell,
-        "earlyCess": earlyCessDay + "%20" + earlyCessMonth,
+        "earlyCess": earlyCessDay + " " + earlyCessMonth,
         "searchDaysCess": searchDaysCess,
         "waterBalanceCess": waterBalanceCess,
         "drySpellCess": drySpellCess,
@@ -135,6 +144,7 @@ def update_charts(click_lat_lng, earlyStartDay, earlyStartMonth, searchDays, wet
     except:
         table_elem = []
 
+    print(calc.pyonset_date_dummy(rr_mrg,params))
 
     return [
         charts.onset_date(lat, lng, params),
@@ -149,4 +159,4 @@ def update_charts(click_lat_lng, earlyStartDay, earlyStartMonth, searchDays, wet
 
 
 if __name__ == "__main__":
-    APP.run_server(debug=CONFIG["mode"] != "prod")
+    APP.run_server("0.0.0.0", 8063, debug=CONFIG["mode"] != "prod")
