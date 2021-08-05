@@ -1,5 +1,6 @@
 import urllib.request
 import json
+import calc
 
 PREFIX = "https://iridl.ldeo.columbia.edu/dlcharts/render/"
 
