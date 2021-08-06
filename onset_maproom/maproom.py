@@ -130,6 +130,8 @@ def update_charts(click_lat_lng, earlyStartDay, earlyStartMonth, searchDays, wet
         "plotrange2": plotrange2
     }
 
+#    print(calc.OnsetDate_dummy(rr_mrg,params)["onset_date"])
+
     try:
         tab_data = charts.table(lat, lng, params)
         table_header = [
@@ -144,8 +146,6 @@ def update_charts(click_lat_lng, earlyStartDay, earlyStartMonth, searchDays, wet
     except:
         table_elem = []
 
-    print(calc.pyonset_date_dummy(rr_mrg,params))
-
     return [
         charts.onset_date(lat, lng, params),
         charts.prob_exceed(lat, lng, params),
@@ -159,4 +159,4 @@ def update_charts(click_lat_lng, earlyStartDay, earlyStartMonth, searchDays, wet
 
 
 if __name__ == "__main__":
-    APP.run_server("0.0.0.0", 8063, debug=CONFIG["mode"] != "prod")
+    APP.run_server(debug=CONFIG["mode"] != "prod")
