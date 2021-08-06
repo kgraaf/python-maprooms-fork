@@ -22,16 +22,13 @@ def app_layout(table_columns):
     )
 
 
-def help_layout(buttonname, message):
-    id_name = buttonname.split()[0]
+def help_layout(buttonname, id_name, message):
     return html.Div(
         [
-            html.Label(
-                f"{buttonname}:", id=f"{id_name}_mode", style={"cursor": "pointer"}
-            ),
+            html.Label(f"{buttonname}:", id=id_name, style={"cursor": "pointer"}),
             dbc.Tooltip(
                 f"{message}",
-                target=f"{id_name}_mode",
+                target=id_name,
                 hide_arrow=True,
                 innerClassName="tooltiptext",
             ),
@@ -173,6 +170,7 @@ def command_layout():
                 [
                     help_layout(
                         "Mode",
+                        "mode_label",
                         "The spatial resolution such as National, Regional, District or Pixel level",
                     ),
                     dcc.Dropdown(
@@ -190,7 +188,11 @@ def command_layout():
             ),
             html.Div(
                 [
-                    help_layout("Issue", "The month in which the forecast is issued"),
+                    help_layout(
+                        "Issue",
+                        "issue_label",
+                        "The month in which the forecast is issued",
+                    ),
                     dcc.Dropdown(
                         id="issue_month",
                         clearable=False,
@@ -206,7 +208,9 @@ def command_layout():
             ),
             html.Div(
                 [
-                    help_layout("Season", "The rainy season being forecasted"),
+                    help_layout(
+                        "Season", "season_label", "The rainy season being forecasted"
+                    ),
                     dcc.Dropdown(
                         id="season",
                         clearable=False,
@@ -223,7 +227,9 @@ def command_layout():
             html.Div(
                 [
                     help_layout(
-                        "Year", "The year whose forecast is displayed on the map"
+                        "Year",
+                        "year_label",
+                        "The year whose forecast is displayed on the map",
                     ),
                     dcc.Input(
                         id="year",
@@ -251,7 +257,9 @@ def command_layout():
             html.Div(
                 [
                     help_layout(
-                        "Severity", "The level of drought severity being targeted"
+                        "Severity",
+                        "severity_label",
+                        "The level of drought severity being targeted",
                     ),
                     dcc.Dropdown(
                         id="severity",
@@ -276,6 +284,7 @@ def command_layout():
                 [
                     help_layout(
                         "Frequency of triggered forecasts",
+                        "frequency_label",
                         "The slider is used to set the frequency of forecast triggered",
                     ),
                     dcc.Slider(
