@@ -8,12 +8,12 @@ def read_zarr_data(zarr_path):
 
 #Onset Date function
 
-def onset_date(dailyRain, early_start, search_days, rainy_day, running_days, running_total, min_rainy_days, dry_days, dry_spell, time_coord="T"):
+def onset_date(dailyRain, early_start_day, early_start_month, search_days, rainy_day, running_days, running_total, min_rainy_days, dry_days, dry_spell, time_coord="T"):
   onset_date = xr.Dataset()
   onset_date["onset_date"] = dailyRain.precip[
-    (dailyRain[time_coord].dt.day==int(early_start.partition(" ")[0]))
+    (dailyRain[time_coord].dt.day==early_start_day)
     &
-    (dailyRain[time_coord].dt.strftime("%b")==early_start.partition(" ")[2])
+    (dailyRain[time_coord].dt.month==early_start_month)
   ]
   onset_date["onset_date"] = xr.DataArray(
     data=np.random.randint(0, high=search_days, size=onset_date["onset_date"].shape).astype('timedelta64[D]'),
@@ -25,3 +25,21 @@ def onset_date(dailyRain, early_start, search_days, rainy_day, running_days, run
   )
   onset_date["onset_date"] = onset_date[time_coord] + onset_date["onset_date"]  
   return onset_date
+
+def strftimeb2int(strftimeb):
+  strftimeb_all = {
+    "Jan": 1,
+    "Feb": 2,
+    "Mar": 3,
+    "Apr": 4,
+    "May": 5,
+    "Jun": 6,
+    "Jul": 7,
+    "Aug": 8,
+    "Sep": 9,
+    "Oct": 10,
+    "Nov": 11,
+    "Dec": 12
+  }
+  strftimebint=strftimeb_all[strftimeb]
+  return strftimebint
