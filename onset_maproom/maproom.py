@@ -130,7 +130,7 @@ def update_charts(click_lat_lng, earlyStartDay, earlyStartMonth, searchDays, wet
         "plotrange2": plotrange2
     }
 
-#    print(calc.onset_date(rr_mrg, int(earlyStartDay), calc.strftimeb2int(earlyStartMonth), params["searchDays"], params["wetThreshold"], params["runningDays"], params["runningTotal"], params["minRainyDays"], params["dryDays"], params["drySpell"]))
+#    print(calc.onset_date(rr_mrg.precip, int(earlyStartDay), calc.strftimeb2int(earlyStartMonth), params["searchDays"], params["wetThreshold"], params["runningDays"], params["runningTotal"], params["minRainyDays"], params["dryDays"], params["drySpell"]))
 
     try:
         tab_data = charts.table(lat, lng, params)

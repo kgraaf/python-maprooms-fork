@@ -8,22 +8,21 @@ def read_zarr_data(zarr_path):
 
 #Onset Date function
 
-def onset_date(dailyRain, early_start_day, early_start_month, search_days, rainy_day, running_days, running_total, min_rainy_days, dry_days, dry_spell, time_coord="T"):
-  onset_date = xr.Dataset()
-  onset_date["onset_date"] = dailyRain.precip[
-    (dailyRain[time_coord].dt.day==early_start_day)
+def onset_date(daily_rain, early_start_day, early_start_month, search_days, rainy_day, running_days, running_total, min_rainy_days, dry_days, dry_spell, time_coord="T"):
+  onset_date = daily_rain[
+    (daily_rain[time_coord].dt.day==early_start_day)
     &
-    (dailyRain[time_coord].dt.month==early_start_month)
+    (daily_rain[time_coord].dt.month==early_start_month)
   ]
-  onset_date["onset_date"] = xr.DataArray(
-    data=np.random.randint(0, high=search_days, size=onset_date["onset_date"].shape).astype('timedelta64[D]'),
-    dims=onset_date["onset_date"].dims,
-    coords=onset_date["onset_date"].coords,
+  onset_date = xr.DataArray(
+    data=np.random.randint(0, high=search_days, size=onset_date.shape).astype('timedelta64[D]'),
+    dims=onset_date.dims,
+    coords=onset_date.coords,
     attrs=dict(
         description="Onset Date",
     ),
   )
-  onset_date["onset_date"] = onset_date[time_coord] + onset_date["onset_date"]  
+  onset_date = onset_date[time_coord] + onset_date  
   return onset_date
 
 def strftimeb2int(strftimeb):
