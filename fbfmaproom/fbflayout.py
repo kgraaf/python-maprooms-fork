@@ -439,6 +439,8 @@ def table_layout(table_columns):
                                 "value": "Historical drought years based on farmers recollection",
                             },
                         ],
+                        tooltip_delay=0,
+                        tooltip_duration=None,
                         style_data_conditional=[
                             {
                                 "if": {
