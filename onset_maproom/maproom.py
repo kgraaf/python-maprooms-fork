@@ -5,16 +5,25 @@ import dash_html_components as html
 import dash_bootstrap_components as dbc
 from dash.dependencies import Output, Input, State
 import dash_leaflet as dlf
+from pathlib import Path
 import pyaconf
 import pingrid
 import layout
 import charts
+import calc
 
 CONFIG = pyaconf.load(os.environ["CONFIG"])
 
 PFX = CONFIG["core_path"]
 TILE_PFX = CONFIG["tile_path"]
 ADMIN_PFX = CONFIG["admin_path"]
+
+#Reads daily data
+
+CONFIG = pyaconf.load(os.environ["CONFIG"])
+DR_PATH = CONFIG["daily_rainfall_path"]
+RR_MRG_ZARR = Path(DR_PATH)
+rr_mrg = calc.read_zarr_data(RR_MRG_ZARR)
 
 SERVER = flask.Flask(__name__)
 APP = dash.Dash(
@@ -105,7 +114,7 @@ def update_charts(click_lat_lng, earlyStartDay, earlyStartMonth, searchDays, wet
     , plotrange1, plotrange2):
     lat, lng = get_coords(click_lat_lng)
     params = {
-        "earlyStart": earlyStartDay + "%20" + earlyStartMonth,
+        "earlyStart": str(earlyStartDay) + " " + earlyStartMonth,
         "searchDays": searchDays,
         "wetThreshold": wetThreshold,
         "runningDays": runningDays,
@@ -113,13 +122,16 @@ def update_charts(click_lat_lng, earlyStartDay, earlyStartMonth, searchDays, wet
         "minRainyDays": minRainyDays,
         "dryDays": dryDays,
         "drySpell": drySpell,
-        "earlyCess": earlyCessDay + "%20" + earlyCessMonth,
+        "earlyCess": earlyCessDay + " " + earlyCessMonth,
         "searchDaysCess": searchDaysCess,
         "waterBalanceCess": waterBalanceCess,
         "drySpellCess": drySpellCess,
         "plotrange1": plotrange1,
         "plotrange2": plotrange2
     }
+    
+#    od_test = calc.onset_date(rr_mrg.precip, int(earlyStartDay), calc.strftimeb2int(earlyStartMonth), params["searchDays"], params["wetThreshold"], params["runningDays"], params["runningTotal"], params["minRainyDays"], params["dryDays"], params["drySpell"])
+#    print(od_test)
 
     try:
         tab_data = charts.table(lat, lng, params)
@@ -134,7 +146,6 @@ def update_charts(click_lat_lng, earlyStartDay, earlyStartMonth, searchDays, wet
         table_elem = table_header + [ table_body ]
     except:
         table_elem = []
-
 
     return [
         charts.onset_date(lat, lng, params),
