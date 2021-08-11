@@ -9,6 +9,13 @@ def read_zarr_data(zarr_path):
 #Onset Date function
 
 def onset_date(daily_rain, early_start_day, early_start_month, search_days, rainy_day, running_days, running_total, min_rainy_days, dry_days, dry_spell, time_coord="T"):
+  """Fonction reproducing Ingrid onsetDate function
+  http://iridl.ldeo.columbia.edu/dochelp/Documentation/details/index.html?func=onsetDate
+  with the exception that:
+  output is a random deltatime rather than an actual onset
+  earlyStart input is now 2 arguments: day and month (as opposed to 1)
+  output is now the timedelta with each year's earlyStart (as opposed to the date itself)
+  """
   onset_date = daily_rain[
     (daily_rain[time_coord].dt.day==early_start_day)
     &
