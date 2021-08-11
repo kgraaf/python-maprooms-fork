@@ -22,7 +22,8 @@ def onset_date(daily_rain, early_start_day, early_start_month, search_days, rain
         description="Onset Date",
     ),
   )
-  onset_date = onset_date[time_coord] + onset_date  
+#Tip to get dates from timedelta  early_start_day
+#  onset_date = onset_date[time_coord] + onset_date  
   return onset_date
 
 def strftimeb2int(strftimeb):
