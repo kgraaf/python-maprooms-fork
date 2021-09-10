@@ -165,6 +165,7 @@ def command_layout():
     return html.Div(
         [
             dcc.Input(id="geom_key", type="hidden"),
+            dcc.Input(id="prob_thresh", type="hidden"),
             html.Div(
                 [
                     help_layout(
@@ -341,7 +342,7 @@ def command_layout():
                         "prob_label",
                         "To trigger at the selected frequency, trigger when the forecast probability of drought is at least this high.",
                     ),
-                    html.Div(id='prob_thresh'),
+                    html.Div(id='prob_thresh_text'),
                 ],
                 style={
                     "position": "relative",

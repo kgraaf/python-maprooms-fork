@@ -575,9 +575,17 @@ def _(pathname, position, mode, year):
 
 
 @APP.callback(
+    Output("prob_thresh_text", "children"),
+    Input("prob_thresh", "value"),
+)
+def display_prob_thresh(val):
+    return f"{val:.2f}%"
+
+
+@APP.callback(
     Output("table", "data"),
     Output("summary", "data"),
-    Output("prob_thresh", "children"),
+    Output("prob_thresh", "value"),
     Input("issue_month", "value"),
     Input("freq", "value"),
     Input("mode", "value"),
@@ -600,7 +608,7 @@ def _(issue_month, freq, mode, geom_key, pathname, severity, season):
         geom_key,
         severity,
     )
-    return dft.to_dict("records"), dfs.to_dict("records"), f"{prob_thresh:.2f}%"
+    return dft.to_dict("records"), dfs.to_dict("records"), prob_thresh
 
 
 @APP.callback(
@@ -620,7 +628,7 @@ def update_severity_color(value):
     Input("year", "value"),
     Input("location", "pathname"),
     Input("severity", "value"),
-    Input("prob_thresh", "children"),
+    Input("prob_thresh", "value"),
     State("season", "value"),
 )
 def _(
