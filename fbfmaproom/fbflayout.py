@@ -165,7 +165,6 @@ def command_layout():
     return html.Div(
         [
             dcc.Input(id="geom_key", type="hidden"),
-            dcc.Input(id="prob_thresh", type="hidden"),
             html.Div(
                 [
                     help_layout(
@@ -335,6 +334,20 @@ def command_layout():
                     "vertical-align": "top",
                 },
             ),
+            html.Div(
+                [
+                    html.Div('Probability'),
+                    html.Div('threshold:'),
+                    html.Div(id='prob_thresh'),
+                ],
+                style={
+                    "position": "relative",
+                    "display": "inline-block",
+                    "padding": "10px",
+                    "vertical-align": "top",
+                },
+            ),
+
         ],
         id="command_panel",
         className="info",
