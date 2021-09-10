@@ -336,12 +336,12 @@ def command_layout():
             ),
             html.Div(
                 [
-                    html.Div('Probability'),
-                    html.Div('threshold:'),
+                    html.Div('Probability threshold:'),
                     html.Div(id='prob_thresh'),
                 ],
                 style={
                     "position": "relative",
+                    "width": "1px", # force it to wrap
                     "display": "inline-block",
                     "padding": "10px",
                     "vertical-align": "top",
