@@ -336,7 +336,11 @@ def command_layout():
             ),
             html.Div(
                 [
-                    html.Div('Probability threshold:'),
+                    help_layout(
+                        "Probability threshold",
+                        "prob_label",
+                        "To trigger at the selected frequency, trigger when the forecast probability of drought is at least this high.",
+                    ),
                     html.Div(id='prob_thresh'),
                 ],
                 style={
