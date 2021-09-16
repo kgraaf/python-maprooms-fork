@@ -335,6 +335,24 @@ def command_layout():
                     "vertical-align": "top",
                 },
             ),
+            html.Div(
+                [
+                    help_layout(
+                        "Probability threshold",
+                        "prob_label",
+                        "To trigger at the selected frequency, trigger when the forecast probability of drought is at least this high.",
+                    ),
+                    html.Div(id='prob_thresh_text'),
+                ],
+                style={
+                    "position": "relative",
+                    "width": "1px", # force it to wrap
+                    "display": "inline-block",
+                    "padding": "10px",
+                    "vertical-align": "top",
+                },
+            ),
+
         ],
         id="command_panel",
         className="info",

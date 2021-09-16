@@ -575,6 +575,14 @@ def _(pathname, position, mode, year):
 
 
 @APP.callback(
+    Output("prob_thresh_text", "children"),
+    Input("prob_thresh", "value"),
+)
+def display_prob_thresh(val):
+    return f"{val:.2f}%"
+
+
+@APP.callback(
     Output("table", "data"),
     Output("summary", "data"),
     Output("prob_thresh", "value"),
