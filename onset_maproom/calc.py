@@ -13,46 +13,6 @@ def read_zarr_data(zarr_path):
 # Growing season functions
 
 
-def seasonal_onset_date(
-    daily_rain,
-    early_start_day,
-    early_start_month,
-    search_days,
-    rainy_day,
-    running_days,
-    running_total,
-    min_rainy_days,
-    dry_days,
-    dry_spell,
-    time_coord="T",
-):
-    """Function reproducing Ingrid onsetDate function
-    http://iridl.ldeo.columbia.edu/dochelp/Documentation/details/index.html?func=onsetDate
-    with the exception that:
-    output is a random deltatime rather than an actual onset
-    earlyStart input is now 2 arguments: day and month (as opposed to 1)
-    output is now the timedelta with each year's earlyStart
-    (as opposed to the date itself)
-    """
-    seasonal_onset_date = daily_rain[
-        (daily_rain[time_coord].dt.day == early_start_day)
-        & (daily_rain[time_coord].dt.month == early_start_month)
-    ]
-    seasonal_onset_date = xr.DataArray(
-        data=np.random.randint(
-            0, high=search_days, size=seasonal_onset_date.shape
-        ).astype("timedelta64[D]"),
-        dims=seasonal_onset_date.dims,
-        coords=seasonal_onset_date.coords,
-        attrs=dict(
-            description="Onset Date",
-        ),
-    )
-    # Tip to get dates from timedelta  early_start_day
-    #  seasonal_onset_date = seasonal_onset_date[time_coord] + seasonal_onset_date
-    return seasonal_onset_date
-
-
 def onset_date(
     daily_rain,
     wet_thresh,
@@ -245,6 +205,119 @@ def daily_tobegroupedby_season(
 # Seasonal Functions
 
 
+def seasonal_onset_date(
+    daily_rain,
+    search_start_day,
+    search_start_month,
+    search_days,
+    wet_thresh,
+    wet_spell_length,
+    wet_spell_thresh,
+    min_wet_days,
+    dry_spell_length,
+    dry_spell_search,
+    time_coord="T",
+):
+    """Function reproducing Ingrid onsetDate function
+    http://iridl.ldeo.columbia.edu/dochelp/Documentation/details/index.html?func=onsetDate
+    combining a function that groups data by season
+    and a function that search for an onset date
+    """
+
+    # Deal with leap year cases
+    if search_start_day == 29 and search_start_month == 2:
+        search_start_day = 1
+        search_start_month = 3
+
+    # Find an acceptable end_day/_month
+    first_end_date = daily_rain[time_coord].where(
+        lambda x: (x.dt.day == search_start_day) & (x.dt.month == search_start_month),
+        drop=True,
+    )[0] + np.timedelta64(
+        search_days
+        # search_start_day is part of the search
+        - 1 + dry_spell_search
+        # in case this first season covers a non-leap year 28 Feb
+        # so that if leap years involve in the process, we have enough days
+        # and if not, then we add 1 more day which should not cause trouble
+        # unless that pushes us to a day that is not part of the data
+        # that would make the whole season drop -- acceptable?
+        + 1,
+        "D",
+    )
+
+    end_day = first_end_date.dt.day.values
+
+    end_month = first_end_date.dt.month.values
+
+    # Apply daily grouping by season
+    grouped_daily_data = daily_tobegroupedby_season(
+        daily_rain, search_start_day, search_start_month, end_day, end_month
+    )
+    # Apply onset_date
+    seasonal_data = (
+        grouped_daily_data[daily_rain.name]
+        .groupby(grouped_daily_data["seasons_starts"])
+        .map(
+            onset_date,
+            wet_thresh=wet_thresh,
+            wet_spell_length=wet_spell_length,
+            wet_spell_thresh=wet_spell_thresh,
+            min_wet_days=min_wet_days,
+            dry_spell_length=dry_spell_length,
+            dry_spell_search= dry_spell_search,
+        )
+        # This was not needed when applying sum
+        .drop_vars(time_coord)
+        .rename({"seasons_starts": time_coord})
+    )
+    # Get the seasons ends
+    seasons_ends = grouped_daily_data["seasons_ends"].rename({"group": time_coord})
+    seasonal_onset_date = xr.merge([seasonal_data, seasons_ends])
+
+    # Tip to get dates from timedelta search_start_day
+    # seasonal_onset_date = seasonal_onset_date[time_coord]
+    # + seasonal_onset_date.onset_delta
+    return seasonal_onset_date
+
+
+def run_test_season_onset():
+    import pyaconf
+    import os
+    from pathlib import Path
+
+    CONFIG = pyaconf.load(os.environ["CONFIG"])
+    DR_PATH = CONFIG["daily_rainfall_path"]
+    RR_MRG_ZARR = Path(DR_PATH)
+    rr_mrg = read_zarr_data(RR_MRG_ZARR)
+    rr_mrg = rr_mrg.sel(T=slice("2000", "2005"))
+
+    print("the output of onset date")
+    print(
+        seasonal_onset_date(rr_mrg.precip, 1, 3, 90, 1, 3, 20, 1, 7, 21, time_coord="T")
+    )
+    print(
+        seasonal_onset_date(rr_mrg.precip, 1, 3, 90, 1, 3, 20, 1, 7, 21, time_coord="T")
+        .onset_delta.isel(X=150, Y=150)
+        .values
+    )
+    print(
+        (
+            seasonal_onset_date(
+                rr_mrg.precip, 1, 3, 90, 1, 3, 20, 1, 7, 21, time_coord="T"
+            ).onset_delta
+            + seasonal_onset_date(
+                rr_mrg.precip, 1, 3, 90, 1, 3, 20, 1, 7, 21, time_coord="T"
+            )["T"]
+        )
+        .isel(X=150, Y=150)
+        .values
+    )
+
+
+#run_test_season_onset()
+
+
 def seasonal_sum(
     daily_data,
     start_day,
@@ -262,7 +335,7 @@ def seasonal_sum(
         grouped_daily_data[daily_data.name]
         .groupby(grouped_daily_data["seasons_starts"])
         .sum(dim=time_coord, skipna=True, min_count=min_count)
-        .rename({"seasons_starts": time_coord})
+        #        .rename({"seasons_starts": time_coord})
     )
     seasons_ends = grouped_daily_data["seasons_ends"].rename({"group": time_coord})
     summed_seasons = xr.merge([seasonal_data, seasons_ends])
@@ -283,42 +356,43 @@ def run_test_season_stuff():
     rr_mrg = read_zarr_data(RR_MRG_ZARR)
     rr_mrg = rr_mrg.sel(T=slice("2000", "2005-02-28"))
 
-    print("the inputs to grouping")
-    print(daily_tobegroupedby_season(rr_mrg.precip, 29, 11, 29, 2))
+    #    print("the inputs to grouping")
+    #    print(daily_tobegroupedby_season(rr_mrg.precip, 29, 11, 29, 2))
 
     print("the outputs of seasonal_sum")
     print(seasonal_sum(rr_mrg.precip, 29, 11, 29, 2, min_count=0))
 
-    print("some data")
-    print(
-        seasonal_sum(rr_mrg.precip, 29, 11, 29, 2, min_count=0)
-        .precip.isel(X=150, Y=150)
-        .values
-    )
-    print(
-        rr_mrg.precip.sel(T=slice("2000-11-29", "2001-02-28"))
-        .sum("T")
-        .isel(X=150, Y=150)
-        .values
-    )
-    print(
-        rr_mrg.precip.sel(T=slice("2001-11-29", "2002-02-28"))
-        .sum("T")
-        .isel(X=150, Y=150)
-        .values
-    )
-    print(
-        rr_mrg.precip.sel(T=slice("2002-11-29", "2003-02-28"))
-        .sum("T")
-        .isel(X=150, Y=150)
-        .values
-    )
-    print(
-        rr_mrg.precip.sel(T=slice("2003-11-29", "2004-02-29"))
-        .sum("T")
-        .isel(X=150, Y=150)
-        .values
-    )
+
+#    print("some data")
+#    print(
+#        seasonal_sum(rr_mrg.precip, 29, 11, 29, 2, min_count=0)
+#        .precip.isel(X=150, Y=150)
+#        .values
+#    )
+#    print(
+#        rr_mrg.precip.sel(T=slice("2000-11-29", "2001-02-28"))
+#        .sum("T")
+#        .isel(X=150, Y=150)
+#        .values
+#    )
+#    print(
+#        rr_mrg.precip.sel(T=slice("2001-11-29", "2002-02-28"))
+#        .sum("T")
+#        .isel(X=150, Y=150)
+#        .values
+#    )
+#    print(
+#        rr_mrg.precip.sel(T=slice("2002-11-29", "2003-02-28"))
+#        .sum("T")
+#        .isel(X=150, Y=150)
+#        .values
+#    )
+#    print(
+#        rr_mrg.precip.sel(T=slice("2003-11-29", "2004-02-29"))
+#        .sum("T")
+#        .isel(X=150, Y=150)
+#        .values
+#    )
 
 
 # run_test_season_stuff()
