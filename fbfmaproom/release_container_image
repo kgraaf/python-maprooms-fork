@@ -11,7 +11,7 @@ fail() {
 git_repo=x24-vector
 imagename=fbfmaproom
 registry=iridl
-githost=git@bitbucket.org:iridl
+githost=git@github.com:iridl
 labelnamespace=edu.columbia.iri.iridl
 
 cleanup() {
