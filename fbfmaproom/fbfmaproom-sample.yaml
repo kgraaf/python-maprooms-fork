@@ -364,7 +364,7 @@ countries:
             - name: Regional
               sql: select (adm0_code, adm1_code) as key, adm1_name as label,
                   ST_AsBinary(the_geom) as the_geom from iridb.g2015_2014_1
-                  where adm0_name = 'Malawi'
+                  where adm0_name = 'Guatemala'
               vuln_sql: select (adm0_code, adm1_code) as key, year, sum(vulnerability) as vuln
                   from public.fbf_vulnerability where adm0_name = 'Guatemala' group by 1, 2
 
