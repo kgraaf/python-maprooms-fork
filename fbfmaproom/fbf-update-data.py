@@ -48,7 +48,7 @@ datasets = [
     ),
     (
         'rain-guatemala',
-        '/SOURCES/.NOAA/.NCEP/.CPC/.Merged_Analysis/.monthly/.latest/.ver2/.prcp_est/X/-92/1/-88/GRID/Y/13/1/18/GRID/T/(Oct-Dec)/seasonalAverage/data.nc'
+        '/SOURCES/.UCSB/.CHIRPS/.v2p0/.monthly/.global/.precipitation/X/-92/1/-88/GRID/Y/13/1/18/GRID/T/(Oct-Dec)/seasonalAverage//name//prcp_est/def/data.nc',
     ),
     (
         'pnep-guatemala',
