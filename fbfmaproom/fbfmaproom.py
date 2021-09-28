@@ -346,20 +346,16 @@ def generate_tables(
     season_length = season_config["length"]
     target_month = season_config["target_month"]
 
-    enso_df = fetch_enso()
     bad_years_df = fetch_bad_years(country_key)
-    enso_badyear_df = bad_years_df.join(enso_df)
-    midpoints = enso_badyear_df.index.to_series()
-    enso_badyear_df["year"] = midpoints.apply(lambda x: pingrid.from_months_since(x).year)
-    enso_badyear_df["label"] = midpoints.apply(lambda x: year_label(x, season_length))
+    midpoints = bad_years_df.index.to_series()
+    main_df["bad_year"] = bad_years_df
+    main_df["year"] = midpoints.apply(lambda x: pingrid.from_months_since(x).year)
+    main_df["year_label"] = midpoints.apply(lambda x: year_label(x, season_length))
 
-    main_df["year"] = enso_badyear_df["year"]
-    main_df["year_label"] = enso_badyear_df["label"]
-    main_df["enso_state"] = enso_badyear_df["enso_state"]
-    main_df["bad_year"] = enso_badyear_df["bad_year"].where(~enso_badyear_df["bad_year"].isna(), "")
-    main_df["season"] = enso_badyear_df.index.to_series()
+    enso_df = fetch_enso()
+    main_df = main_df.drop("enso_state", axis="columns").join(enso_df)
+
     main_df["severity"] = severity
-    main_df = main_df.set_index("season")
 
     rain_da = open_rain(country_key).data_array * season_length * 30
     ns = config["datasets"]["rain"]["var_names"]
