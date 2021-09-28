@@ -197,15 +197,17 @@ def open_enso(season_length):
             df = pd.read_sql(
                 sql.SQL(
                     """
-                    select lower(adm0_name) as country_key, month_since_01011960,
+                    select month_since_01011960,
                         enso_state, bad_year
                     from {schema}.{table}
+                    where lower(adm0_name) = %(country_key)s
                     """
                 ).format(
                     schema=sql.Identifier(dc["schema"]),
                     table=sql.Identifier(dc["table"]),
                 ),
                 conn,
+                params={"country_key": country_key},
             )
 
     df["year"] = df["month_since_01011960"].apply(
@@ -334,8 +336,7 @@ def generate_tables(
     season_length = season_config["length"]
     target_month = season_config["target_month"]
 
-    enso_badyear_df = open_enso(season_length)
-    enso_badyear_df = enso_badyear_df[enso_badyear_df["country_key"] == country_key]
+    enso_badyear_df = open_enso(country_key, season_length)
 
     main_df["year"] = enso_badyear_df["year"]
     main_df["year_label"] = enso_badyear_df["label"]
