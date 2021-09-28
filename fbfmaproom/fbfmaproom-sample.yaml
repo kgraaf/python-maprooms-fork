@@ -43,6 +43,8 @@ dataframes:
         schema: public
         table: fbf_maproom
 
+data_root: /home/aaron/scratch/fbf-candidate
+
 countries:
     malawi:
         logo: Malawi_IRI_98x48.png
@@ -74,7 +76,7 @@ countries:
 
         datasets:
             rain:
-                path: /data/aaron/fbf/rain-malawi.zarr
+                path: rain-malawi.zarr
                 var_names:
                     rain: prcp_est
                     lat: Y
@@ -86,7 +88,7 @@ countries:
                     5285200 [5285200 23] 4625990 [4625990 22] 3966780 [3966780 23]
                     3307570 [3307570 23] 2648360 [2648360 23] 1989150]"
             pnep:
-                path: /data/aaron/fbf/pnep-malawi.zarr
+                path: pnep-malawi.zarr
                 var_names:
                     pnep: prob
                     lat: Y
@@ -144,7 +146,7 @@ countries:
 
         datasets:
             rain:
-                path: /data/aaron/fbf/rain-madagascar.zarr
+                path: rain-madagascar.zarr
                 var_names:
                     rain: rfe
                     lat: Y
@@ -152,7 +154,7 @@ countries:
                     time: T
                 colormap: *raincm
             pnep:
-                path: /data/aaron/fbf/pnep-madagascar.zarr
+                path: pnep-madagascar.zarr
                 var_names:
                     pnep: pne
                     lat: Y
@@ -203,7 +205,7 @@ countries:
 
         datasets:
             rain:
-                path: /data/aaron/fbf/rain-ethiopia.zarr
+                path: rain-ethiopia.zarr
                 var_names:
                     rain: prcp
                     lat: Y
@@ -211,7 +213,7 @@ countries:
                     time: T
                 colormap: *raincm
             pnep:
-                path: /data/aaron/fbf/pnep-ethiopia.zarr
+                path: pnep-ethiopia.zarr
                 var_names:
                     pnep: pne
                     lat: Y
@@ -261,7 +263,7 @@ countries:
 
         datasets:
             rain:
-                path: /data/aaron/fbf/rain-ethiopia-ond.zarr
+                path: rain-ethiopia-ond.zarr
                 var_names:
                     rain: prcp
                     lat: Y
@@ -269,7 +271,7 @@ countries:
                     time: T
                 colormap: *raincm
             pnep:
-                path: /data/aaron/fbf/pnep-ethiopia-ond.zarr
+                path: pnep-ethiopia-ond.zarr
                 var_names:
                     pnep: pne
                     lat: Y
@@ -318,7 +320,7 @@ countries:
 
         datasets:
             rain:
-                path: /data/aaron/fbf/rain-niger.zarr
+                path: rain-niger.zarr
                 var_names:
                     rain: obs
                     lat: Y
@@ -326,7 +328,7 @@ countries:
                     time: T
                 colormap: *raincm
             pnep:
-                path: /data/aaron/fbf/pnep-niger.zarr
+                path: pnep-niger.zarr
                 var_names:
                     pnep: pne
                     lat: Y
@@ -377,7 +379,7 @@ countries:
 
         datasets:
             rain:
-                path: /data/aaron/fbf/rain-guatemala.zarr
+                path: rain-guatemala.zarr
                 var_names:
                     rain: prcp_est
                     lat: Y
@@ -385,7 +387,7 @@ countries:
                     time: T
                 colormap: *raincm
             pnep:
-                path: /data/aaron/fbf/pnep-guatemala.zarr
+                path: pnep-guatemala.zarr
                 var_names:
                     pnep: pne
                     lat: Y

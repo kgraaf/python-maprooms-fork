@@ -10,6 +10,7 @@ import yaml
 import json
 import numpy as np
 import pandas as pd
+from pathlib import Path
 import xarray as xr
 import cv2
 import flask
@@ -68,6 +69,10 @@ APP.title = "FBF--Maproom"
 APP.layout = fbflayout.app_layout(TABLE_COLUMNS)
 
 
+def data_path(relpath):
+    return Path(CONFIG["data_root"], relpath)
+
+
 def open_data_array(
     config,
     country_key,
@@ -80,7 +85,7 @@ def open_data_array(
     cfg = config["countries"][country_key]["datasets"][dataset_key]
     if var_key is not None:
         ns = cfg["var_names"]
-        da = xr.open_zarr(cfg["path"], decode_times=False)[ns[var_key]].transpose(
+        da = xr.open_zarr(data_path(cfg["path"]), decode_times=False)[ns[var_key]].transpose(
             ns["lat"], ns["lon"], ...
         )
     else:
