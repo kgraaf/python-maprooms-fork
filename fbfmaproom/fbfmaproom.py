@@ -227,30 +227,28 @@ def fetch_bad_years(country_key):
     return df
 
 
+def year_label(months, season_length):
+    midpoint = pingrid.from_months_since(months)
+    start = pingrid.from_months_since(months - season_length / 2)
+    end = (
+        pingrid.from_months_since(months + season_length / 2)
+        - datetime.timedelta(days=1)
+    )
+    if start.year == end.year:
+        label = start.year
+    else:
+        label = f"{start.year}/{end.year % 100}"
+    return label
+
+
 @lru_cache
 def open_enso(country_key, season_length):
     enso_df = fetch_enso()
     bad_years_df = fetch_bad_years(country_key)
     df = bad_years_df.join(enso_df)
-
-    df["year"] = df.index.to_series().apply(
-        lambda x: pingrid.from_months_since(x).year
-    )
-    df["begin_year"] = df.index.to_series().apply(
-        lambda x: pingrid.from_months_since(x - season_length / 2).year
-    )
-    df["end_year"] = df.index.to_series().apply(
-        lambda x: (
-            pingrid.from_months_since(x + season_length / 2)
-            - datetime.timedelta(days=1)
-        ).year
-    )
-    df["label"] = df.apply(
-        lambda d: str(d["begin_year"])
-        if d["begin_year"] == d["end_year"]
-        else str(d["begin_year"]) + "/" + str(d["end_year"])[-2:],
-        axis=1,
-    )
+    midpoints = df.index.to_series()
+    df["year"] = midpoints.apply(lambda x: pingrid.from_months_since(x).year)
+    df["label"] = midpoints.apply(lambda x: year_label(x, season_length))
     return df
 
 
