@@ -45,6 +45,8 @@ dataframes:
 
 data_root: /data/aaron/fbf
 
+custom_asset_path: /path/to/my/custom/icons/directory
+
 countries:
     malawi:
         logo: Malawi_IRI_98x48.png

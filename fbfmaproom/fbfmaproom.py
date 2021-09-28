@@ -479,7 +479,7 @@ def _(pathname):
     ] + [dict(label="Pixel", value="pixel")]
     mode_value = "0"
     return (
-        f"{PFX}/assets/{c['logo']}",
+        f"{PFX}/custom/{c['logo']}",
         [cy, cx],
         c["zoom"],
         [y, x],
@@ -491,6 +491,9 @@ def _(pathname):
         mode_value,
     )
 
+@SERVER.route(f"{PFX}/custom/<path:relpath>")
+def custom_static(relpath):
+    return flask.send_from_directory(CONFIG["custom_asset_path"], relpath)
 
 @APP.callback(
     Output("year", "min"),
