@@ -186,8 +186,7 @@ def select_rain(country_key, year, season):
     return dae
 
 
-@lru_cache
-def open_enso(season_length):
+def fetch_enso(country_key):
     config = CONFIG
     dbpool = DBPOOL
     dc = config["dataframes"]["enso"]
@@ -197,8 +196,7 @@ def open_enso(season_length):
             df = pd.read_sql(
                 sql.SQL(
                     """
-                    select month_since_01011960,
-                        enso_state, bad_year
+                    select month_since_01011960, enso_state
                     from {schema}.{table}
                     where lower(adm0_name) = %(country_key)s
                     """
@@ -209,14 +207,48 @@ def open_enso(season_length):
                 conn,
                 params={"country_key": country_key},
             )
+    df = df.set_index("month_since_01011960")
+    return df
 
-    df["year"] = df["month_since_01011960"].apply(
+
+def fetch_bad_years(country_key):
+    config = CONFIG
+    dbpool = DBPOOL
+    dc = config["dataframes"]["enso"]
+    with dbpool.take() as cm:
+        conn = cm.resource
+        with conn:  # transaction
+            df = pd.read_sql(
+                sql.SQL(
+                    """
+                    select month_since_01011960, bad_year
+                    from {schema}.{table}
+                    where lower(adm0_name) = %(country_key)s
+                    """
+                ).format(
+                    schema=sql.Identifier(dc["schema"]),
+                    table=sql.Identifier(dc["table"]),
+                ),
+                conn,
+                params={"country_key": country_key},
+            )
+    df = df.set_index("month_since_01011960")
+    return df
+
+
+@lru_cache
+def open_enso(country_key, season_length):
+    enso_df = fetch_enso(country_key)
+    bad_years_df = fetch_bad_years(country_key)
+    df = bad_years_df.join(enso_df)
+
+    df["year"] = df.index.to_series().apply(
         lambda x: pingrid.from_months_since(x).year
     )
-    df["begin_year"] = df["month_since_01011960"].apply(
+    df["begin_year"] = df.index.to_series().apply(
         lambda x: pingrid.from_months_since(x - season_length / 2).year
     )
-    df["end_year"] = df["month_since_01011960"].apply(
+    df["end_year"] = df.index.to_series().apply(
         lambda x: (
             pingrid.from_months_since(x + season_length / 2)
             - datetime.timedelta(days=1)
@@ -342,7 +374,7 @@ def generate_tables(
     main_df["year_label"] = enso_badyear_df["label"]
     main_df["enso_state"] = enso_badyear_df["enso_state"]
     main_df["bad_year"] = enso_badyear_df["bad_year"].where(~enso_badyear_df["bad_year"].isna(), "")
-    main_df["season"] = enso_badyear_df["month_since_01011960"]
+    main_df["season"] = enso_badyear_df.index.to_series()
     main_df["severity"] = severity
     main_df = main_df.set_index("season")
 
