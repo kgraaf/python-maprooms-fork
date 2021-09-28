@@ -186,35 +186,26 @@ def select_rain(country_key, year, season):
     return dae
 
 
-def fetch_enso(country_key):
-    config = CONFIG
-    dbpool = DBPOOL
-    dc = config["dataframes"]["enso"]
-    with dbpool.take() as cm:
-        conn = cm.resource
-        with conn:  # transaction
-            df = pd.read_sql(
-                sql.SQL(
-                    """
-                    select month_since_01011960, enso_state
-                    from {schema}.{table}
-                    where lower(adm0_name) = %(country_key)s
-                    """
-                ).format(
-                    schema=sql.Identifier(dc["schema"]),
-                    table=sql.Identifier(dc["table"]),
-                ),
-                conn,
-                params={"country_key": country_key},
-            )
-    df = df.set_index("month_since_01011960")
+ENSO_STATES = {
+    1.0: "La Niña",
+    2.0: "Neutral",
+    3.0: "El Niño"
+}
+
+
+def fetch_enso():
+    path = data_path(CONFIG["dataframes"]["enso"])
+    ds = xr.open_zarr(path, decode_times=False)
+    df = ds.to_dataframe()
+    df["enso_state"] = df["dominant_class"].apply(lambda x: ENSO_STATES[x])
+    df = df.drop("dominant_class", axis="columns")
     return df
 
 
 def fetch_bad_years(country_key):
     config = CONFIG
     dbpool = DBPOOL
-    dc = config["dataframes"]["enso"]
+    dc = config["dataframes"]["bad_years"]
     with dbpool.take() as cm:
         conn = cm.resource
         with conn:  # transaction
@@ -238,7 +229,7 @@ def fetch_bad_years(country_key):
 
 @lru_cache
 def open_enso(country_key, season_length):
-    enso_df = fetch_enso(country_key)
+    enso_df = fetch_enso()
     bad_years_df = fetch_bad_years(country_key)
     df = bad_years_df.join(enso_df)
 
