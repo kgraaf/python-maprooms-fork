@@ -322,7 +322,7 @@ def generate_tables(
     summary_df = summary_df.append(headings_df)
 
     if geom_key is None:
-        return df, dfs, 0
+        return main_df, summary_df, 0
 
     season_config = config["seasons"][season]
     year_min, year_max = season_config["year_range"]
