@@ -241,17 +241,6 @@ def year_label(months, season_length):
     return label
 
 
-@lru_cache
-def open_enso(country_key, season_length):
-    enso_df = fetch_enso()
-    bad_years_df = fetch_bad_years(country_key)
-    df = bad_years_df.join(enso_df)
-    midpoints = df.index.to_series()
-    df["year"] = midpoints.apply(lambda x: pingrid.from_months_since(x).year)
-    df["label"] = midpoints.apply(lambda x: year_label(x, season_length))
-    return df
-
-
 def retrieve_geometry(
     country_key: str, point: Tuple[float, float], mode: str, year: Optional[int]
 ) -> Tuple[MultiPolygon, Dict[str, Any]]:
@@ -357,7 +346,12 @@ def generate_tables(
     season_length = season_config["length"]
     target_month = season_config["target_month"]
 
-    enso_badyear_df = open_enso(country_key, season_length)
+    enso_df = fetch_enso()
+    bad_years_df = fetch_bad_years(country_key)
+    enso_badyear_df = bad_years_df.join(enso_df)
+    midpoints = enso_badyear_df.index.to_series()
+    enso_badyear_df["year"] = midpoints.apply(lambda x: pingrid.from_months_since(x).year)
+    enso_badyear_df["label"] = midpoints.apply(lambda x: year_label(x, season_length))
 
     main_df["year"] = enso_badyear_df["year"]
     main_df["year_label"] = enso_badyear_df["label"]
