@@ -551,7 +551,7 @@ def _(pathname, position, mode, year):
         pixel = MultiPoint([(x0, y0), (x1, y1)]).envelope
         geom, _ = retrieve_geometry(country_key, tuple(c["marker"]), "0", None)
         if pixel.intersects(geom):
-            positions = [[[[y0, x0], [y1, x0], [y1, x1], [y0, x1], [y0, x0]]]]
+            positions = [[[[y0, x0], [y1, x0], [y1, x1], [y0, x1]]]]
             px = (x0 + x1) / 2
             pxs = "E" if px > 0.0 else "W" if px < 0.0 else ""
             py = (y0 + y1) / 2
