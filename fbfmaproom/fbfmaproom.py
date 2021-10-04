@@ -836,7 +836,6 @@ def stats():
         open_rain,
         select_rain,
         open_vuln,
-        open_enso,
         retrieve_vulnerability,
     ]
     cs = {}
