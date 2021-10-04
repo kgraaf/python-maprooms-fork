@@ -43,7 +43,7 @@ dataframes:
         schema: public
         table: fbf_maproom
 
-data_root: /home/aaron/scratch/fbf-candidate
+data_root: /data/aaron/fbf
 
 countries:
     malawi:
