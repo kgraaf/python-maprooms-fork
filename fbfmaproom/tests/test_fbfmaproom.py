@@ -1,4 +1,5 @@
 from cftime import Datetime360Day as DT360
+import dash_html_components as html
 import io
 import numpy as np
 import pandas as pd
@@ -248,3 +249,55 @@ def test_stats():
         resp = client.get('/fbfmaproom-admin/stats')
         print(resp.data)
         assert resp.status_code == 200
+
+def test_update_selected_region_pixel():
+    positions, key = fbfmaproom.update_selected_region.__wrapped__(
+        '/fbfmaproom/ethiopia',
+        [6.875, 43.875],
+        'pixel'
+    )
+    assert positions == [[[6.75, 43.75], [7.0, 43.75], [7.0, 44.0], [6.75, 44.0]]]
+    assert key == "[[6.75, 43.75], [7.0, 44.0]]"
+
+def test_update_selected_region_level0():
+    positions, key = fbfmaproom.update_selected_region.__wrapped__(
+        '/fbfmaproom/ethiopia',
+        [6.875, 43.875],
+        '0'
+    )
+    assert len(positions[0]) == 1323
+    assert key == "ET05"
+
+def test_update_selected_region_level1():
+    positions, key = fbfmaproom.update_selected_region.__wrapped__(
+        '/fbfmaproom/ethiopia',
+        [6.875, 43.875],
+        '1'
+    )
+    assert len(positions[0]) == 143
+    assert key == "(ET05,ET0505)"
+
+def test_update_popup_pixel():
+    title, content = fbfmaproom.update_popup.__wrapped__(
+        '/fbfmaproom/ethiopia',
+        [6.875, 43.875],
+        'pixel',
+        2017,
+    )
+    print(repr(content))
+    assert isinstance(title, html.H3)
+    assert title.children == '6.87500° N 43.87500° E'
+    assert content.children == []
+
+def test_update_popup_level0():
+    title, content = fbfmaproom.update_popup.__wrapped__(
+        '/fbfmaproom/ethiopia',
+        [6.875, 43.875],
+        '0',
+        2017,
+    )
+    assert isinstance(title, html.H3)
+    assert title.children == 'Somali'
+    assert len(content.children) == 12
+    assert content.children[0].children == 'Vulnerability: '
+    assert content.children[1].strip() == '31'
