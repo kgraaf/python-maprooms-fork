@@ -242,3 +242,9 @@ def test_download_table():
     assert onerow["obs"].values[0] == 3902.611
     assert onerow["pnep_30"].values[0] == 33.700127
     assert onerow["enso_state"].values[0] == "El Niño"
+
+def test_stats():
+    with fbfmaproom.SERVER.test_client() as client:
+        resp = client.get('/fbfmaproom-admin/stats')
+        print(resp.data)
+        assert resp.status_code == 200
