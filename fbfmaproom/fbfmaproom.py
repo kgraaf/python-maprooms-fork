@@ -910,7 +910,7 @@ def cache_stats(f):
 def stats():
     fs = [
         open_pnep,
-        select_pnep,
+        select_pnep_cached,
         open_obs,
         open_vuln,
         retrieve_vulnerability,
