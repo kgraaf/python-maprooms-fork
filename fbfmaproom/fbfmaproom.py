@@ -612,18 +612,14 @@ def _(season, pathname):
 @APP.callback(
     Output("feature", "positions"),
     Output("geom_key", "value"),
-    Output("marker_popup", "children"),
     Input("location", "pathname"),
     Input("marker", "position"),
     Input("mode", "value"),
-    Input("year", "value"),
 )
-def _(pathname, position, mode, year):
+def update_selected_region(pathname, position, mode):
     country_key = country(pathname)
     y, x = position
     c = CONFIG["countries"][country_key]
-    title = "No Data"
-    content = []
     positions = None
     key = None
     if mode == "pixel":
@@ -634,24 +630,13 @@ def _(pathname, position, mode, year):
         geom, _ = retrieve_geometry(country_key, tuple(c["marker"]), "0", None)
         if pixel.intersects(geom):
             positions = [[[[y0, x0], [y1, x0], [y1, x1], [y0, x1]]]]
-            px = (x0 + x1) / 2
-            pxs = "E" if px > 0.0 else "W" if px < 0.0 else ""
-            py = (y0 + y1) / 2
-            pys = "N" if py > 0.0 else "S" if py < 0.0 else ""
-            title = f"{np.abs(py):.5f}° {pys} {np.abs(px):.5f}° {pxs}"
         key = str([[y0, x0], [y1, x1]])
     else:
-        geom, attrs = retrieve_geometry(country_key, (x, y), mode, year)
+        geom, attrs = retrieve_geometry(country_key, (x, y), mode, None)
         if geom is not None:
             positions = pingrid.mpoly_shapely_to_leaflet(geom)
-            title = attrs["label"]
-            fmt = lambda k: [html.B(k + ": "), attrs[k], html.Br()]
-            content = (
-                fmt("Vulnerability") + fmt("Mean") + fmt("Stddev") + fmt("Normalized")
-            )
             key = str(attrs["key"])
     if positions is None:
-        # raise PreventUpdate
         positions = ZERO_SHAPE
 
     # The leaflet Polygon class supports a MultiPolygon option, but
@@ -667,7 +652,45 @@ def _(pathname, position, mode, year):
     )
     positions = positions[longest_idx]
 
-    return positions, key, [html.H3(title), html.Div(content)]
+    return positions, key
+
+
+
+
+@APP.callback(
+    Output("marker_popup", "children"),
+    Input("location", "pathname"),
+    Input("marker", "position"),
+    Input("mode", "value"),
+    Input("year", "value"),
+)
+def update_popup(pathname, position, mode, year):
+    country_key = country(pathname)
+    y, x = position
+    c = CONFIG["countries"][country_key]
+    title = "No Data"
+    content = []
+    if mode == "pixel":
+        (x0, y0), (x1, y1) = calculate_bounds(
+            (x, y), c["resolution"], c.get("origin", (0, 0))
+        )
+        pixel = MultiPoint([(x0, y0), (x1, y1)]).envelope
+        geom, _ = retrieve_geometry(country_key, tuple(c["marker"]), "0", None)
+        if pixel.intersects(geom):
+            px = (x0 + x1) / 2
+            pxs = "E" if px > 0.0 else "W" if px < 0.0 else ""
+            py = (y0 + y1) / 2
+            pys = "N" if py > 0.0 else "S" if py < 0.0 else ""
+            title = f"{np.abs(py):.5f}° {pys} {np.abs(px):.5f}° {pxs}"
+    else:
+        _, attrs = retrieve_geometry(country_key, (x, y), mode, year)
+        if attrs is not None:
+            title = attrs["label"]
+            fmt = lambda k: [html.B(k + ": "), attrs[k], html.Br()]
+            content = (
+                fmt("Vulnerability") + fmt("Mean") + fmt("Stddev") + fmt("Normalized")
+            )
+    return [html.H3(title), html.Div(content)]
 
 
 @APP.callback(
