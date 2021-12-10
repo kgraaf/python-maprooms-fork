@@ -409,14 +409,16 @@ countries:
                   from public.fbf_vulnerability where adm0_name = 'Guatemala' group by 1, 2
 
         datasets:
-            rain:
-                path: rain-guatemala.zarr
-                var_names:
-                    rain: prcp_est
-                    lat: Y
-                    lon: X
-                    time: T
-                colormap: *raincm
+            observations:
+                rain:
+                    label: Rain
+                    path: rain-guatemala.zarr
+                    var_names:
+                        obs: prcp_est
+                        lat: Y
+                        lon: X
+                        time: T
+                    colormap: *raincm
             pnep:
                 path: pnep-guatemala.zarr
                 var_names:
