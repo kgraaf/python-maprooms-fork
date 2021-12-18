@@ -59,7 +59,7 @@ def test_generate_tables():
             '1989', '1988', '1987', '1986', '1985', '1984', '1983'
         ],
         enso_state=[
-            None, 'Neutral', 'El Niño', 'La Niña', 'Neutral', 'El Niño',
+            'La Niña', 'Neutral', 'El Niño', 'La Niña', 'Neutral', 'El Niño',
             'El Niño', 'Neutral', 'Neutral', 'La Niña', 'La Niña', 'Neutral',
             'Neutral', 'La Niña', 'Neutral', 'Neutral', 'Neutral', 'Neutral',
             'Neutral', 'Neutral', 'Neutral', 'La Niña', 'La Niña', 'El Niño',
@@ -106,7 +106,7 @@ def test_generate_tables():
     expected_summary = pd.DataFrame.from_dict(dict(
         year_label=['Worthy-action:', 'Act-in-vain:', 'Fail-to-act:',
                     'Worthy-Inaction:', 'Rate:', 'Year'],
-        enso_state=[2, 5, 8, 23, '65.79%', 'ENSO State'],
+        enso_state=[2, 5, 8, 24, '66.67%', 'ENSO State'],
         forecast=[6, 5, 4, 24, '76.92%', 'Forecast, %'],
         obs_rank=[8, 3, 2, 26, '87.18%', 'Rain Rank'],
         bad_year=[None, None, None, None, None, 'Reported Bad Years'],
