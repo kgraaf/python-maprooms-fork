@@ -7,7 +7,6 @@ dependencies:
   - _openmp_mutex=4.5=1_gnu
   - affine=2.3.0=py_0
   - alsa-lib=1.2.3=h516909a_0
-  - aom=3.2.0=h9c3ff4c_2
   - asciitree=0.3.3=py_2
   - attrs=21.4.0=pyhd8ed1ab_0
   - boost-cpp=1.74.0=h312852a_4
@@ -18,7 +17,7 @@ dependencies:
   - cairo=1.16.0=h6cf1ce9_1008
   - certifi=2021.10.8=py39hf3d152e_1
   - cfitsio=3.470=hb418390_7
-  - cftime=1.5.2=py39hce5d2b2_0
+  - cftime=1.6.0=py39hd257fcd_0
   - click=8.0.4=py39hf3d152e_0
   - click-plugins=1.1.1=py_0
   - cligj=0.7.2=pyhd8ed1ab_1
@@ -27,9 +26,9 @@ dependencies:
   - dbus=1.13.6=h5008d03_3
   - expat=2.4.6=h27087fc_0
   - fasteners=0.17.3=pyhd8ed1ab_0
-  - ffmpeg=4.4.1=h6987444_1
+  - ffmpeg=4.3.2=h37c90e5_3
   - flask=2.0.3=pyhd8ed1ab_0
-  - flask-compress=1.10.1=pyhd8ed1ab_0
+  - flask-compress=1.11=pyhd8ed1ab_0
   - font-ttf-dejavu-sans-mono=2.37=hab24e00_0
   - font-ttf-inconsolata=3.000=h77eed37_0
   - font-ttf-source-code-pro=2.038=h77eed37_0
@@ -51,10 +50,10 @@ dependencies:
   - gstreamer=1.18.5=h9f60fe5_3
   - harfbuzz=3.1.1=h83ec7ef_0
   - hdf4=4.2.15=h10796ff_3
-  - hdf5=1.12.1=nompi_h2750804_103
+  - hdf5=1.12.1=nompi_h2386368_104
   - icu=68.2=h9c3ff4c_0
-  - importlib-metadata=4.11.1=py39hf3d152e_0
-  - importlib_metadata=4.11.1=hd8ed1ab_0
+  - importlib-metadata=4.11.2=py39hf3d152e_0
+  - importlib_metadata=4.11.2=hd8ed1ab_0
   - itsdangerous=2.1.0=pyhd8ed1ab_0
   - jasper=2.0.33=ha77e612_0
   - jbig=2.1=h7f98852_2003
@@ -62,7 +61,8 @@ dependencies:
   - jpeg=9e=h7f98852_0
   - json-c=0.15=h98cffda_0
   - kealib=1.4.14=h87e4c3c_3
-  - krb5=1.19.2=hcc1bbae_3
+  - keyutils=1.6.1=h166bdaf_0
+  - krb5=1.19.2=h3790be6_4
   - lame=3.100=h7f98852_1001
   - lcms2=2.12=hddcbb42_0
   - ld_impl_linux-64=2.36.1=hea4e1c9_2
@@ -73,43 +73,39 @@ dependencies:
   - libcurl=7.81.0=h2574ce0_0
   - libdap4=3.20.6=hd7c4107_2
   - libdeflate=1.10=h7f98852_0
-  - libdrm=2.4.109=h7f98852_0
   - libedit=3.1.20191231=he28a2e2_2
   - libev=4.33=h516909a_1
   - libevent=2.1.10=h9b69904_4
   - libffi=3.4.2=h7f98852_5
-  - libgcc-ng=11.2.0=h1d223b6_12
+  - libgcc-ng=11.2.0=h1d223b6_13
   - libgdal=3.3.3=h356f897_0
-  - libgfortran-ng=11.2.0=h69a702a_12
-  - libgfortran5=11.2.0=h5c6108e_12
+  - libgfortran-ng=11.2.0=h69a702a_13
+  - libgfortran5=11.2.0=h5c6108e_13
   - libglib=2.70.2=h174f98d_4
   - libglu=9.0.0=he1b5a44_1001
-  - libgomp=11.2.0=h1d223b6_12
+  - libgomp=11.2.0=h1d223b6_13
   - libiconv=1.16=h516909a_0
   - libkml=1.3.0=h238a007_1014
   - liblapack=3.9.0=13_linux64_openblas
   - liblapacke=3.9.0=13_linux64_openblas
   - libllvm11=11.1.0=hf817b99_3
   - libnetcdf=4.8.1=nompi_hb3fd0d9_101
-  - libnghttp2=1.46.0=h812cca2_0
+  - libnghttp2=1.47.0=h727a467_0
   - libnsl=2.0.0=h7f98852_0
   - libogg=1.3.4=h7f98852_1
   - libopenblas=0.3.18=pthreads_h8fe5266_0
   - libopencv=4.5.5=py39h7d09d5f_0
   - libopus=1.3.1=h7f98852_1
-  - libpciaccess=0.16=h516909a_0
   - libpng=1.6.37=h21135ba_2
   - libpq=13.5=hd57d9b9_1
   - libprotobuf=3.19.4=h780b84a_0
   - librttopo=1.1.0=h1185371_6
   - libspatialite=5.0.1=h8796b1e_9
   - libssh2=1.10.0=ha56f1ee_2
-  - libstdcxx-ng=11.2.0=he4da1e4_12
+  - libstdcxx-ng=11.2.0=he4da1e4_13
   - libtiff=4.3.0=h542a066_3
   - libuuid=2.32.1=h7f98852_1000
-  - libva=2.14.0=h7f98852_0
   - libvorbis=1.3.7=h9c3ff4c_0
-  - libvpx=1.11.0=h9c3ff4c_3
   - libwebp-base=1.2.2=h7f98852_1
   - libxcb=1.13=h7f98852_1004
   - libxkbcommon=1.0.3=he3ba5ed_0
@@ -117,7 +113,7 @@ dependencies:
   - libzip=1.8.0=h4de3113_1
   - libzlib=1.2.11=h36c2ea0_1013
   - lz4-c=1.9.3=h9c3ff4c_1
-  - markupsafe=2.1.0=py39hb9d737c_0
+  - markupsafe=2.1.0=py39hb9d737c_1
   - msgpack-python=1.0.3=py39h1a9c180_0
   - mysql-common=8.0.28=ha770c72_0
   - mysql-libs=8.0.28=hfa10184_0
@@ -126,7 +122,7 @@ dependencies:
   - nspr=4.32=h9c3ff4c_1
   - nss=3.74=hb5efdd6_0
   - numcodecs=0.9.1=py39he80948d_2
-  - numpy=1.22.2=py39h91f2184_0
+  - numpy=1.22.3=py39h18676bf_0
   - opencv=4.5.5=py39hf3d152e_0
   - openh264=2.1.1=h780b84a_0
   - openjpeg=2.4.0=hb52868f_1
@@ -134,7 +130,7 @@ dependencies:
   - packaging=21.3=pyhd8ed1ab_0
   - pandas=1.3.5=py39hde0f152_0
   - pcre=8.45=h9c3ff4c_0
-  - pip=22.0.3=pyhd8ed1ab_0
+  - pip=22.0.4=pyhd8ed1ab_0
   - pixman=0.40.0=h36c2ea0_0
   - plotly=5.6.0=pyhd8ed1ab_0
   - poppler=21.09.0=ha39eefc_3
@@ -157,7 +153,6 @@ dependencies:
   - six=1.16.0=pyh6c4a22f_0
   - snuggs=1.4.7=py_0
   - sqlite=3.37.0=h9cd32fc_0
-  - svt-av1=0.9.0=h27087fc_1
   - tenacity=8.0.1=pyhd8ed1ab_0
   - tiledb=2.3.4=he87e0bf_0
   - tk=8.6.12=h27826a3_0
@@ -167,8 +162,7 @@ dependencies:
   - werkzeug=2.0.3=pyhd8ed1ab_1
   - wheel=0.37.1=pyhd8ed1ab_0
   - x264=1!161.3030=h7f98852_1
-  - x265=3.5=h4bd325d_1
-  - xarray=0.21.1=pyhd8ed1ab_0
+  - xarray=2022.3.0=pyhd8ed1ab_0
   - xerces-c=3.2.3=h9d8b166_3
   - xorg-fixesproto=5.0=h7f98852_1002
   - xorg-inputproto=2.3.2=h7f98852_1002
@@ -187,7 +181,7 @@ dependencies:
   - xorg-xproto=7.0.31=h7f98852_1007
   - xz=5.2.5=h516909a_1
   - yaml=0.2.5=h7f98852_2
-  - zarr=2.11.0=pyhd8ed1ab_0
+  - zarr=2.11.1=pyhd8ed1ab_0
   - zipp=3.7.0=pyhd8ed1ab_1
   - zlib=1.2.11=h36c2ea0_1013
   - zstd=1.5.2=ha95c52a_0
@@ -202,3 +196,4 @@ dependencies:
     - pyaconf==0.7.1
     - pyyaml==6.0
     - queuepool==1.3.1
+prefix: /home/aaron/scratch/miniconda3/envs/fbfmaproom2
