@@ -55,7 +55,7 @@ datasets = [
     ),
     (
         'rain-niger',
-        '/home/.remic/.DNM/.Forecasts/.NextGen/.PRCPPRCP_CCAFCST_JAS/.NextGen/.FbF/.obs/data.nc'
+        '/home/.aaron/.Niger/.Forecasts/.NextGen/.PRCPPRCP_CCAFCST_JAS/.NextGen/.FbF/.obs/data.nc'
     ),
     (
         'pnep-niger',
