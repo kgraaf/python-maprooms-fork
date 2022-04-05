@@ -61,8 +61,12 @@ def Sentence(*elems):
     return dbc.Form(groups)
 
 
-def Block(title, *body):
+def Block(title, *body, ison=True):
+    if ison:
+        the_display = "inline-block"
+    else:
+        the_display = "none"
     return dbc.Card([
         dbc.CardHeader(title),
         dbc.CardBody(body),
-    ], className="mb-4")
+    ], className="mb-4", style={"display": the_display})
