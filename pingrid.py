@@ -542,7 +542,6 @@ def average_over(ds, s, lon_name="lon", lat_name="lat", all_touched=False):
     norm = r / r.sum([lat_name, lon_name])
     res = (ds * norm).sum([lat_name, lon_name], skipna=True)
 
-    res.name = ds.name
     return res
 
 

@@ -25,7 +25,7 @@ def test_from_month_since_360Day():
 def test_generate_tables():
     main_df, summary_df, prob_thresh = fbfmaproom.generate_tables(
         country_key='ethiopia',
-        obs_dataset_key='rain',
+        obs_dataset_keys=['rain'],
         season_config={
             'label': 'MAM',
             'target_month': 3.5,
@@ -37,7 +37,7 @@ def test_generate_tables():
             ('year_label', {'name': 'Year'}),
             ('enso_state', {'name': 'ENSO State'}),
             ('forecast', {'name': 'Forecast, %'}),
-            ('obs_rank', {'name': 'Rain Rank'}),
+            ('rain_rank', {'name': 'Rain Rank'}),
             ('bad_year', {'name': 'Reported Bad Years'}),
         ]),
         issue_month0=1,
@@ -76,7 +76,7 @@ def test_generate_tables():
             '29.53', '39.90', '27.96', '28.82', '34.68', '35.84', '31.13',
             '35.42', '38.82', '38.87', '36.09'
         ],
-        obs_rank=[
+        rain_rank=[
             24., 33., 12., 38.,  8., 32., 16., 13., 35., 15.,  3., 37.,  5.,
             4., 19., 21., 20.,  9., 14., 10., 11.,  6.,  7., 18., 22., 30.,
             31., 25., 26.,  2., 28., 27., 34., 23., 39., 29., 36.,  1., 17.
@@ -87,7 +87,7 @@ def test_generate_tables():
             'Bad', '', '', '', '', '', '', 'Bad', '', '', '',
             '', '', '', '', 'Bad', ''
         ],
-        worst_obs=[
+        worst_rain=[
             0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1, 1, 0, 0, 0, 1, 0, 1, 1, 1,
             1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0
         ],
@@ -109,7 +109,7 @@ def test_generate_tables():
                     'Worthy-Inaction:', 'Rate:'],
         enso_state=[2, 5, 8, 24, '66.67%'],
         forecast=[6, 5, 4, 24, '76.92%'],
-        obs_rank=[8, 3, 2, 26, '87.18%'],
+        rain_rank=[8, 3, 2, 26, '87.18%'],
         tooltip=[
             "Drought was forecasted and a ‘bad year’ occurred",
             "Drought was forecasted but a ‘bad year’ did not occur",
@@ -142,16 +142,16 @@ def test_augment_table_data():
         data={
             "bad_year": [True, False, True, False, False, True],
             "enso_state": [np.nan, np.nan, "El Niño", "La Niña", "El Niño", "Neutral"],
-            "obs": [np.nan, np.nan, 200., 400., 300., 100.],
+            "rain": [np.nan, np.nan, 200., 400., 300., 100.],
             "pnep": [np.nan, 19.606438, 29.270180, 33.800949, 12.312943, 1.],
         }
     )
     freq = 34
-    aug, summ, prob = fbfmaproom.augment_table_data(main_df, freq, "lowest")
+    aug, summ, prob = fbfmaproom.augment_table_data(main_df, freq, ["rain"], {"rain": {"worst": "lowest"}})
 
     expected_aug = pd.DataFrame(main_df)
-    expected_aug["obs_rank"] = [np.nan, np.nan, 2, 4, 3, 1]
-    expected_aug["worst_obs"] = [np.nan, np.nan, 0, 0, 0, 1]
+    expected_aug["rain_rank"] = [np.nan, np.nan, 2, 4, 3, 1]
+    expected_aug["worst_rain"] = [np.nan, np.nan, 0, 0, 0, 1]
     expected_aug["forecast"] = ["nan", "19.61", "29.27", "33.80", "12.31", "1.00"]
     expected_aug["worst_pnep"] = [np.nan, 0, 0, 1, 0, 0]
     pd.testing.assert_frame_equal(expected_aug, aug, check_column_type=True)
@@ -160,7 +160,7 @@ def test_augment_table_data():
         # [tp, fp, fn, tn, accuracy]
         enso_state=[1, 1, 1, 1, "50.00%"],
         forecast=[0, 1, 2, 2, "40.00%"],
-        obs_rank=[1, 0, 1, 2, "75.00%"],
+        rain_rank=[1, 0, 1, 2, "75.00%"],
     ))
     pd.testing.assert_frame_equal(expected_summ, summ)
 
