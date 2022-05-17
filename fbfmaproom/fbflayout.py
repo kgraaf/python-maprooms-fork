@@ -257,23 +257,6 @@ def command_layout():
             ),
             html.Div(
                 [
-                    html.Label("Observations:"),
-                    dcc.Dropdown(
-                        id="obs_datasets",
-                        clearable=False,
-                        optionHeight=60,
-                        multi=True,
-                    ),
-                ],
-                style={
-                    "width": "105px",
-                    "display": "inline-block",
-                    "padding": "10px",
-                    "vertical-align": "top",
-                },
-            ),
-            html.Div(
-                [
                     help_layout(
                         "Severity",
                         "severity_label",
@@ -401,6 +384,22 @@ def table_layout():
     return html.Div(
         [
             html.Div(id="log"),
+            html.Div(
+                [
+                    html.Label("Observations:"),
+                    dcc.Dropdown(
+                        id="obs_datasets",
+                        clearable=False,
+                        multi=True,
+                    ),
+                ],
+                style={
+                    "display": "inline-block",
+                    "padding": "10px",
+                    "vertical-align": "top",
+                },
+            ),
+
             dcc.Loading(
                 [
                     html.Div(id="table_container")
