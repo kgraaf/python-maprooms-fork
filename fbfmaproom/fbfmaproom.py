@@ -629,7 +629,7 @@ def _(pathname):
         )
         for k, v in obs_datasets_cfg.items()
     ]
-    obs_datasets_value = next(iter(obs_datasets_cfg.keys()))
+    obs_datasets_value = [next(iter(obs_datasets_cfg.keys()))]
     return (
         f"{PFX}/custom/{c['logo']}",
         [cy, cx],
@@ -796,10 +796,9 @@ def display_prob_thresh(val):
     Input("obs_datasets", "value"),
     State("season", "value"),
 )
-def _(issue_month0, freq, mode, geom_key, pathname, severity, obs_dataset_key, season):
+def _(issue_month0, freq, mode, geom_key, pathname, severity, obs_dataset_keys, season):
     country_key = country(pathname)
     config = CONFIG["countries"][country_key]
-    obs_dataset_keys = [obs_dataset_key]
     tcs = table_columns(config["datasets"]["observations"], obs_dataset_keys)
     try:
         dft, dfs, prob_thresh = generate_tables(

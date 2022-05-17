@@ -261,8 +261,8 @@ def command_layout():
                     dcc.Dropdown(
                         id="obs_datasets",
                         clearable=False,
-                        value="rain",
                         optionHeight=60,
+                        multi=True,
                     ),
                 ],
                 style={
