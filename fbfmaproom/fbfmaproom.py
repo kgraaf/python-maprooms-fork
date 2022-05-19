@@ -77,14 +77,14 @@ def table_columns(obs_config, obs_dataset_keys):
 
     obs_dataset_names = {k: v["label"] for k, v in obs_config.items()}
     tcs = OrderedDict()
-    tcs["year_label"] = dict(name="Year", dynamic=None, style=None,
+    tcs["year_label"] = dict(name="Year", style=None,
                              tooltip="The year whose forecast is displayed on the map")
-    tcs["enso_state"] = dict(name="ENSO State", dynamic=None,
+    tcs["enso_state"] = dict(name="ENSO State",
                              tooltip="Displays whether an El Niño, Neutral, or La Niña state occurred during the year",
                              style=lambda row: {'El Niño': 'cell-el-nino',
                                                 'La Niña': 'cell-la-nina',
                                                 'Neutral': 'cell-neutral'}.get(row['enso_state'], ""))
-    tcs["forecast"] = dict(name="Forecast, %", dynamic=None,
+    tcs["forecast"] = dict(name="Forecast, %",
                            tooltip="Displays all the historical flexible forecast for the selected issue month and location",
                            style=lambda row: "cell-severity-" + str(row['severity']) if row['worst_pnep'] == 1 else "")
 
@@ -93,7 +93,6 @@ def table_columns(obs_config, obs_dataset_keys):
             name=f"{obs_dataset_names[obs_key]} Rank",
             style=lambda row: "cell-severity-" + str(row['severity']) if row[f'worst_{obs_key}'] == 1 else "",
             tooltip=None,
-            dynamic=None
         )
 
     for obs_key in obs_dataset_keys:
@@ -108,7 +107,7 @@ def table_columns(obs_config, obs_dataset_keys):
                 return "cell-good-year"
         else:
             return ""
-    tcs["bad_year"] = dict(name="Reported Bad Years", dynamic=None,
+    tcs["bad_year"] = dict(name="Reported Bad Years",
                            style=bad_year_css,
                            tooltip="Historical drought years based on farmers' recollection")
     return tcs
