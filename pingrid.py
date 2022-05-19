@@ -540,7 +540,7 @@ def average_over(ds, s, lon_name="lon", lat_name="lat", all_touched=False):
     r = r0 * np.cos(np.deg2rad(ds[lat_name]))
 
     norm = r / r.sum([lat_name, lon_name])
-    res = (ds * norm).sum([lat_name, lon_name], skipna=True)
+    res = (ds * norm).sum([lat_name, lon_name], skipna=True, min_count=1)
 
     return res
 

@@ -25,7 +25,7 @@ def test_from_month_since_360Day():
 def test_generate_tables():
     main_df, summary_df, prob_thresh = fbfmaproom.generate_tables(
         country_key='ethiopia',
-        obs_dataset_keys=['rain'],
+        obs_dataset_keys=['rain', 'ndvi'],
         season_config={
             'label': 'MAM',
             'target_month': 3.5,
@@ -38,6 +38,7 @@ def test_generate_tables():
             ('enso_state', {'name': 'ENSO State'}),
             ('forecast', {'name': 'Forecast, %'}),
             ('rain_rank', {'name': 'Rain Rank'}),
+            ('ndvi_rank', {'name': 'SPI Rank'}),
             ('bad_year', {'name': 'Reported Bad Years'}),
         ]),
         issue_month0=1,
@@ -81,6 +82,12 @@ def test_generate_tables():
             4., 19., 21., 20.,  9., 14., 10., 11.,  6.,  7., 18., 22., 30.,
             31., 25., 26.,  2., 28., 27., 34., 23., 39., 29., 36.,  1., 17.
         ],
+        ndvi_rank=[17.0, 21.0, 4.0, 20.0, 5.0, 15.0, 16.0, 8.0, 18.0, 7.0, 1.0,
+                   19.0, 3.0, 2.0, 14.0, 12.0, 13.0, 10.0, 9.0, 11.0, 6.0,
+                   np.nan, np.nan, np.nan, np.nan, np.nan, np.nan, np.nan,
+                   np.nan, np.nan, np.nan, np.nan, np.nan, np.nan, np.nan,
+                   np.nan, np.nan, np.nan, np.nan
+        ],
         bad_year=[
             '', '', '', '', 'Bad', 'Bad', '', '', '', '', 'Bad',
             '', 'Bad', 'Bad', '', '', 'Bad', '', '', '', '', 'Bad',
@@ -90,6 +97,12 @@ def test_generate_tables():
         worst_rain=[
             0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1, 1, 0, 0, 0, 1, 0, 1, 1, 1,
             1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0
+        ],
+        worst_ndvi=[
+            0.,  0.,  1.,  0.,  1.,  0.,  0.,  0.,  0.,  0.,  1.,  0.,  1.,  1.,
+            0.,  0.,  0.,  0., 0.,  0.,  1., np.nan, np.nan, np.nan, np.nan,
+            np.nan, np.nan, np.nan, np.nan, np.nan, np.nan, np.nan, np.nan,
+            np.nan, np.nan, np.nan, np.nan, np.nan, np.nan
         ],
         worst_pnep=[
             0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1,
@@ -110,6 +123,7 @@ def test_generate_tables():
         enso_state=[2, 5, 8, 24, '66.67%'],
         forecast=[6, 5, 4, 24, '76.92%'],
         rain_rank=[8, 3, 2, 26, '87.18%'],
+        ndvi_rank=[4, 2, 2, 13, '80.95%'],
         tooltip=[
             "Drought was forecasted and a ‘bad year’ occurred",
             "Drought was forecasted but a ‘bad year’ did not occur",
