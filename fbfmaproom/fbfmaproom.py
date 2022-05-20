@@ -90,13 +90,13 @@ def table_columns(obs_config, obs_dataset_keys, severity):
 
     def make_obs_column(obs_key):
         return dict(
-            name=f"{obs_dataset_names[obs_key]} Rank",
+            name=obs_dataset_names[obs_key],
             style=lambda row: "cell-severity-" + str(severity) if row[f'worst_{obs_key}'] == 1 else "",
             tooltip=None,
         )
 
     for obs_key in obs_dataset_keys:
-        tcs[f"{obs_key}_rank"] = make_obs_column(obs_key)
+        tcs[obs_key] = make_obs_column(obs_key)
 
     def bad_year_css(row):
         r = row['bad_year']
@@ -459,10 +459,6 @@ def augment_table_data(main_df, freq, obs_dataset_keys, obs_config):
     def is_ascending(obs_dataset_key):
         return obs_config[obs_dataset_key]["worst"] == "lowest"
 
-    obs_rank = {
-        key: obs[key].rank(method="first", ascending=is_ascending(key))
-        for key in obs_dataset_keys
-    }
     obs_rank_pct = {
         key: obs[key].rank(method="first", ascending=is_ascending(key), pct=True)
         for key in obs_dataset_keys
@@ -482,15 +478,15 @@ def augment_table_data(main_df, freq, obs_dataset_keys, obs_config):
     ))
 
     for key in obs_dataset_keys:
-        summary_df[f"{key}_rank"] = hits_and_misses(worst_obs[key], bad_year)
-        main_df[f"{key}_rank"] = obs_rank[key]
+        summary_df[key] = hits_and_misses(worst_obs[key], bad_year)
+        main_df[key] = obs[key]
         main_df[f"worst_{key}"] = worst_obs[key].astype(int)
     main_df["worst_pnep"] = worst_pnep.astype(int)
 
     return main_df, summary_df, prob_thresh
 
 
-def format_pnep(x):
+def format_number(x):
     if np.isnan(x):
         return ""
     return f"{x:.2f}"
@@ -518,9 +514,12 @@ def format_main_table(main_df, season_length, table_columns, severity, obs_datas
     midpoints = main_df.index.to_series()
     main_df["year_label"] = midpoints.apply(lambda x: year_label(x, season_length))
 
-    main_df["forecast"] = main_df["pnep"].apply(format_pnep)
+    main_df["forecast"] = main_df["pnep"].apply(format_number)
 
     main_df["bad_year"] = main_df["bad_year"].apply(format_bad)
+
+    for key in obs_dataset_keys:
+        main_df[key] = main_df[key].apply(format_number)
 
     # Get the order right, and discard unneeded columns. I don't think
     # order is actually important, but the test tests it.
