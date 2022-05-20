@@ -58,9 +58,13 @@ def gen_body(tcs, data):
         else:
             return ""
 
+    def fmt(col, row):
+        f = tcs[col].get('format', lambda x: x)
+        return f(row[col])
+
     return html.Tbody([
         html.Tr([
-            html.Td(row[col], className=style(col, row)) for col in tcs.keys()
+            html.Td(fmt(col, row), className=style(col, row)) for col in tcs.keys()
         ])
         for row in data.to_dict(orient="records")
     ])
