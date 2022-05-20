@@ -542,6 +542,11 @@ def average_over(ds, s, lon_name="lon", lat_name="lat", all_touched=False):
     norm = r / r.sum([lat_name, lon_name])
     res = (ds * norm).sum([lat_name, lon_name], skipna=True, min_count=1)
 
+    # For some reason, DataArray names get preserved when they're
+    # inside a Dataset, but not when ds itself is a DataArray.
+    if isinstance(res, xr.DataArray):
+        res.name = ds.name
+
     return res
 
 
