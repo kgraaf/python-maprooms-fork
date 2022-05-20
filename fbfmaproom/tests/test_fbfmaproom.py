@@ -36,7 +36,7 @@ def test_generate_tables():
         table_columns=OrderedDict([
             ('year_label', {'name': 'Year'}),
             ('enso_state', {'name': 'ENSO State'}),
-            ('forecast', {'name': 'Forecast, %'}),
+            ('pnep', {'name': 'Forecast, %'}),
             ('rain', {'name': 'Rain'}),
             ('ndvi', {'name': 'NDVI'}),
             ('bad_year', {'name': 'Reported Bad Years'}),
@@ -69,7 +69,7 @@ def test_generate_tables():
             'Neutral', 'Neutral', 'La Niña', 'Neutral', 'El Niño', 'Neutral',
             'La Niña', 'Neutral', 'El Niño'
         ],
-        forecast=[
+        pnep=[
             '34.04', '26.84', '34.28', '32.35', '36.43', '31.38', '32.21',
             '33.35', '38.26', '38.26', '37.05', '30.61', '36.07', '41.86',
             '34.10', '42.46', '36.14', '36.93', '35.87', '31.45', '35.50',
@@ -120,7 +120,7 @@ def test_generate_tables():
         year_label=['Worthy-action:', 'Act-in-vain:', 'Fail-to-act:',
                     'Worthy-Inaction:', 'Rate:'],
         enso_state=[2, 5, 8, 24, '66.67%'],
-        forecast=[6, 5, 4, 24, '76.92%'],
+        pnep=[6, 5, 4, 24, '76.92%'],
         rain=[8, 3, 2, 26, '87.18%'],
         ndvi=[4, 2, 2, 13, '80.95%'],
         tooltip=[
@@ -165,14 +165,14 @@ def test_augment_table_data():
     expected_aug = pd.DataFrame(main_df)
     expected_aug["rain"] = [np.nan, np.nan, 2, 4, 3, 1]
     expected_aug["worst_rain"] = [np.nan, np.nan, 0, 0, 0, 1]
-    expected_aug["forecast"] = ["nan", "19.61", "29.27", "33.80", "12.31", "1.00"]
+    expected_aug["pnep"] = ["nan", "19.61", "29.27", "33.80", "12.31", "1.00"]
     expected_aug["worst_pnep"] = [np.nan, 0, 0, 1, 0, 0]
     pd.testing.assert_frame_equal(expected_aug, aug, check_column_type=True)
 
     expected_summ = pd.DataFrame(dict(
         # [tp, fp, fn, tn, accuracy]
         enso_state=[1, 1, 1, 1, "50.00%"],
-        forecast=[0, 1, 2, 2, "40.00%"],
+        pnep=[0, 1, 2, 2, "40.00%"],
         rain=[1, 0, 1, 2, "75.00%"],
     ))
     pd.testing.assert_frame_equal(expected_summ, summ)

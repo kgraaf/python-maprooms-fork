@@ -84,7 +84,7 @@ def table_columns(obs_config, obs_dataset_keys, severity):
                              style=lambda row: {'El Niño': 'cell-el-nino',
                                                 'La Niña': 'cell-la-nina',
                                                 'Neutral': 'cell-neutral'}.get(row['enso_state'], ""))
-    tcs["forecast"] = dict(name="Forecast, %",
+    tcs["pnep"] = dict(name="Forecast, %",
                            tooltip="Displays all the historical flexible forecast for the selected issue month and location",
                            style=lambda row: "cell-severity-" + str(severity) if row['worst_pnep'] == 1 else "")
 
@@ -474,7 +474,7 @@ def augment_table_data(main_df, freq, obs_dataset_keys, obs_config):
 
     summary_df = pd.DataFrame.from_dict(dict(
         enso_state=hits_and_misses(el_nino, bad_year),
-        forecast=hits_and_misses(worst_pnep, bad_year),
+        pnep=hits_and_misses(worst_pnep, bad_year),
     ))
 
     for key in obs_dataset_keys:
@@ -514,7 +514,7 @@ def format_main_table(main_df, season_length, table_columns, severity, obs_datas
     midpoints = main_df.index.to_series()
     main_df["year_label"] = midpoints.apply(lambda x: year_label(x, season_length))
 
-    main_df["forecast"] = main_df["pnep"].apply(format_number)
+    main_df["pnep"] = main_df["pnep"].apply(format_number)
 
     main_df["bad_year"] = main_df["bad_year"].apply(format_bad)
 
