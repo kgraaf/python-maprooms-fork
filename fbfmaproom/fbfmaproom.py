@@ -73,7 +73,7 @@ APP.title = "FBF--Maproom"
 APP.layout = fbflayout.app_layout()
 
 
-def table_columns(obs_config, obs_dataset_keys):
+def table_columns(obs_config, obs_dataset_keys, severity):
 
     obs_dataset_names = {k: v["label"] for k, v in obs_config.items()}
     tcs = OrderedDict()
@@ -86,12 +86,12 @@ def table_columns(obs_config, obs_dataset_keys):
                                                 'Neutral': 'cell-neutral'}.get(row['enso_state'], ""))
     tcs["forecast"] = dict(name="Forecast, %",
                            tooltip="Displays all the historical flexible forecast for the selected issue month and location",
-                           style=lambda row: "cell-severity-" + str(row['severity']) if row['worst_pnep'] == 1 else "")
+                           style=lambda row: "cell-severity-" + str(severity) if row['worst_pnep'] == 1 else "")
 
     def make_obs_column(obs_key):
         return dict(
             name=f"{obs_dataset_names[obs_key]} Rank",
-            style=lambda row: "cell-severity-" + str(row['severity']) if row[f'worst_{obs_key}'] == 1 else "",
+            style=lambda row: "cell-severity-" + str(severity) if row[f'worst_{obs_key}'] == 1 else "",
             tooltip=None,
         )
 
@@ -518,8 +518,6 @@ def format_main_table(main_df, season_length, table_columns, severity, obs_datas
     midpoints = main_df.index.to_series()
     main_df["year_label"] = midpoints.apply(lambda x: year_label(x, season_length))
 
-    main_df["severity"] = severity
-
     main_df["forecast"] = main_df["pnep"].apply(format_pnep)
 
     main_df["bad_year"] = main_df["bad_year"].apply(format_bad)
@@ -529,7 +527,7 @@ def format_main_table(main_df, season_length, table_columns, severity, obs_datas
     main_df = main_df[
         list(table_columns.keys()) +
         [f"worst_{key}" for key in obs_dataset_keys] +
-        ["worst_pnep", "severity"]
+        ["worst_pnep"]
     ]
 
     return main_df
@@ -798,7 +796,7 @@ def display_prob_thresh(val):
 def _(issue_month0, freq, mode, geom_key, pathname, severity, obs_dataset_keys, season):
     country_key = country(pathname)
     config = CONFIG["countries"][country_key]
-    tcs = table_columns(config["datasets"]["observations"], obs_dataset_keys)
+    tcs = table_columns(config["datasets"]["observations"], obs_dataset_keys, severity)
     try:
         dft, dfs, prob_thresh = generate_tables(
             country_key,
