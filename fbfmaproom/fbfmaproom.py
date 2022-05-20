@@ -73,12 +73,13 @@ APP.title = "FBF--Maproom"
 APP.layout = fbflayout.app_layout()
 
 
-def table_columns(obs_config, obs_dataset_keys, severity):
+def table_columns(obs_config, obs_dataset_keys, severity, season_length):
 
     obs_dataset_names = {k: v["label"] for k, v in obs_config.items()}
     tcs = OrderedDict()
-    tcs["year_label"] = dict(
+    tcs["time"] = dict(
         name="Year",
+        format=lambda midpoint: year_label(midpoint, season_length),
         style=None,
         tooltip="The year whose forecast is displayed on the map",
     )
@@ -463,7 +464,9 @@ def fundamental_table_data(country_key, obs_dataset_keys,
 
 
 def augment_table_data(main_df, freq, obs_dataset_keys, obs_config):
-    main_df = pd.DataFrame(main_df)
+    main_df = main_df.copy()
+
+    main_df["time"] = main_df.index.to_series()
 
     obs = {
         key: main_df[key].dropna()
@@ -534,8 +537,6 @@ def format_bad(x):
 
 def format_main_table(main_df, season_length, table_columns, severity, obs_dataset_keys):
     main_df = pd.DataFrame(main_df)
-    midpoints = main_df.index.to_series()
-    main_df["year_label"] = midpoints.apply(lambda x: year_label(x, season_length))
 
     main_df["pnep"] = main_df["pnep"].apply(format_number)
 
@@ -557,7 +558,7 @@ def format_main_table(main_df, season_length, table_columns, severity, obs_datas
 
 def format_summary_table(summary_df, table_columns):
     summary_df = pd.DataFrame(summary_df)
-    summary_df["year_label"] = [
+    summary_df["time"] = [
         "Worthy-action:",
         "Act-in-vain:",
         "Fail-to-act:",
@@ -805,7 +806,12 @@ def display_prob_thresh(val):
 def _(issue_month0, freq, mode, geom_key, pathname, severity, obs_dataset_keys, season):
     country_key = country(pathname)
     config = CONFIG["countries"][country_key]
-    tcs = table_columns(config["datasets"]["observations"], obs_dataset_keys, severity)
+    tcs = table_columns(
+        config["datasets"]["observations"],
+        obs_dataset_keys,
+        severity,
+        config["seasons"][season]["length"],
+    )
     try:
         dft, dfs, prob_thresh = generate_tables(
             country_key,

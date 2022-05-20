@@ -34,7 +34,7 @@ def test_generate_tables():
             'year_range': [1983, 2021]
         },
         table_columns=OrderedDict([
-            ('year_label', {'name': 'Year'}),
+            ('time', {'name': 'Year'}),
             ('enso_state', {'name': 'ENSO State'}),
             ('pnep', {'name': 'Forecast, %'}),
             ('rain', {'name': 'Rain'}),
@@ -53,13 +53,6 @@ def test_generate_tables():
 
     expected_main = pd.DataFrame.from_dict(dict(
         time=[DT360(year, 4, 16) for year in range(2021, 1982, -1)],
-        year_label=[
-            '2021', '2020', '2019', '2018', '2017', '2016', '2015', '2014',
-            '2013', '2012', '2011', '2010', '2009', '2008', '2007', '2006',
-            '2005', '2004', '2003', '2002', '2001', '2000', '1999', '1998',
-            '1997', '1996', '1995', '1994', '1993', '1992', '1991', '1990',
-            '1989', '1988', '1987', '1986', '1985', '1984', '1983'
-        ],
         enso_state=[
             'La Niña', 'Neutral', 'El Niño', 'La Niña', 'Neutral', 'El Niño',
             'El Niño', 'Neutral', 'Neutral', 'La Niña', 'La Niña', 'Neutral',
@@ -111,18 +104,20 @@ def test_generate_tables():
             0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1,
             1, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 1, 1, 0
         ],
-    )).set_index("time")
+    )).set_index("time", drop=False)
     pd.testing.assert_frame_equal(main_df, expected_main, check_index_type=False)
 
     # for c in summary_df.columns:
     #     print(f'{c}={list(summary_df[c].values)}')
     expected_summary = pd.DataFrame.from_dict(dict(
-        year_label=['Worthy-action:', 'Act-in-vain:', 'Fail-to-act:',
-                    'Worthy-Inaction:', 'Rate:'],
         enso_state=[2, 5, 8, 24, '66.67%'],
         pnep=[6, 5, 4, 24, '76.92%'],
         rain=[8, 3, 2, 26, '87.18%'],
         ndvi=[4, 2, 2, 13, '80.95%'],
+        time=[
+            'Worthy-action:', 'Act-in-vain:', 'Fail-to-act:',
+            'Worthy-Inaction:', 'Rate:',
+        ],
         tooltip=[
             "Drought was forecasted and a ‘bad year’ occurred",
             "Drought was forecasted but a ‘bad year’ did not occur",
@@ -133,8 +128,8 @@ def test_generate_tables():
         bad_year=[np.nan, np.nan, np.nan, np.nan, np.nan],
     ))
     pd.testing.assert_frame_equal(
-        summary_df.set_index("year_label"),
-        expected_summary.set_index("year_label")
+        summary_df.set_index("time", drop=False),
+        expected_summary.set_index("time", drop=False)
     )
 
     assert np.isclose(prob_thresh, 37.052727)
@@ -150,13 +145,15 @@ def test_augment_table_data():
     # obs_summ             fn   tn   tn   tp
     # worst_pnep      F    F    T    F    F
     # pnep_summ       tn   fn   fp   tn   fn
+    time = [DT360(y, 1, 16) for y in range(2022, 2016, -1)]
     main_df = pd.DataFrame(
-        index=[DT360(y, 1, 16) for y in range(2022, 2016, -1)],
+        index=time,
         data={
             "bad_year": [True, False, True, False, False, True],
             "enso_state": [np.nan, np.nan, "El Niño", "La Niña", "El Niño", "Neutral"],
             "rain": [np.nan, np.nan, 200., 400., 300., 100.],
             "pnep": [np.nan, 19.606438, 29.270180, 33.800949, 12.312943, 1.],
+            "time": time,
         }
     )
     freq = 34
