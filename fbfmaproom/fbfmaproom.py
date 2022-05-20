@@ -77,16 +77,25 @@ def table_columns(obs_config, obs_dataset_keys, severity):
 
     obs_dataset_names = {k: v["label"] for k, v in obs_config.items()}
     tcs = OrderedDict()
-    tcs["year_label"] = dict(name="Year", style=None,
-                             tooltip="The year whose forecast is displayed on the map")
-    tcs["enso_state"] = dict(name="ENSO State",
-                             tooltip="Displays whether an El Niño, Neutral, or La Niña state occurred during the year",
-                             style=lambda row: {'El Niño': 'cell-el-nino',
-                                                'La Niña': 'cell-la-nina',
-                                                'Neutral': 'cell-neutral'}.get(row['enso_state'], ""))
-    tcs["pnep"] = dict(name="Forecast, %",
-                           tooltip="Displays all the historical flexible forecast for the selected issue month and location",
-                           style=lambda row: "cell-severity-" + str(severity) if row['worst_pnep'] == 1 else "")
+    tcs["year_label"] = dict(
+        name="Year",
+        style=None,
+        tooltip="The year whose forecast is displayed on the map",
+    )
+    tcs["enso_state"] = dict(
+        name="ENSO State",
+        tooltip="Displays whether an El Niño, Neutral, or La Niña state occurred during the year",
+        style=lambda row: {
+            'El Niño': 'cell-el-nino',
+            'La Niña': 'cell-la-nina',
+            'Neutral': 'cell-neutral'
+        }.get(row['enso_state'], ""),
+    )
+    tcs["pnep"] = dict(
+        name="Forecast, %",
+        tooltip="Displays all the historical flexible forecast for the selected issue month and location",
+        style=lambda row: "cell-severity-" + str(severity) if row['worst_pnep'] == 1 else "",
+    )
 
     def units(obs_key):
         ds_config = obs_config[obs_key]
@@ -114,9 +123,11 @@ def table_columns(obs_config, obs_dataset_keys, severity):
                 return "cell-good-year"
         else:
             return ""
-    tcs["bad_year"] = dict(name="Reported Bad Years",
-                           style=bad_year_css,
-                           tooltip="Historical drought years based on farmers' recollection")
+    tcs["bad_year"] = dict(
+        name="Reported Bad Years",
+        style=bad_year_css,
+        tooltip="Historical drought years based on farmers' recollection",
+    )
     return tcs
 
 
