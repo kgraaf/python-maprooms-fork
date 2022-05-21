@@ -492,6 +492,12 @@ def format_number(x):
     return f"{x:.2f}"
 
 
+def format_number_or_timedelta(x):
+    if hasattr(x, 'days'):
+        x = x.days + x.seconds / 60 / 60 / 24
+    return format_number(x)
+
+
 def format_bad(x):
     # TODO some parts of the program use pandas boolean arrays, which
     # use pd.NA as the missing value indicator, while others use
@@ -519,7 +525,7 @@ def format_main_table(main_df, season_length, table_columns, severity, obs_datas
     main_df["bad_year"] = main_df["bad_year"].apply(format_bad)
 
     for key in obs_dataset_keys:
-        main_df[key] = main_df[key].apply(format_number)
+        main_df[key] = main_df[key].apply(format_number_or_timedelta)
 
     # Get the order right, and discard unneeded columns. I don't think
     # order is actually important, but the test tests it.
