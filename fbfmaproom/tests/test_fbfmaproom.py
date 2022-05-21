@@ -162,10 +162,10 @@ def test_augment_table_data():
     freq = 34
     aug, summ, prob = fbfmaproom.augment_table_data(main_df, freq, ["rain"], {"rain": {"worst": "lowest"}})
 
-    expected_aug = pd.DataFrame(main_df)
-    expected_aug["rain"] = [np.nan, np.nan, 2, 4, 3, 1]
+    expected_aug = main_df.copy()
+    expected_aug["rain"] = [np.nan, np.nan, 200, 400, 300, 100]
     expected_aug["worst_rain"] = [np.nan, np.nan, 0, 0, 0, 1]
-    expected_aug["pnep"] = ["nan", "19.61", "29.27", "33.80", "12.31", "1.00"]
+    expected_aug["pnep"] = [np.nan, 19.606438, 29.27018, 33.800949, 12.312943,  1.]
     expected_aug["worst_pnep"] = [np.nan, 0, 0, 1, 0, 0]
     pd.testing.assert_frame_equal(expected_aug, aug, check_column_type=True)
 
