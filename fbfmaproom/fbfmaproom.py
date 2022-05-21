@@ -95,6 +95,7 @@ def table_columns(obs_config, obs_dataset_keys, severity, season_length):
     tcs["pnep"] = dict(
         name="Forecast, %",
         tooltip="Displays all the historical flexible forecast for the selected issue month and location",
+        format=format_number,
         style=lambda row: "cell-severity-" + str(severity) if row['worst_pnep'] == 1 else "",
     )
 
@@ -537,8 +538,6 @@ def format_bad(x):
 
 def format_main_table(main_df, season_length, table_columns, severity, obs_dataset_keys):
     main_df = pd.DataFrame(main_df)
-
-    main_df["pnep"] = main_df["pnep"].apply(format_number)
 
     main_df["bad_year"] = main_df["bad_year"].apply(format_bad)
 
