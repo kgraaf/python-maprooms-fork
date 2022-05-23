@@ -119,7 +119,6 @@ def data_path(relpath):
 
 def open_data_array(
     cfg,
-    country_key,
     var_key,
     val_min=None,
     val_max=None,
@@ -157,7 +156,6 @@ def open_vuln(country_key):
     cfg = CONFIG["countries"][country_key]["datasets"][dataset_key]
     return open_data_array(
         cfg,
-        country_key,
         None,
         val_min=None,
         val_max=None,
@@ -169,7 +167,6 @@ def open_pnep(country_key):
     cfg = CONFIG["countries"][country_key]["datasets"][dataset_key]
     return open_data_array(
         cfg,
-        country_key,
         "pnep",
         val_min=0.0,
         val_max=100.0,
@@ -179,7 +176,7 @@ def open_pnep(country_key):
 def open_obs(country_key, obs_dataset_key):
     cfg = CONFIG["countries"][country_key]["datasets"]["observations"][obs_dataset_key]
     return open_data_array(
-        cfg, country_key, "obs", val_min=0.0, val_max=1000.0
+        cfg, "obs", val_min=0.0, val_max=1000.0
     )
 
 
