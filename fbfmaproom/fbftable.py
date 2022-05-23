@@ -31,17 +31,22 @@ def gen_select_header(col, options, value):
     )
 
 def gen_head(tcs, dfs):
-    return html.Thead([
-        html.Tr(
-            [ html.Th(head_cell(row[col], row['tooltip']) if i == 0 else row[col])
-              for i, col in enumerate(tcs.keys()) ]
-        )
-        for row in dfs.to_dict(orient="records")
-    ] + [ html.Tr(
-        [ html.Th(head_cell(c['name'], c['tooltip'])) for c in tcs.values() ]
-
+    return html.Thead(
+        [
+            html.Tr([
+                html.Th(head_cell(row[col], row['tooltip']) if i == 0 else row[col])
+                for i, col in enumerate(tcs.keys())
+            ])
+            for row in dfs.to_dict(orient="records")
+        ] + [
+            html.Tr([
+                html.Th(head_cell(
+                    c['name'] + (f" ({c['units']})" if c.get('units') else ''),
+                    c['tooltip']
+                )) for c in tcs.values()
+            ])
+        ]
     )
-    ])
 
 
 def gen_body(tcs, data):

@@ -91,6 +91,7 @@ def table_columns(obs_config, obs_dataset_keys, severity):
     def make_obs_column(obs_key):
         return dict(
             name=obs_dataset_names[obs_key],
+            units=open_obs_from_config(obs_config[obs_key]).attrs.get('units'),
             style=lambda row: "cell-severity-" + str(severity) if row[f'worst_{obs_key}'] == 1 else "",
             tooltip=None,
         )
@@ -175,9 +176,11 @@ def open_pnep(country_key):
 
 def open_obs(country_key, obs_dataset_key):
     cfg = CONFIG["countries"][country_key]["datasets"]["observations"][obs_dataset_key]
-    return open_data_array(
-        cfg, "obs", val_min=0.0, val_max=1000.0
-    )
+    return open_obs_from_config(cfg)
+
+
+def open_obs_from_config(ds_config):
+    return open_data_array(ds_config, "obs", val_min=0.0, val_max=1000.0)
 
 
 ENSO_STATES = {
