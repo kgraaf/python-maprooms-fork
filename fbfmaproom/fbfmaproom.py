@@ -88,10 +88,16 @@ def table_columns(obs_config, obs_dataset_keys, severity):
                            tooltip="Displays all the historical flexible forecast for the selected issue month and location",
                            style=lambda row: "cell-severity-" + str(severity) if row['worst_pnep'] == 1 else "")
 
+    def units(obs_key):
+        ds_config = obs_config[obs_key]
+        if 'units' in ds_config:
+            return ds_config['units']
+        return open_obs_from_config(ds_config).attrs.get('units')
+
     def make_obs_column(obs_key):
         return dict(
             name=obs_dataset_names[obs_key],
-            units=open_obs_from_config(obs_config[obs_key]).attrs.get('units'),
+            units=units(obs_key),
             style=lambda row: "cell-severity-" + str(severity) if row[f'worst_{obs_key}'] == 1 else "",
             tooltip=None,
         )
