@@ -73,7 +73,7 @@ APP.title = "FBF--Maproom"
 APP.layout = fbflayout.app_layout()
 
 
-def table_columns(obs_config, obs_dataset_keys):
+def table_columns(obs_config, obs_dataset_keys, severity):
 
     obs_dataset_names = {k: v["label"] for k, v in obs_config.items()}
     tcs = OrderedDict()
@@ -84,19 +84,26 @@ def table_columns(obs_config, obs_dataset_keys):
                              style=lambda row: {'El Niño': 'cell-el-nino',
                                                 'La Niña': 'cell-la-nina',
                                                 'Neutral': 'cell-neutral'}.get(row['enso_state'], ""))
-    tcs["forecast"] = dict(name="Forecast, %",
+    tcs["pnep"] = dict(name="Forecast, %",
                            tooltip="Displays all the historical flexible forecast for the selected issue month and location",
-                           style=lambda row: "cell-severity-" + str(row['severity']) if row['worst_pnep'] == 1 else "")
+                           style=lambda row: "cell-severity-" + str(severity) if row['worst_pnep'] == 1 else "")
+
+    def units(obs_key):
+        ds_config = obs_config[obs_key]
+        if 'units' in ds_config:
+            return ds_config['units']
+        return open_obs_from_config(ds_config).attrs.get('units')
 
     def make_obs_column(obs_key):
         return dict(
-            name=f"{obs_dataset_names[obs_key]} Rank",
-            style=lambda row: "cell-severity-" + str(row['severity']) if row[f'worst_{obs_key}'] == 1 else "",
+            name=obs_dataset_names[obs_key],
+            units=units(obs_key),
+            style=lambda row: "cell-severity-" + str(severity) if row[f'worst_{obs_key}'] == 1 else "",
             tooltip=None,
         )
 
     for obs_key in obs_dataset_keys:
-        tcs[f"{obs_key}_rank"] = make_obs_column(obs_key)
+        tcs[obs_key] = make_obs_column(obs_key)
 
     def bad_year_css(row):
         r = row['bad_year']
@@ -119,7 +126,6 @@ def data_path(relpath):
 
 def open_data_array(
     cfg,
-    country_key,
     var_key,
     val_min=None,
     val_max=None,
@@ -157,7 +163,6 @@ def open_vuln(country_key):
     cfg = CONFIG["countries"][country_key]["datasets"][dataset_key]
     return open_data_array(
         cfg,
-        country_key,
         None,
         val_min=None,
         val_max=None,
@@ -169,7 +174,6 @@ def open_pnep(country_key):
     cfg = CONFIG["countries"][country_key]["datasets"][dataset_key]
     return open_data_array(
         cfg,
-        country_key,
         "pnep",
         val_min=0.0,
         val_max=100.0,
@@ -178,9 +182,11 @@ def open_pnep(country_key):
 
 def open_obs(country_key, obs_dataset_key):
     cfg = CONFIG["countries"][country_key]["datasets"]["observations"][obs_dataset_key]
-    return open_data_array(
-        cfg, country_key, "obs", val_min=0.0, val_max=1000.0
-    )
+    return open_obs_from_config(cfg)
+
+
+def open_obs_from_config(ds_config):
+    return open_data_array(ds_config, "obs", val_min=0.0, val_max=1000.0)
 
 
 ENSO_STATES = {
@@ -459,10 +465,6 @@ def augment_table_data(main_df, freq, obs_dataset_keys, obs_config):
     def is_ascending(obs_dataset_key):
         return obs_config[obs_dataset_key]["worst"] == "lowest"
 
-    obs_rank = {
-        key: obs[key].rank(method="first", ascending=is_ascending(key))
-        for key in obs_dataset_keys
-    }
     obs_rank_pct = {
         key: obs[key].rank(method="first", ascending=is_ascending(key), pct=True)
         for key in obs_dataset_keys
@@ -478,22 +480,28 @@ def augment_table_data(main_df, freq, obs_dataset_keys, obs_config):
 
     summary_df = pd.DataFrame.from_dict(dict(
         enso_state=hits_and_misses(el_nino, bad_year),
-        forecast=hits_and_misses(worst_pnep, bad_year),
+        pnep=hits_and_misses(worst_pnep, bad_year),
     ))
 
     for key in obs_dataset_keys:
-        summary_df[f"{key}_rank"] = hits_and_misses(worst_obs[key], bad_year)
-        main_df[f"{key}_rank"] = obs_rank[key]
+        summary_df[key] = hits_and_misses(worst_obs[key], bad_year)
+        main_df[key] = obs[key]
         main_df[f"worst_{key}"] = worst_obs[key].astype(int)
     main_df["worst_pnep"] = worst_pnep.astype(int)
 
     return main_df, summary_df, prob_thresh
 
 
-def format_pnep(x):
+def format_number(x):
     if np.isnan(x):
         return ""
     return f"{x:.2f}"
+
+
+def format_number_or_timedelta(x):
+    if hasattr(x, 'days'):
+        x = x.days + x.seconds / 60 / 60 / 24
+    return format_number(x)
 
 
 def format_bad(x):
@@ -518,18 +526,19 @@ def format_main_table(main_df, season_length, table_columns, severity, obs_datas
     midpoints = main_df.index.to_series()
     main_df["year_label"] = midpoints.apply(lambda x: year_label(x, season_length))
 
-    main_df["severity"] = severity
-
-    main_df["forecast"] = main_df["pnep"].apply(format_pnep)
+    main_df["pnep"] = main_df["pnep"].apply(format_number)
 
     main_df["bad_year"] = main_df["bad_year"].apply(format_bad)
+
+    for key in obs_dataset_keys:
+        main_df[key] = main_df[key].apply(format_number_or_timedelta)
 
     # Get the order right, and discard unneeded columns. I don't think
     # order is actually important, but the test tests it.
     main_df = main_df[
         list(table_columns.keys()) +
         [f"worst_{key}" for key in obs_dataset_keys] +
-        ["worst_pnep", "severity"]
+        ["worst_pnep"]
     ]
 
     return main_df
@@ -798,7 +807,7 @@ def display_prob_thresh(val):
 def _(issue_month0, freq, mode, geom_key, pathname, severity, obs_dataset_keys, season):
     country_key = country(pathname)
     config = CONFIG["countries"][country_key]
-    tcs = table_columns(config["datasets"]["observations"], obs_dataset_keys)
+    tcs = table_columns(config["datasets"]["observations"], obs_dataset_keys, severity)
     try:
         dft, dfs, prob_thresh = generate_tables(
             country_key,

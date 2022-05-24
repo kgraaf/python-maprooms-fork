@@ -31,7 +31,7 @@ datasets = [
     ),
     (
         "rain-madagascar",
-        "http://iridl.ldeo.columbia.edu/home/.rijaf/.Madagascar_v3/.ALL/.monthly/.rainfall/.rfe/T/(Dec-Feb)/seasonalAverage/",
+        "http://iridl.ldeo.columbia.edu/home/.rijaf/.Madagascar_v3/.ALL/.monthly/.rainfall/.rfe/T/(Dec-Feb)/seasonalAverage//units/(mm/month)/def/",
     ),
     (
         "pnep-madagascar",
@@ -67,19 +67,19 @@ datasets = [
     ),
     (
         'niger/chirps-precip-jun',
-        'https://iridl.ldeo.columbia.edu/SOURCES/.UCSB/.CHIRPS/.v2p0/.monthly/.global/.precipitation/X/(0)/(16)/RANGE/Y/(11)/(24)/RANGE/T/(Jun)/seasonalAverage/T//pointwidth/0/def/2/shiftGRID/'
+        'http://iridl.ldeo.columbia.edu/SOURCES/.UCSB/.CHIRPS/.v2p0/.monthly/.global/.precipitation/X/(0)/(16)/RANGE/Y/(11)/(24)/RANGE/T/(Jun)/seasonalAverage/T//pointwidth/0/def/2/shiftGRID/c%3A/1//units//months/def/%3Ac/mul//name//precipitation/def/'
     ),
     (
         'niger/chirps-precip-jas',
-        'http://iridl.ldeo.columbia.edu/SOURCES/.UCSB/.CHIRPS/.v2p0/.monthly/.global/.precipitation/X/(0)/(16)/RANGE/Y/(11)/(24)/RANGE/T/(Jul-Sep)/seasonalAverage/3/mul/'
+        'http://iridl.ldeo.columbia.edu/SOURCES/.UCSB/.CHIRPS/.v2p0/.monthly/.global/.precipitation/X/(0)/(16)/RANGE/Y/(11)/(24)/RANGE/T/(Jul-Sep)/seasonalAverage/c%3A/3//units//months/def/%3Ac/mul//name//precipitation/def/'
     ),
     (
         'niger/chirps-precip-jjaso',
-        'https://iridl.ldeo.columbia.edu/SOURCES/.UCSB/.CHIRPS/.v2p0/.monthly/.global/.precipitation/X/(0)/(16)/RANGE/Y/(11)/(24)/RANGE/T/(Jun-Oct)/seasonalAverage/5/mul/T//pointwidth/0/def/pop/'
+        'http://iridl.ldeo.columbia.edu/SOURCES/.UCSB/.CHIRPS/.v2p0/.monthly/.global/.precipitation/X/(0)/(16)/RANGE/Y/(11)/(24)/RANGE/T/(Jun-Oct)/seasonalAverage/c%3A/5//units//months/def/%3Ac/mul/T//pointwidth/0/def/pop//name//precipitation/def/'
     ),
     (
         'niger/chirps-dryspell',
-        'https://iridl.ldeo.columbia.edu/SOURCES/.UCSB/.CHIRPS/.v2p0/.daily-improved/.global/.0p05/.prcp/X/(0)/(16)/RANGE/Y/(11)/(24)/RANGE/T/(1%20Jun)/61/1/(lt)/0.9/seasonalLLS/T//pointwidth/0/def/(months%20since%201960-01-01)/streamgridunitconvert/T/1.5/shiftGRID/'
+        'http://iridl.ldeo.columbia.edu/SOURCES/.UCSB/.CHIRPS/.v2p0/.daily-improved/.global/.0p05/.prcp/X/(0)/(16)/RANGE/Y/(11)/(24)/RANGE/T/(1%20Jun)/61/1/(lt)/0.9/seasonalLLS/T//pointwidth/0/def/(months%20since%201960-01-01)/streamgridunitconvert/T/1.5/shiftGRID/'
     ),
     (
         'niger/chirps-onset',

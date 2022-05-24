@@ -410,6 +410,7 @@ countries:
                         time: T
                     colormap: *raincm
                     worst: highest
+                    units: days
                 chirps-onset:
                     label: CHIRPS Onset
                     path: niger/chirps-onset.zarr
@@ -420,6 +421,7 @@ countries:
                         time: T
                     colormap: *raincm
                     worst: highest
+                    units: days after May 1
             pnep:
                 path: niger/pnep-jas.zarr
                 var_names:

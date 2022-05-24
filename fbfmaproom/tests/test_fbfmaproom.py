@@ -36,9 +36,9 @@ def test_generate_tables():
         table_columns=OrderedDict([
             ('year_label', {'name': 'Year'}),
             ('enso_state', {'name': 'ENSO State'}),
-            ('forecast', {'name': 'Forecast, %'}),
-            ('rain_rank', {'name': 'Rain Rank'}),
-            ('ndvi_rank', {'name': 'SPI Rank'}),
+            ('pnep', {'name': 'Forecast, %'}),
+            ('rain', {'name': 'Rain'}),
+            ('ndvi', {'name': 'NDVI'}),
             ('bad_year', {'name': 'Reported Bad Years'}),
         ]),
         issue_month0=1,
@@ -69,7 +69,7 @@ def test_generate_tables():
             'Neutral', 'Neutral', 'La Niña', 'Neutral', 'El Niño', 'Neutral',
             'La Niña', 'Neutral', 'El Niño'
         ],
-        forecast=[
+        pnep=[
             '34.04', '26.84', '34.28', '32.35', '36.43', '31.38', '32.21',
             '33.35', '38.26', '38.26', '37.05', '30.61', '36.07', '41.86',
             '34.10', '42.46', '36.14', '36.93', '35.87', '31.45', '35.50',
@@ -77,16 +77,19 @@ def test_generate_tables():
             '29.53', '39.90', '27.96', '28.82', '34.68', '35.84', '31.13',
             '35.42', '38.82', '38.87', '36.09'
         ],
-        rain_rank=[
-            24., 33., 12., 38.,  8., 32., 16., 13., 35., 15.,  3., 37.,  5.,
-            4., 19., 21., 20.,  9., 14., 10., 11.,  6.,  7., 18., 22., 30.,
-            31., 25., 26.,  2., 28., 27., 34., 23., 39., 29., 36.,  1., 17.
+        rain=[
+            "59.67", "71.92", "43.36", "81.79", "40.73", "67.25", "52.72",
+            "45.29", "76.64", "50.87", "37.18", "77.10", "39.50", "38.61",
+            "57.76", "58.02", "57.87", "42.22", "48.64", "42.44", "42.78",
+            "39.53", "40.38", "57.17", "58.75", "64.03", "67.12", "59.67",
+            "59.69", "36.44", "61.27", "60.49", "73.32", "58.78", "93.17",
+            "63.68", "76.74", "31.49", "56.26"
         ],
-        ndvi_rank=[17.0, 21.0, 4.0, 20.0, 5.0, 15.0, 16.0, 8.0, 18.0, 7.0, 1.0,
-                   19.0, 3.0, 2.0, 14.0, 12.0, 13.0, 10.0, 9.0, 11.0, 6.0,
-                   np.nan, np.nan, np.nan, np.nan, np.nan, np.nan, np.nan,
-                   np.nan, np.nan, np.nan, np.nan, np.nan, np.nan, np.nan,
-                   np.nan, np.nan, np.nan, np.nan
+        ndvi=[
+            "0.30", "0.32", "0.24", "0.31", "0.24", "0.27", "0.27", "0.25",
+            "0.31", "0.24", "0.22", "0.31", "0.23", "0.22", "0.27", "0.26",
+            "0.26", "0.25", "0.25", "0.25", "0.24", "", "", "", "", "", "",
+            "", "", "", "", "", "", "", "", "", "", "", ""
         ],
         bad_year=[
             '', '', '', '', 'Bad', 'Bad', '', '', '', '', 'Bad',
@@ -108,10 +111,6 @@ def test_generate_tables():
             0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1,
             1, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 1, 1, 0
         ],
-        severity=[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                  0, 0, 0, 0, 0
-        ],
     )).set_index("time")
     pd.testing.assert_frame_equal(main_df, expected_main, check_index_type=False)
 
@@ -121,9 +120,9 @@ def test_generate_tables():
         year_label=['Worthy-action:', 'Act-in-vain:', 'Fail-to-act:',
                     'Worthy-Inaction:', 'Rate:'],
         enso_state=[2, 5, 8, 24, '66.67%'],
-        forecast=[6, 5, 4, 24, '76.92%'],
-        rain_rank=[8, 3, 2, 26, '87.18%'],
-        ndvi_rank=[4, 2, 2, 13, '80.95%'],
+        pnep=[6, 5, 4, 24, '76.92%'],
+        rain=[8, 3, 2, 26, '87.18%'],
+        ndvi=[4, 2, 2, 13, '80.95%'],
         tooltip=[
             "Drought was forecasted and a ‘bad year’ occurred",
             "Drought was forecasted but a ‘bad year’ did not occur",
@@ -163,18 +162,18 @@ def test_augment_table_data():
     freq = 34
     aug, summ, prob = fbfmaproom.augment_table_data(main_df, freq, ["rain"], {"rain": {"worst": "lowest"}})
 
-    expected_aug = pd.DataFrame(main_df)
-    expected_aug["rain_rank"] = [np.nan, np.nan, 2, 4, 3, 1]
+    expected_aug = main_df.copy()
+    expected_aug["rain"] = [np.nan, np.nan, 200, 400, 300, 100]
     expected_aug["worst_rain"] = [np.nan, np.nan, 0, 0, 0, 1]
-    expected_aug["forecast"] = ["nan", "19.61", "29.27", "33.80", "12.31", "1.00"]
+    expected_aug["pnep"] = [np.nan, 19.606438, 29.27018, 33.800949, 12.312943,  1.]
     expected_aug["worst_pnep"] = [np.nan, 0, 0, 1, 0, 0]
     pd.testing.assert_frame_equal(expected_aug, aug, check_column_type=True)
 
     expected_summ = pd.DataFrame(dict(
         # [tp, fp, fn, tn, accuracy]
         enso_state=[1, 1, 1, 1, "50.00%"],
-        forecast=[0, 1, 2, 2, "40.00%"],
-        rain_rank=[1, 0, 1, 2, "75.00%"],
+        pnep=[0, 1, 2, 2, "40.00%"],
+        rain=[1, 0, 1, 2, "75.00%"],
     ))
     pd.testing.assert_frame_equal(expected_summ, summ)
 
