@@ -781,7 +781,7 @@ def display_prob_thresh(val):
     Input("obs_datasets", "value"),
     State("season", "value"),
 )
-def _(issue_month0, freq, mode, geom_key, pathname, severity, obs_dataset_keys, season):
+def table_cb(issue_month0, freq, mode, geom_key, pathname, severity, obs_dataset_keys, season):
     country_key = country(pathname)
     config = CONFIG["countries"][country_key]
     tcs = table_columns(

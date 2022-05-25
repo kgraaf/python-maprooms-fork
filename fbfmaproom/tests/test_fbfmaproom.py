@@ -22,117 +22,51 @@ def test_year_label_straddle():
 def test_from_month_since_360Day():
     assert fbfmaproom.from_month_since_360Day(735.5) == DT360(2021, 4, 16)
 
-def test_generate_tables():
-    main_df, summary_df, prob_thresh = fbfmaproom.generate_tables(
-        country_key='ethiopia',
-        obs_dataset_keys=['rain', 'ndvi'],
-        season_config={
-            'label': 'MAM',
-            'target_month': 3.5,
-            'length': 3.0,
-            'issue_months': [11, 0, 1],
-            'year_range': [1983, 2021]
-        },
-        table_columns=OrderedDict([
-            ('time', {'name': 'Year'}),
-            ('enso_state', {'name': 'ENSO State'}),
-            ('pnep', {'name': 'Forecast, %'}),
-            ('rain', {'name': 'Rain'}),
-            ('ndvi', {'name': 'NDVI'}),
-            ('bad_year', {'name': 'Reported Bad Years'}),
-        ]),
-        issue_month0=1,
+def test_table_cb():
+    table, prob_thresh = fbfmaproom.table_cb.__wrapped__(
+        issue_month0 = 1,
         freq=30,
         mode='0',
         geom_key='ET05',
+        pathname='/fbfmaproom/ethiopia',
         severity=0,
+        obs_dataset_keys=['rain', 'ndvi'],
+        season='season1',
     )
+    assert np.isclose(prob_thresh, 36.930862)
 
-    # for c in main_df.columns:
-    #     print(f'{c}={list(main_df[c].values)}')
+    thead, tbody = table.children
+    assert len(thead.children) == 6
+    row = thead.children[1]
+    assert len(row.children) == 6
 
-    expected_main = pd.DataFrame.from_dict(dict(
-        time=[DT360(year, 4, 16) for year in range(2021, 1982, -1)],
-        enso_state=[
-            'La Niña', 'Neutral', 'El Niño', 'La Niña', 'Neutral', 'El Niño',
-            'El Niño', 'Neutral', 'Neutral', 'La Niña', 'La Niña', 'Neutral',
-            'Neutral', 'La Niña', 'Neutral', 'Neutral', 'Neutral', 'Neutral',
-            'Neutral', 'Neutral', 'Neutral', 'La Niña', 'La Niña', 'El Niño',
-            'Neutral', 'Neutral', 'Neutral', 'Neutral', 'Neutral', 'El Niño',
-            'Neutral', 'Neutral', 'La Niña', 'Neutral', 'El Niño', 'Neutral',
-            'La Niña', 'Neutral', 'El Niño'
-        ],
-        pnep=[
-            '34.04', '26.84', '34.28', '32.35', '36.43', '31.38', '32.21',
-            '33.35', '38.26', '38.26', '37.05', '30.61', '36.07', '41.86',
-            '34.10', '42.46', '36.14', '36.93', '35.87', '31.45', '35.50',
-            '40.70', '40.95', '28.68', '35.04', '33.82', '35.92', '37.54',
-            '29.53', '39.90', '27.96', '28.82', '34.68', '35.84', '31.13',
-            '35.42', '38.82', '38.87', '36.09'
-        ],
-        rain=[
-            "59.67", "71.92", "43.36", "81.79", "40.73", "67.25", "52.72",
-            "45.29", "76.64", "50.87", "37.18", "77.10", "39.50", "38.61",
-            "57.76", "58.02", "57.87", "42.22", "48.64", "42.44", "42.78",
-            "39.53", "40.38", "57.17", "58.75", "64.03", "67.12", "59.67",
-            "59.69", "36.44", "61.27", "60.49", "73.32", "58.78", "93.17",
-            "63.68", "76.74", "31.49", "56.26"
-        ],
-        ndvi=[
-            "0.30", "0.32", "0.24", "0.31", "0.24", "0.27", "0.27", "0.25",
-            "0.31", "0.24", "0.22", "0.31", "0.23", "0.22", "0.27", "0.26",
-            "0.26", "0.25", "0.25", "0.25", "0.24", "", "", "", "", "", "",
-            "", "", "", "", "", "", "", "", "", "", "", ""
-        ],
-        bad_year=[
-            '', '', '', '', 'Bad', 'Bad', '', '', '', '', 'Bad',
-            '', 'Bad', 'Bad', '', '', 'Bad', '', '', '', '', 'Bad',
-            'Bad', '', '', '', '', '', '', 'Bad', '', '', '',
-            '', '', '', '', 'Bad', ''
-        ],
-        worst_rain=[
-            0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1, 1, 0, 0, 0, 1, 0, 1, 1, 1,
-            1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0
-        ],
-        worst_ndvi=[
-            0.,  0.,  1.,  0.,  1.,  0.,  0.,  0.,  0.,  0.,  1.,  0.,  1.,  1.,
-            0.,  0.,  0.,  0., 0.,  0.,  1., np.nan, np.nan, np.nan, np.nan,
-            np.nan, np.nan, np.nan, np.nan, np.nan, np.nan, np.nan, np.nan,
-            np.nan, np.nan, np.nan, np.nan, np.nan, np.nan
-        ],
-        worst_pnep=[
-            0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1,
-            1, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 1, 1, 0
-        ],
-    )).set_index("time", drop=False)
-    pd.testing.assert_frame_equal(main_df, expected_main, check_index_type=False)
+    cell = row.children[0]
+    div, tooltip = row.children[0].children
+    assert div.children == 'Act-in-vain:'
 
-    # for c in summary_df.columns:
-    #     print(f'{c}={list(summary_df[c].values)}')
-    expected_summary = pd.DataFrame.from_dict(dict(
-        enso_state=[2, 5, 8, 24, '66.67%'],
-        pnep=[6, 5, 4, 24, '76.92%'],
-        rain=[8, 3, 2, 26, '87.18%'],
-        ndvi=[4, 2, 2, 13, '80.95%'],
-        time=[
-            'Worthy-action:', 'Act-in-vain:', 'Fail-to-act:',
-            'Worthy-Inaction:', 'Rate:',
-        ],
-        tooltip=[
-            "Drought was forecasted and a ‘bad year’ occurred",
-            "Drought was forecasted but a ‘bad year’ did not occur",
-            "No drought was forecasted but a ‘bad year’ occurred",
-            "No drought was forecasted, and no ‘bad year’ occurred",
-            "Gives the percentage of worthy-action and worthy-inactions",
-        ],
-        bad_year=[np.nan, np.nan, np.nan, np.nan, np.nan],
-    ))
-    pd.testing.assert_frame_equal(
-        summary_df.set_index("time", drop=False),
-        expected_summary.set_index("time", drop=False)
-    )
+    assert row.children[1].children == 5
+    assert thead.children[4].children[1].children == "66.67%"
+    assert thead.children[5].children[3].children == 'Rain (mm/month)'
 
-    assert np.isclose(prob_thresh, 37.052727)
+    assert len(tbody.children) == 40 # will break when we add a new year
+
+    row = tbody.children[3]
+    cell = row.children[0]
+    assert row.children[0].children == '2019'
+    assert row.children[0].className == ''
+    assert row.children[1].children == 'El Niño'
+    assert row.children[1].className == 'cell-el-nino'
+    assert row.children[2].children == '34.28'
+    assert row.children[2].className == ''
+    assert row.children[3].children == '43.36'
+    assert row.children[3].className == ''
+    assert row.children[4].children == '0.24'
+    assert row.children[4].className == 'cell-severity-0'
+    assert row.children[5].children == ''
+    assert row.children[5].className == 'cell-good-year'
+
+    assert tbody.children[5].children[5].className == 'cell-bad-year'
+
 
 # overlaps with test_generate_tables, but this one uses synthetic
 # data. Merge them?
