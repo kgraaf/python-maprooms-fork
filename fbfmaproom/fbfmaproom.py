@@ -354,16 +354,15 @@ def generate_tables(
     basic_ds = fundamental_table_data(country_key, obs_dataset_keys,
                                       season_config, issue_month0,
                                       freq, mode, geom_key)
+    basic_df = basic_ds.drop_vars("pct").to_dataframe()
     obs_config = CONFIG["countries"][country_key]["datasets"]["observations"]
     main_df, summary_df, prob_thresh = augment_table_data(
-        basic_ds.to_dataframe(), freq, obs_dataset_keys, obs_config
+        basic_df, freq, obs_dataset_keys, obs_config
     )
-    main_presentation_df = format_main_table(main_df, season_config["length"],
-                                             table_columns, severity, obs_dataset_keys)
     summary_presentation_df = format_summary_table(summary_df, table_columns)
     # TODO no longer handling the case where geom_key is None. Does
     # that ever actually happen?
-    return main_presentation_df, summary_presentation_df, prob_thresh
+    return main_df, summary_presentation_df, prob_thresh
 
 
 def get_mpoly(mode, country_key, geom_key):
@@ -535,20 +534,6 @@ def format_bad(x):
     if x is False:
         return ""
     raise Exception(f"Invalid bad_year value {x}")
-
-
-def format_main_table(main_df, season_length, table_columns, severity, obs_dataset_keys):
-    main_df = pd.DataFrame(main_df)
-
-    # Get the order right, and discard unneeded columns. I don't think
-    # order is actually important, but the test tests it.
-    main_df = main_df[
-        list(table_columns.keys()) +
-        [f"worst_{key}" for key in obs_dataset_keys] +
-        ["worst_pnep"]
-    ]
-
-    return main_df
 
 
 def format_summary_table(summary_df, table_columns):
