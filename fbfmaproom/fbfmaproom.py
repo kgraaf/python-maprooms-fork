@@ -360,8 +360,6 @@ def generate_tables(
         basic_df, freq, obs_dataset_keys, obs_config
     )
     summary_presentation_df = format_summary_table(summary_df, table_columns)
-    # TODO no longer handling the case where geom_key is None. Does
-    # that ever actually happen?
     return main_df, summary_presentation_df, prob_thresh
 
 
