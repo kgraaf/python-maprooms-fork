@@ -109,6 +109,7 @@ def table_columns(obs_config, obs_dataset_keys, severity, season_length):
         return dict(
             name=obs_dataset_names[obs_key],
             units=units(obs_key),
+            format=format_number_or_timedelta,
             style=lambda row: "cell-severity-" + str(severity) if row[f'worst_{obs_key}'] == 1 else "",
             tooltip=None,
         )
@@ -538,9 +539,6 @@ def format_bad(x):
 
 def format_main_table(main_df, season_length, table_columns, severity, obs_dataset_keys):
     main_df = pd.DataFrame(main_df)
-
-    for key in obs_dataset_keys:
-        main_df[key] = main_df[key].apply(format_number_or_timedelta)
 
     # Get the order right, and discard unneeded columns. I don't think
     # order is actually important, but the test tests it.
