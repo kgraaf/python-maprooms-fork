@@ -117,16 +117,16 @@ def table_columns(obs_config, obs_dataset_keys, severity, season_length):
         tcs[obs_key] = make_obs_column(obs_key)
 
     def bad_year_css(row):
-        r = row['bad_year']
-        if pd.notna(r):
-            if r == "Bad":
-                return "cell-bad-year"
-            else:
-                return "cell-good-year"
-        else:
+        val = row['bad_year']
+        if pd.isna(val):
             return ""
+        if val:
+            return "cell-bad-year"
+        return "cell-good-year"
+
     tcs["bad_year"] = dict(
         name="Reported Bad Years",
+        format=format_bad,
         style=bad_year_css,
         tooltip="Historical drought years based on farmers' recollection",
     )
@@ -538,8 +538,6 @@ def format_bad(x):
 
 def format_main_table(main_df, season_length, table_columns, severity, obs_dataset_keys):
     main_df = pd.DataFrame(main_df)
-
-    main_df["bad_year"] = main_df["bad_year"].apply(format_bad)
 
     for key in obs_dataset_keys:
         main_df[key] = main_df[key].apply(format_number_or_timedelta)
