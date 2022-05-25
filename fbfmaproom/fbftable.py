@@ -50,11 +50,11 @@ def gen_head(tcs, dfs):
 
 
 def gen_body(tcs, data):
-    def style(col, row):
-        sty = tcs[col]['style']
-        if sty is not None:
-            assert callable(sty), f"column {col} style field is not a function"
-            return sty(row)
+    def class_name(col, row):
+        f = tcs[col]['class_name']
+        if f is not None:
+            assert callable(f), f"column {col} style field is not a function"
+            return f(row)
         else:
             return ""
 
@@ -64,7 +64,7 @@ def gen_body(tcs, data):
 
     return html.Tbody([
         html.Tr([
-            html.Td(fmt(col, row), className=style(col, row)) for col in tcs.keys()
+            html.Td(fmt(col, row), className=class_name(col, row)) for col in tcs.keys()
         ])
         for row in data.to_dict(orient="records")
     ])

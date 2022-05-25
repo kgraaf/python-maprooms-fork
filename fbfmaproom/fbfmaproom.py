@@ -80,13 +80,13 @@ def table_columns(obs_config, obs_dataset_keys, severity, season_length):
     tcs["time"] = dict(
         name="Year",
         format=lambda midpoint: year_label(midpoint, season_length),
-        style=None,
+        class_name=None,
         tooltip="The year whose forecast is displayed on the map",
     )
     tcs["enso_state"] = dict(
         name="ENSO State",
         tooltip="Displays whether an El Niño, Neutral, or La Niña state occurred during the year",
-        style=lambda row: {
+        class_name=lambda row: {
             'El Niño': 'cell-el-nino',
             'La Niña': 'cell-la-nina',
             'Neutral': 'cell-neutral'
@@ -96,7 +96,7 @@ def table_columns(obs_config, obs_dataset_keys, severity, season_length):
         name="Forecast, %",
         tooltip="Displays all the historical flexible forecast for the selected issue month and location",
         format=format_number,
-        style=lambda row: "cell-severity-" + str(severity) if row['worst_pnep'] == 1 else "",
+        class_name=lambda row: "cell-severity-" + str(severity) if row['worst_pnep'] == 1 else "",
     )
 
     def units(obs_key):
@@ -110,14 +110,14 @@ def table_columns(obs_config, obs_dataset_keys, severity, season_length):
             name=obs_dataset_names[obs_key],
             units=units(obs_key),
             format=format_number_or_timedelta,
-            style=lambda row: "cell-severity-" + str(severity) if row[f'worst_{obs_key}'] == 1 else "",
+            class_name=lambda row: "cell-severity-" + str(severity) if row[f'worst_{obs_key}'] == 1 else "",
             tooltip=None,
         )
 
     for obs_key in obs_dataset_keys:
         tcs[obs_key] = make_obs_column(obs_key)
 
-    def bad_year_css(row):
+    def bad_year_class(row):
         val = row['bad_year']
         if pd.isna(val):
             return ""
@@ -128,7 +128,7 @@ def table_columns(obs_config, obs_dataset_keys, severity, season_length):
     tcs["bad_year"] = dict(
         name="Reported Bad Years",
         format=format_bad,
-        style=bad_year_css,
+        class_name=bad_year_class,
         tooltip="Historical drought years based on farmers' recollection",
     )
     return tcs
