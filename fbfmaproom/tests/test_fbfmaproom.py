@@ -30,7 +30,7 @@ def test_table_cb():
         geom_key='ET05',
         pathname='/fbfmaproom/ethiopia',
         severity=0,
-        obs_dataset_keys=['rain', 'ndvi'],
+        obs_keys=['rain', 'ndvi'],
         season='season1',
     )
     assert np.isclose(prob_thresh, 36.930862)
