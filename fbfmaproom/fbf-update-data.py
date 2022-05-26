@@ -115,7 +115,14 @@ datasets = [
         "ndvi-djibouti",
         "http://iridl.ldeo.columbia.edu/SOURCES/.USGS/.LandDAAC/.MODIS/.version_006/.EAF/.NDVI/X/41.625/.25/43.375/GRID/Y/10.875/.25/12.875/GRID/T/(Jul-Sep)/seasonalAverage/",
     ),
-
+    (
+        "lesotho/pnep-djf",
+        "http://iridl.ldeo.columbia.edu/home/.remic/.Lesotho/.Forecasts/.NextGen/.PRCPPRCP_CCAFCST/.NextGen/.FbF/.pne/",
+    ),
+    # (
+    #     "lesotho/rain",
+    #     "http://iridl.ldeo.columbia.edu/home/.remic/.Lesotho/.ENACTS/.ALL/.monthly/.rainfall/.rfe/T/(Jul-Sep)/seasonalAverage/3/mul///name//obs/def/"
+    # ),
 ]
 
 for dataset in datasets:
