@@ -128,6 +128,7 @@ def table_columns(obs_config, obs_keys, severity, season_length):
             format=format_func,
             class_name=class_func,
             tooltip=None,
+            lower_is_worse=ds_config['lower_is_worse']
         )
 
     for obs_key in obs_keys:
@@ -415,7 +416,7 @@ def generate_tables(
     basic_df = basic_ds.drop_vars("pct").to_dataframe()
     obs_config = CONFIG["countries"][country_key]["datasets"]["observations"]
     main_df, summary_df, prob_thresh = augment_table_data(
-        basic_df, freq, obs_keys, obs_config
+        basic_df, freq, obs_keys, table_columns
     )
     summary_presentation_df = format_summary_table(summary_df, table_columns)
     return main_df, summary_presentation_df, prob_thresh
@@ -520,7 +521,7 @@ def fundamental_table_data(country_key, obs_keys,
     return main_ds
 
 
-def augment_table_data(main_df, freq, obs_keys, obs_config):
+def augment_table_data(main_df, freq, obs_keys, table_columns):
     main_df = main_df.copy()
 
     main_df["time"] = main_df.index.to_series()
@@ -534,7 +535,7 @@ def augment_table_data(main_df, freq, obs_keys, obs_config):
     el_nino = main_df["enso_state"].dropna() == "El Niño"
 
     def is_ascending(obs_key):
-        return obs_config[obs_key]["lower_is_worse"]
+        return table_columns[obs_key]["lower_is_worse"]
 
     obs_rank_pct = {
         key: obs[key].rank(method="first", ascending=is_ascending(key), pct=True)
