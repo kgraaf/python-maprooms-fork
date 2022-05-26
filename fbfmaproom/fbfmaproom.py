@@ -534,7 +534,7 @@ def augment_table_data(main_df, freq, obs_keys, obs_config):
     el_nino = main_df["enso_state"].dropna() == "El Niño"
 
     def is_ascending(obs_key):
-        return obs_config[obs_key]["worst"] == "lowest"
+        return obs_config[obs_key]["lower_is_worse"]
 
     obs_rank_pct = {
         key: obs[key].rank(method="first", ascending=is_ascending(key), pct=True)

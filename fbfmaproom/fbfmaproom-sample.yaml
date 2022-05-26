@@ -88,7 +88,7 @@ countries:
                         7262835 [7262835 22] 6931300 [6931300 23] 5944410 [5944410 23]
                         5285200 [5285200 23] 4625990 [4625990 22] 3966780 [3966780 23]
                         3307570 [3307570 23] 2648360 [2648360 23] 1989150]"
-                    worst: lowest
+                    lower_is_worse: yes
             pnep:
                 path: pnep-malawi.zarr
                 var_names:
@@ -157,7 +157,7 @@ countries:
                         lon: X
                         time: T
                     colormap: *raincm
-                    worst: lowest
+                    lower_is_worse: yes
             pnep:
                 path: madagascar/pnep-djf.zarr
                 var_names:
@@ -222,7 +222,7 @@ countries:
                         lon: X
                         time: T
                     colormap: *raincm
-                    worst: lowest
+                    lower_is_worse: yes
                 enacts-precip:
                     label: ENACTS ALL precip
                     path: madagascar/enacts-precip-ond.zarr
@@ -232,7 +232,7 @@ countries:
                         lon: X
                         time: T
                     colormap: *raincm
-                    worst: lowest
+                    lower_is_worse: yes
                 chirps-precip-ond:
                     label: CHIRPS Precip
                     path: madagascar/chirps-precip-ond.zarr
@@ -242,7 +242,7 @@ countries:
                         lon: X
                         time: T
                     colormap: *raincm
-                    worst: lowest
+                    lower_is_worse: yes
                 ndvi:
                     label: NDVI * 100
                     path: madagascar/ndvi-ond.zarr
@@ -252,7 +252,7 @@ countries:
                         lon: X
                         time: T
                     colormap: *raincm
-                    worst: lowest
+                    lower_is_worse: yes
                 wrsi:
                     label: WRSI
                     path: madagascar/wrsi-ond.zarr
@@ -262,7 +262,7 @@ countries:
                         lon: X
                         time: T
                     colormap: *raincm
-                    worst: lowest
+                    lower_is_worse: yes
                 spi:
                     label: ENACTS MON SPI
                     path: madagascar/enacts-mon-spi-ond.zarr
@@ -272,7 +272,7 @@ countries:
                         lon: X
                         time: T
                     colormap: *raincm
-                    worst: lowest
+                    lower_is_worse: yes
             pnep:
                 path: madagascar/pnep-ond.zarr
                 var_names:
@@ -283,6 +283,7 @@ countries:
                     lead: null  # dataset has forecasts for only one season; L is implicit.
                     pct: P
                 colormap: *pnepcm
+                lower_is_worse: no
             vuln:
                 colormap: *vulncm
                 range: [0.0, 5.0]
@@ -334,7 +335,7 @@ countries:
                         lon: X
                         time: T
                     colormap: *raincm
-                    worst: lowest
+                    lower_is_worse: yes
                 ndvi:
                     label: NDVI
                     path: ndvi-ethiopia.zarr
@@ -344,7 +345,7 @@ countries:
                         lon: X
                         time: T
                     colormap: *raincm
-                    worst: lowest
+                    lower_is_worse: yes
                 spi:
                     label: SPI
                     path: spi-ethiopia.zarr
@@ -354,7 +355,7 @@ countries:
                         lon: X
                         time: T
                     colormap: *raincm
-                    worst: lowest
+                    lower_is_worse: yes
             pnep:
                 path: pnep-ethiopia.zarr
                 var_names:
@@ -415,7 +416,7 @@ countries:
                         lon: X
                         time: T
                     colormap: *raincm
-                    worst: lowest
+                    lower_is_worse: yes
             pnep:
                 path: pnep-ethiopia-ond.zarr
                 var_names:
@@ -484,7 +485,7 @@ countries:
                         lon: X
                         time: T
                     colormap: *raincm
-                    worst: lowest
+                    lower_is_worse: yes
                 chirps-precip-jun:
                     label: CHIRPS Precip Jun
                     path: niger/chirps-precip-jun.zarr
@@ -494,7 +495,7 @@ countries:
                         lon: X
                         time: T
                     colormap: *raincm
-                    worst: lowest
+                    lower_is_worse: yes
                 chirps-precip-jjaso:
                     label: CHIRPS Precip Jun-Oct
                     path: niger/chirps-precip-jjaso.zarr
@@ -504,7 +505,7 @@ countries:
                         lon: X
                         time: T
                     colormap: *raincm
-                    worst: lowest
+                    lower_is_worse: yes
                 chirps-precip-jas:
                     label: CHIRPS Precip JAS
                     path: niger/chirps-precip-jas.zarr
@@ -514,7 +515,7 @@ countries:
                         lon: X
                         time: T
                     colormap: *raincm
-                    worst: lowest
+                    lower_is_worse: yes
                 enacts-spi-jas:
                     label: ENACTS SPI JAS
                     path: niger/enacts-spi-jas.zarr
@@ -524,7 +525,7 @@ countries:
                         lon: X
                         time: T
                     colormap: *raincm
-                    worst: lowest
+                    lower_is_worse: yes
                 chirps-dryspell:
                     label: CHIRPS Dry Spells
                     path: niger/chirps-dryspell.zarr
@@ -534,7 +535,7 @@ countries:
                         lon: X
                         time: T
                     colormap: *raincm
-                    worst: highest
+                    lower_is_worse: no
                     units: days
                     format: timedelta_days
                 chirps-onset:
@@ -546,7 +547,7 @@ countries:
                         lon: X
                         time: T
                     colormap: *raincm
-                    worst: highest
+                    lower_is_worse: no
                     units: days after May 1
                     format: timedelta_days
             pnep:
@@ -610,7 +611,7 @@ countries:
                         lon: X
                         time: T
                     colormap: *raincm
-                    worst: lowest
+                    lower_is_worse: yes
             pnep:
                 path: pnep-guatemala.zarr
                 var_names:
@@ -672,7 +673,7 @@ countries:
                         lon: X
                         time: T
                     colormap: *raincm
-                    worst: lowest
+                    lower_is_worse: yes
                 ndvi:
                     label: NDVI
                     path: ndvi-djibouti.zarr
@@ -682,7 +683,7 @@ countries:
                         lon: X
                         time: T
                     colormap: *raincm
-                    worst: lowest
+                    lower_is_worse: yes
             pnep:
                 path: pnep-djibouti.zarr
                 var_names:
