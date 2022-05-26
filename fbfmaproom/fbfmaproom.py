@@ -78,7 +78,7 @@ def table_columns(obs_config, obs_dataset_keys, severity, season_length):
     format_funcs = {
         'year': lambda midpoint: year_label(midpoint, season_length),
         'number': format_number,
-        'number_or_timedelta': format_number_or_timedelta,
+        'timedelta_days': format_timedelta_days,
         'bad_year': format_bad,
     }
 
@@ -120,7 +120,7 @@ def table_columns(obs_config, obs_dataset_keys, severity, season_length):
 
     def make_obs_column(obs_key):
         ds_config = obs_config[obs_key]
-        format_func = format_funcs[ds_config.get('format', 'number_or_timedelta')]
+        format_func = format_funcs[ds_config.get('format', 'number')]
         class_func = class_funcs[ds_config.get('class', 'worst')]
         return dict(
             name=ds_config['label'],
@@ -148,10 +148,8 @@ def format_number(x):
     return f"{x:.2f}"
 
 
-def format_number_or_timedelta(x):
-    if hasattr(x, 'days'):
-        x = x.days + x.seconds / 60 / 60 / 24
-    return format_number(x)
+def format_timedelta_days(x):
+        return format_number(x.days + x.seconds / 60 / 60 / 24)
 
 
 def format_bad(x):
