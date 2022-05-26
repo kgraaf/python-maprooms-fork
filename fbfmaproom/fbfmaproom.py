@@ -75,28 +75,43 @@ APP.layout = fbflayout.app_layout()
 
 def table_columns(obs_config, obs_dataset_keys, severity, season_length):
 
+    format_funcs = {
+        'year': lambda midpoint: year_label(midpoint, season_length),
+        'number': format_number,
+        'number_or_timedelta': format_number_or_timedelta,
+        'bad_year': format_bad,
+    }
+
+    class_funcs = {
+        'bad_year': bad_year_class,
+        'nino': nino_class,
+        'worst': lambda col_name, row: worst_class(col_name, row, severity),
+    }
+
     obs_dataset_names = {k: v["label"] for k, v in obs_config.items()}
     tcs = OrderedDict()
     tcs["time"] = dict(
         name="Year",
-        format=lambda midpoint: year_label(midpoint, season_length),
+        format=format_funcs['year'],
         class_name=None,
         tooltip="The year whose forecast is displayed on the map",
     )
     tcs["enso_state"] = dict(
         name="ENSO State",
-        tooltip="Displays whether an El Niño, Neutral, or La Niña state occurred during the year",
-        class_name=lambda row: {
-            'El Niño': 'cell-el-nino',
-            'La Niña': 'cell-la-nina',
-            'Neutral': 'cell-neutral'
-        }.get(row['enso_state'], ""),
+        tooltip=(
+            "Displays whether an El Niño, Neutral, "
+            "or La Niña state occurred during the year"
+        ),
+        class_name=class_funcs['nino'],
     )
     tcs["pnep"] = dict(
         name="Forecast, %",
-        tooltip="Displays all the historical flexible forecast for the selected issue month and location",
-        format=format_number,
-        class_name=lambda row: "cell-severity-" + str(severity) if row['worst_pnep'] == 1 else "",
+        tooltip=(
+            "Displays all the historical flexible forecast "
+            "for the selected issue month and location"
+        ),
+        format=format_funcs['number'],
+        class_name=class_funcs['worst'],
     )
 
     def units(obs_key):
@@ -109,29 +124,73 @@ def table_columns(obs_config, obs_dataset_keys, severity, season_length):
         return dict(
             name=obs_dataset_names[obs_key],
             units=units(obs_key),
-            format=format_number_or_timedelta,
-            class_name=lambda row: "cell-severity-" + str(severity) if row[f'worst_{obs_key}'] == 1 else "",
+            format=format_funcs['number_or_timedelta'],
+            class_name=class_funcs['worst'],
             tooltip=None,
         )
 
     for obs_key in obs_dataset_keys:
         tcs[obs_key] = make_obs_column(obs_key)
 
-    def bad_year_class(row):
-        val = row['bad_year']
-        if pd.isna(val):
-            return ""
-        if val:
-            return "cell-bad-year"
-        return "cell-good-year"
-
     tcs["bad_year"] = dict(
         name="Reported Bad Years",
         format=format_bad,
-        class_name=bad_year_class,
+        class_name=class_funcs['bad_year'],
         tooltip="Historical drought years based on farmers' recollection",
     )
     return tcs
+
+
+def format_number(x):
+    if np.isnan(x):
+        return ""
+    return f"{x:.2f}"
+
+
+def format_number_or_timedelta(x):
+    if hasattr(x, 'days'):
+        x = x.days + x.seconds / 60 / 60 / 24
+    return format_number(x)
+
+
+def format_bad(x):
+    # TODO some parts of the program use pandas boolean arrays, which
+    # use pd.NA as the missing value indicator, while others use
+    # xarray, which uses np.nan. This is annoying; I think we need to
+    # stop using boolean arrays. They're marked experimental in the
+    # pandas docs anyway.
+    if pd.isna(x):
+        return None
+    if np.isnan(x):
+        return None
+    if x is True:
+        return "Bad"
+    if x is False:
+        return ""
+    raise Exception(f"Invalid bad_year value {x}")
+
+
+def bad_year_class(col_name, row):
+    val = row[col_name]
+    if pd.isna(val):
+        return ""
+    if val:
+        return "cell-bad-year"
+    return "cell-good-year"
+
+
+def nino_class(col_name, row):
+    return {
+        'El Niño': 'cell-el-nino',
+        'La Niña': 'cell-la-nina',
+        'Neutral': 'cell-neutral'
+    }.get(row[col_name], "")
+
+
+def worst_class(col_name, row, severity):
+    if row[f'worst_{col_name}'] == 1:
+        return f'cell-severity-{severity}'
+    return ''
 
 
 def data_path(relpath):
@@ -503,35 +562,6 @@ def augment_table_data(main_df, freq, obs_dataset_keys, obs_config):
     main_df["worst_pnep"] = worst_pnep.astype(int)
 
     return main_df, summary_df, prob_thresh
-
-
-def format_number(x):
-    if np.isnan(x):
-        return ""
-    return f"{x:.2f}"
-
-
-def format_number_or_timedelta(x):
-    if hasattr(x, 'days'):
-        x = x.days + x.seconds / 60 / 60 / 24
-    return format_number(x)
-
-
-def format_bad(x):
-    # TODO some parts of the program use pandas boolean arrays, which
-    # use pd.NA as the missing value indicator, while others use
-    # xarray, which uses np.nan. This is annoying; I think we need to
-    # stop using boolean arrays. They're marked experimental in the
-    # pandas docs anyway.
-    if pd.isna(x):
-        return None
-    if np.isnan(x):
-        return None
-    if x is True:
-        return "Bad"
-    if x is False:
-        return ""
-    raise Exception(f"Invalid bad_year value {x}")
 
 
 def format_summary_table(summary_df, table_columns):

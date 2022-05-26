@@ -53,8 +53,8 @@ def gen_body(tcs, data):
     def class_name(col, row):
         f = tcs[col]['class_name']
         if f is not None:
-            assert callable(f), f"column {col} style field is not a function"
-            return f(row)
+            assert callable(f), f"column {col} class_name field is not a function"
+            return f(col, row)
         else:
             return ""
 
