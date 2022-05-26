@@ -113,18 +113,20 @@ def table_columns(obs_config, obs_dataset_keys, severity, season_length):
         class_name=class_funcs['worst'],
     )
 
-    def units(obs_key):
-        ds_config = obs_config[obs_key]
+    def units(ds_config):
         if 'units' in ds_config:
             return ds_config['units']
         return open_obs_from_config(ds_config).attrs.get('units')
 
     def make_obs_column(obs_key):
+        ds_config = obs_config[obs_key]
+        format_func = format_funcs[ds_config.get('format', 'number_or_timedelta')]
+        class_func = class_funcs[ds_config.get('class', 'worst')]
         return dict(
-            name=obs_config[obs_key]['label'],
-            units=units(obs_key),
-            format=format_funcs['number_or_timedelta'],
-            class_name=class_funcs['worst'],
+            name=ds_config['label'],
+            units=units(ds_config),
+            format=format_func,
+            class_name=class_func,
             tooltip=None,
         )
 
