@@ -88,7 +88,6 @@ def table_columns(obs_config, obs_dataset_keys, severity, season_length):
         'worst': lambda col_name, row: worst_class(col_name, row, severity),
     }
 
-    obs_dataset_names = {k: v["label"] for k, v in obs_config.items()}
     tcs = OrderedDict()
     tcs["time"] = dict(
         name="Year",
@@ -122,7 +121,7 @@ def table_columns(obs_config, obs_dataset_keys, severity, season_length):
 
     def make_obs_column(obs_key):
         return dict(
-            name=obs_dataset_names[obs_key],
+            name=obs_config[obs_key]['label'],
             units=units(obs_key),
             format=format_funcs['number_or_timedelta'],
             class_name=class_funcs['worst'],
