@@ -1148,64 +1148,6 @@ def retrieve_geometry2(country_key: str, mode: int, region_key: str):
     return row["label"], geom
 
 
-@SERVER.route(f"{PFX}/download_table")
-def download_table():
-    country_key = parse_arg("country_key")
-    obs_dataset_key = parse_arg("obs_dataset_key")
-    season_id = parse_arg("season_id")
-    issue_month = parse_arg("issue_month")
-    mode = parse_arg("mode")
-    geom_key = parse_arg("geom_key")
-    freq = parse_arg("freq", int, required=False)
-
-    country_config = CONFIG["countries"][country_key]
-    season_config = country_config["seasons"][season_id]
-    issue_month0 = abbrev_to_month0[issue_month]
-    obs_dataset_keys = [obs_dataset_key]
-
-    main_ds = fundamental_table_data(
-        country_key, obs_dataset_keys, season_config, issue_month0, freq=freq,
-        mode=mode, geom_key=geom_key
-    )
-    if freq is not None:
-        obs_config = country_config["datasets"]["observations"]
-        augmented_df, _, _ = augment_table_data(
-            main_ds.to_dataframe(), freq, obs_dataset_keys, obs_config
-        )
-        main_ds["worst_pnep"] = augmented_df["worst_pnep"]
-
-    # flatten the 2d variable pnep into 19 1d variables pnep_05, pnep_10, ...
-    if freq is None:
-        freqs = range(5, 100, 5)
-    else:
-        freqs = [freq]
-        # Add a pct dimension with a single value so that
-        # .sel(pct=pct) below will work.
-        main_ds["pnep"] = main_ds["pnep"].expand_dims("pct")
-    for pct in freqs:
-        main_ds[f'pnep_{pct:02}'] = main_ds["pnep"].sel(pct=pct)
-    main_ds = main_ds.drop_vars(["pnep", "pct"])
-
-    buf = io.StringIO()
-    df = main_ds.to_dataframe()
-    time = df.index.map(lambda x: x.strftime('%Y-%m-%d'))
-    df["time"] = time
-    df["bad_year"] = df["bad_year"].astype("float") # to acommodate NaN as missing value indicator
-
-    # rename the obs column "obs" for backwards compatibility
-    df = df.rename(columns={obs_dataset_key: "obs"})
-
-    cols = ["time", "bad_year", "obs", "enso_state"]
-    if freq is not None:
-        cols.append("worst_pnep")
-    cols += [f"pnep_{pct:02}" for pct in freqs]
-    df.to_csv(buf, columns=cols, index=False)
-    output = flask.make_response(buf.getvalue())
-    output.headers["Content-Disposition"] = "attachment; filename=export.csv"
-    output.headers["Content-Type"] = "text/csv"
-    return output
-
-
 if __name__ == "__main__":
     if CONFIG["mode"] != "prod":
         import warnings
