@@ -73,8 +73,8 @@ APP.title = "FBF--Maproom"
 APP.layout = fbflayout.app_layout()
 
 
-def table_columns(obs_config, obs_keys, severity, season_length):
-
+def table_columns(dataset_config, forecast_keys, obs_keys,
+                  severity, season_length):
     format_funcs = {
         'year': lambda midpoint: year_label(midpoint, season_length),
         'number': format_number,
@@ -103,18 +103,8 @@ def table_columns(obs_config, obs_keys, severity, season_length):
         ),
         class_name=class_funcs['nino'],
     )
-    tcs["pnep"] = dict(
-        name="Forecast, %",
-        tooltip=(
-            "Displays all the historical flexible forecast "
-            "for the selected issue month and location"
-        ),
-        format=format_funcs['number'],
-        class_name=class_funcs['worst'],
-    )
 
-    def make_obs_column(obs_key):
-        ds_config = obs_config[obs_key]
+    def make_column(ds_config):
         format_func = format_funcs[ds_config.get('format', 'number')]
         class_func = class_funcs[ds_config.get('class', 'worst')]
         return dict(
@@ -125,8 +115,11 @@ def table_columns(obs_config, obs_keys, severity, season_length):
             lower_is_worse=ds_config['lower_is_worse']
         )
 
-    for obs_key in obs_keys:
-        tcs[obs_key] = make_obs_column(obs_key)
+    for key in forecast_keys:
+        tcs[key] = make_column(dataset_config['forecasts'][key])
+
+    for key in obs_keys:
+        tcs[key] = make_column(dataset_config['observations'][key])
 
     tcs["bad_year"] = dict(
         name="Reported Bad Years",
@@ -819,8 +812,10 @@ def display_prob_thresh(val):
 def table_cb(issue_month0, freq, mode, geom_key, pathname, severity, obs_keys, season):
     country_key = country(pathname)
     config = CONFIG["countries"][country_key]
+    forecast_keys = ["pnep"]
     tcs = table_columns(
-        config["datasets"]["observations"],
+        config["datasets"],
+        forecast_keys,
         obs_keys,
         severity,
         config["seasons"][season]["length"],
