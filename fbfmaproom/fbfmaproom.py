@@ -728,19 +728,6 @@ def update_selected_region(pathname, position, mode):
     if positions is None:
         positions = ZERO_SHAPE
 
-    # The leaflet Polygon class supports a MultiPolygon option, but
-    # dash-leaflet's PropTypes rejects that format before Leaflet even
-    # gets a chance to see it. Until we can get that fixed, using
-    # the heuristic that the polygon with the most points in its outer
-    # ring is the most important one.
-    # https://github.com/thedirtyfew/dash-leaflet/issues/110
-    heuristic_size = lambda polygon: len(polygon[0])
-    longest_idx = max(
-        range(len(positions)),
-        key=lambda i: heuristic_size(positions[i])
-    )
-    positions = positions[longest_idx]
-
     return positions, key
 
 

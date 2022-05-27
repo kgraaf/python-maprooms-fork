@@ -345,7 +345,7 @@ def test_update_selected_region_pixel():
         [6.875, 43.875],
         'pixel'
     )
-    assert positions == [[[6.75, 43.75], [7.0, 43.75], [7.0, 44.0], [6.75, 44.0]]]
+    assert positions == [[[[6.75, 43.75], [7.0, 43.75], [7.0, 44.0], [6.75, 44.0]]]]
     assert key == "[[6.75, 43.75], [7.0, 44.0]]"
 
 def test_update_selected_region_level0():
@@ -354,7 +354,7 @@ def test_update_selected_region_level0():
         [6.875, 43.875],
         '0'
     )
-    assert len(positions[0]) == 1323
+    assert len(positions[0][0]) == 1323
     assert key == "ET05"
 
 def test_update_selected_region_level1():
@@ -363,7 +363,7 @@ def test_update_selected_region_level1():
         [6.875, 43.875],
         '1'
     )
-    assert len(positions[0]) == 143
+    assert len(positions[0][0]) == 143
     assert key == "(ET05,ET0505)"
 
 def test_update_popup_pixel():
