@@ -242,12 +242,11 @@ def open_vuln(country_key):
     )
 
 
-def open_pnep(country_key):
-    dataset_key = "pnep"
-    cfg = CONFIG["countries"][country_key]["datasets"][dataset_key]
+def open_forecast(country_key, forecast_key):
+    cfg = CONFIG["countries"][country_key]["datasets"]["forecasts"][forecast_key]
     return open_data_array(
         cfg,
-        "pnep",
+        "pne",
         val_min=0.0,
         val_max=100.0,
     )
@@ -431,11 +430,11 @@ def get_mpoly(mode, country_key, geom_key):
     return mpolygon
 
 
-def select_pnep(country_key, issue_month0, target_month0,
-                target_year=None, freq=None, mpolygon=None):
+def select_forecast(country_key, forecast_key, issue_month0, target_month0,
+                    target_year=None, freq=None, mpolygon=None):
     l = (target_month0 - issue_month0) % 12
 
-    da = open_pnep(country_key)
+    da = open_forecast(country_key, forecast_key)
 
     issue_dates = da["issue"].where(da["issue"].dt.month == issue_month0 + 1, drop=True)
     da = da.sel(issue=issue_dates)
@@ -488,27 +487,39 @@ def fundamental_table_data(country_key, obs_keys,
     season_length = season_config["length"]
     target_month = season_config["target_month"]
     mpolygon = get_mpoly(mode, country_key, geom_key)
+    forecast_keys = ["pnep"]
 
     bad_years_df = fetch_bad_years(country_key)
 
     enso_df = fetch_enso()
 
+    forecast_ds = xr.Dataset(
+        data_vars={
+            forecast_key: select_forecast(
+                country_key, forecast_key, issue_month0, target_month,
+                freq=freq, mpolygon=mpolygon
+            ).rename({'target_date':"time"})
+            for forecast_key in forecast_keys
+        }
+    )
+
     obs_ds = select_obs(country_key, obs_keys, mpolygon)
 
-    pnep_da = select_pnep(country_key, issue_month0, target_month,
-                          freq=freq, mpolygon=mpolygon)
-
-    main_ds = xr.Dataset(
-        data_vars=dict(
-            bad_year=bad_years_df["bad_year"].to_xarray(),
-            pnep=pnep_da.rename({'target_date':"time"}),
-        )
+    # Doing the merge in two steps, first an outer join and then a
+    # left join. Hopefully temporary, until I eliminate spurious rows
+    # that preclude doing one big outer join.
+    main_ds = xr.merge(
+        [
+            bad_years_df["bad_year"].to_xarray(),
+            forecast_ds,
+        ]
     )
+
     main_ds = xr.merge(
         [
             main_ds,
+            enso_df["enso_state"].to_xarray(),
             obs_ds,
-            enso_df["enso_state"].to_xarray()
         ],
         join="left"
     )
@@ -639,7 +650,7 @@ def _(pathname):
     season_value = min(c["seasons"].keys())
     x, y = c["marker"]
     cx, cy = c["center"]
-    pnep_cs = pingrid.to_dash_colorscale(open_pnep(country_key).attrs["colormap"])
+    pnep_cs = pingrid.to_dash_colorscale(open_forecast(country_key, "pnep").attrs["colormap"])
     vuln_cs = pingrid.to_dash_colorscale(open_vuln(country_key).attrs["colormap"])
     mode_options = [
         dict(
@@ -926,6 +937,7 @@ def _(
     State("season", "value"),
 )
 def pnep_tile_url_callback(target_year, issue_month0, freq, pathname, season_id):
+    forecast_key = "pnep"
     country_key = country(pathname)
     season_config = CONFIG["countries"][country_key]["seasons"][season_id]
     target_month0 = season_config["target_month"]
@@ -933,7 +945,7 @@ def pnep_tile_url_callback(target_year, issue_month0, freq, pathname, season_id)
     try:
         # Check if we have the requested data so that if we don't, we
         # can explain why the map is blank.
-        select_pnep(country_key, issue_month0, target_month0, target_year, freq)
+        select_forecast(country_key, forecast_key, issue_month0, target_month0, target_year, freq)
         return f"{TILE_PFX}/pnep/{{z}}/{{x}}/{{y}}/{country_key}/{season_id}/{target_year}/{issue_month0}/{freq}", False
     except Exception as e:
         if isinstance(e, NotFoundError):
@@ -989,8 +1001,9 @@ def borders(pathname, mode):
 def pnep_tiles(tz, tx, ty, country_key, season_id, target_year, issue_month0, freq):
     season_config = CONFIG["countries"][country_key]["seasons"][season_id]
     target_month0 = season_config["target_month"]
+    forecast_key = "pnep"
 
-    da = select_pnep(country_key, issue_month0, target_month0, target_year, freq)
+    da = select_forecast(country_key, forecast_key, issue_month0, target_month0, target_year, freq)
     p = tuple(CONFIG["countries"][country_key]["marker"])
     clipping, _ = retrieve_geometry(country_key, p, "0", None)
     resp = pingrid.tile(da, tx, ty, tz, clipping)
@@ -1076,6 +1089,8 @@ def pnep_percentile():
     bounds = parse_arg("bounds", required=False)
     region = parse_arg("region", required=False)
 
+    forecast_key = "pnep"
+
     if mode == "pixel":
         if bounds is None:
             raise InvalidRequestError("If mode is pixel then bounds must be provided")
@@ -1099,8 +1114,9 @@ def pnep_percentile():
     mpoly = get_mpoly(mode, country_key, geom_key)
 
     try:
-        pnep = select_pnep(country_key, issue_month0, target_month0, season_year,
-                           freq, mpolygon=mpoly)
+        pnep = select_forecast(country_key, forecast_key,issue_month0,
+                               target_month0, season_year, freq,
+                               mpolygon=mpoly)
     except KeyError:
         pnep = None
 
