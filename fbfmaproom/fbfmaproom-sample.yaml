@@ -77,6 +77,7 @@ countries:
             observations:
                 rain:
                     label: Rain
+                    description: CMAP average precipitation over the season (mm/day)
                     path: rain-malawi.zarr
                     var_names:
                         obs: prcp_est
@@ -151,6 +152,7 @@ countries:
             observations:
                 rain:
                     label: Rain
+                    description: ENACTS average precipitation over the season (mm/month)
                     path: madagascar/enacts-precip-djf.zarr
                     var_names:
                         obs: rfe
@@ -217,6 +219,7 @@ countries:
             observations:
                 enacts-precip-mon:
                     label: ENACTS MON precip
+                    description: ENACTS monitoring average precipitation over the season (mm/month)
                     path: madagascar/enacts-precip-mon-ond.zarr
                     var_names:
                         obs: rfe
@@ -227,6 +230,7 @@ countries:
                     lower_is_worse: yes
                 enacts-precip:
                     label: ENACTS ALL precip
+                    description: ENACTS all stations average precipitation over the season (mm/month)
                     path: madagascar/enacts-precip-ond.zarr
                     var_names:
                         obs: rfe
@@ -237,6 +241,7 @@ countries:
                     lower_is_worse: yes
                 chirps-precip-ond:
                     label: CHIRPS Precip
+                    description: CHIRPS average precipitation over the season (mm/month)
                     path: madagascar/chirps-precip-ond.zarr
                     var_names:
                         obs: precipitation
@@ -247,6 +252,7 @@ countries:
                     lower_is_worse: yes
                 ndvi:
                     label: NDVI * 100
+                    description: MODIS NDVI average over the season, multiplied by 100 to display greater precision
                     path: madagascar/ndvi-ond.zarr
                     var_names:
                         obs: NDVI
@@ -331,6 +337,7 @@ countries:
             observations:
                 rain:
                     label: Rain
+                    description: CHIRPS average precipitation over the season (mm/month)
                     path: rain-ethiopia.zarr
                     var_names:
                         obs: prcp
@@ -351,6 +358,7 @@ countries:
                     lower_is_worse: yes
                 spi:
                     label: SPI
+                    description: SPI calculated from CHIRPS
                     path: spi-ethiopia.zarr
                     var_names:
                         obs: spi
@@ -413,6 +421,7 @@ countries:
             observations:
                 rain:
                     label: Rain
+                    description: CHIRPS average precipitation (mm/month)
                     path: rain-ethiopia-ond.zarr
                     var_names:
                         obs: prcp
@@ -483,6 +492,7 @@ countries:
             observations:
                 enacts-precip-jas:
                     label: ENACTS Precip JAS
+                    description: ENACTS total precipitation for Jul-Sep (mm)
                     path: niger/enacts-precip-jas.zarr
                     var_names:
                         obs: obs
@@ -493,6 +503,7 @@ countries:
                     lower_is_worse: yes
                 chirps-precip-jun:
                     label: CHIRPS Precip Jun
+                    description: CHIRPS total precipitation for Jun (mm)
                     path: niger/chirps-precip-jun.zarr
                     var_names:
                         obs: precipitation
@@ -503,6 +514,7 @@ countries:
                     lower_is_worse: yes
                 chirps-precip-jjaso:
                     label: CHIRPS Precip Jun-Oct
+                    description: CHIRPS total precipitation for Jun-Oct (mm)
                     path: niger/chirps-precip-jjaso.zarr
                     var_names:
                         obs: precipitation
@@ -513,6 +525,7 @@ countries:
                     lower_is_worse: yes
                 chirps-precip-jas:
                     label: CHIRPS Precip JAS
+                    description: CHIRPS total precipitation for Jul-Sep (mm)
                     path: niger/chirps-precip-jas.zarr
                     var_names:
                         obs: precipitation
@@ -523,6 +536,7 @@ countries:
                     lower_is_worse: yes
                 enacts-spi-jas:
                     label: ENACTS SPI JAS
+                    description: Average SPI over the season, calculated from ENACTS
                     path: niger/enacts-spi-jas.zarr
                     var_names:
                         obs: spi
@@ -532,7 +546,8 @@ countries:
                     colormap: *raincm
                     lower_is_worse: yes
                 chirps-dryspell:
-                    label: CHIRPS Dry Spells
+                    label: Dry Spell
+                    description: Longest dry spell, calculated from CHIRPS (days)
                     path: niger/chirps-dryspell.zarr
                     var_names:
                         obs: lls
@@ -541,10 +556,10 @@ countries:
                         time: T
                     colormap: *raincm
                     lower_is_worse: no
-                    units: days
                     format: timedelta_days
                 chirps-onset:
-                    label: CHIRPS Onset
+                    label: Onset
+                    description: Onset of rain, calculated from CHIRPS (days after May 1)
                     path: niger/chirps-onset.zarr
                     var_names:
                         obs: adif
@@ -553,7 +568,6 @@ countries:
                         time: T
                     colormap: *raincm
                     lower_is_worse: no
-                    units: days after May 1
                     format: timedelta_days
             forecasts:
                 pnep:
@@ -610,6 +624,7 @@ countries:
             observations:
                 rain:
                     label: Rain
+                    description: CHIRPS average precipitation over the season (mm/month)
                     path: rain-guatemala.zarr
                     var_names:
                         obs: prcp_est
@@ -673,6 +688,7 @@ countries:
             observations:
                 rain:
                     label: Rain
+                    description: CHIRPS average precipitation over the season (mm/month)
                     path: rain-djibouti.zarr
                     var_names:
                         obs: prcp

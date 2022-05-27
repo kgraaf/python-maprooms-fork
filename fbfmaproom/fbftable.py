@@ -41,7 +41,7 @@ def gen_head(tcs, dfs):
         ] + [
             html.Tr([
                 html.Th(head_cell(
-                    c['name'] + (f" ({c['units']})" if c.get('units') else ''),
+                    c['name'],
                     c['tooltip']
                 )) for c in tcs.values()
             ])
