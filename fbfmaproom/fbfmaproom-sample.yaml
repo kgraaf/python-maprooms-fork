@@ -610,9 +610,9 @@ countries:
             observations:
                 rain:
                     label: Rain
-                    path: rain-djibouti.zarr
+                    path: lesotho/rain.zarr
                     var_names:
-                        obs: prcp
+                        obs: rfe
                         lat: Y
                         lon: X
                         time: T

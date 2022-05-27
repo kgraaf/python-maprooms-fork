@@ -119,10 +119,10 @@ datasets = [
         "lesotho/pnep-djf",
         "http://iridl.ldeo.columbia.edu/home/.remic/.Lesotho/.Forecasts/.NextGen/.PRCPPRCP_CCAFCST/.NextGen/.FbF/.pne/",
     ),
-    # (
-    #     "lesotho/rain",
-    #     "http://iridl.ldeo.columbia.edu/home/.remic/.Lesotho/.ENACTS/.ALL/.monthly/.rainfall/.rfe/T/(Jul-Sep)/seasonalAverage/3/mul///name//obs/def/"
-    # ),
+    (
+        "lesotho/rain",
+        "https://iridl.ldeo.columbia.edu/home/.audreyv/.dle_lms/.Lesotho/.ENACTS/.ALL/.monthly/.rainfall/.rfe/T/(Dec-Feb)/seasonalAverage/3/mul/",
+    ),
 ]
 
 for dataset in datasets:
