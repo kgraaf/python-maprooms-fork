@@ -485,6 +485,16 @@ countries:
                         time: T
                     colormap: *raincm
                     worst: lowest
+                enacts-spi-jas:
+                    label: ENACTS SPI JAS
+                    path: niger/enacts-spi-jas.zarr
+                    var_names:
+                        obs: spi
+                        lat: Y
+                        lon: X
+                        time: T
+                    colormap: *raincm
+                    worst: lowest
                 chirps-dryspell:
                     label: CHIRPS Dry Spells
                     path: niger/chirps-dryspell.zarr
