@@ -224,7 +224,7 @@ countries:
                     colormap: *raincm
                     worst: lowest
                 ndvi:
-                    label: NDVI
+                    label: NDVI * 100
                     path: madagascar/ndvi-ond.zarr
                     var_names:
                         obs: NDVI
