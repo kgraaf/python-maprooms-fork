@@ -150,7 +150,7 @@ countries:
             observations:
                 rain:
                     label: Rain
-                    path: rain-madagascar.zarr
+                    path: madagascar/enacts-precip-djf.zarr
                     var_names:
                         obs: rfe
                         lat: Y
@@ -159,7 +159,7 @@ countries:
                     colormap: *raincm
                     worst: lowest
             pnep:
-                path: pnep-madagascar.zarr
+                path: madagascar/pnep-djf.zarr
                 var_names:
                     pnep: pne
                     lat: Y
@@ -215,7 +215,7 @@ countries:
             observations:
                 rain:
                     label: Rain
-                    path: rain-madagascar-ond.zarr
+                    path: madagascar/enacts-precip-ond.zarr
                     var_names:
                         obs: rfe
                         lat: Y
@@ -223,8 +223,28 @@ countries:
                         time: T
                     colormap: *raincm
                     worst: lowest
+                ndvi:
+                    label: NDVI
+                    path: madagascar/ndvi-ond.zarr
+                    var_names:
+                        obs: NDVI
+                        lat: Y
+                        lon: X
+                        time: T
+                    colormap: *raincm
+                    worst: lowest
+                wrsi:
+                    label: WRSI
+                    path: madagascar/wrsi-ond.zarr
+                    var_names:
+                        obs: do
+                        lat: Y
+                        lon: X
+                        time: T
+                    colormap: *raincm
+                    worst: lowest
             pnep:
-                path: pnep-madagascar-ond.zarr
+                path: madagascar/pnep-ond.zarr
                 var_names:
                     pnep: pne
                     lat: Y
