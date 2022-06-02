@@ -150,7 +150,7 @@ countries:
             observations:
                 rain:
                     label: Rain
-                    path: rain-madagascar.zarr
+                    path: madagascar/enacts-precip-djf.zarr
                     var_names:
                         obs: rfe
                         lat: Y
@@ -159,7 +159,7 @@ countries:
                     colormap: *raincm
                     worst: lowest
             pnep:
-                path: pnep-madagascar.zarr
+                path: madagascar/pnep-djf.zarr
                 var_names:
                     pnep: pne
                     lat: Y
@@ -178,6 +178,111 @@ countries:
                 length: 3.0
                 issue_months: [8, 9, 10]  # months since Jan 1: 0.0 <= season < 12.0
                 year_range: [1982, 2022]
+
+    madagascar-ond:
+        logo: Madagascar_IRI_98x48.png
+        resolution: [.0375, .0375]
+        center: [49, -23]
+        zoom: 7
+        rotation: 0
+        marker: [45.5, -24]
+        shapes:
+            - name: National
+              sql: select adm0_code as key, adm0_name as label, ST_AsBinary(ST_Union(the_geom)) as the_geom
+                  from iridb.g2015_2014_1 g where adm0_name = 'Madagascar'
+                  and adm1_name in ('Androy', 'Anosy', 'Atsimo Andrefana', 'Atsimo Atsinanana')
+                  group by 1, 2
+              vuln_sql: select adm0_code as key, year, sum(vulnerability) as vuln
+                  from public.fbf_vulnerability where adm0_name = 'Madagascar' group by 1, 2
+
+            - name: Regional
+              sql: select (adm0_code, adm1_code) as key, adm1_name as label,
+                  ST_AsBinary(the_geom) as the_geom from iridb.g2015_2014_1
+                  where adm0_name = 'Madagascar'
+                  and adm1_name in ('Androy', 'Anosy', 'Atsimo Andrefana', 'Atsimo Atsinanana')
+              vuln_sql: select (adm0_code, adm1_code) as key, year, sum(vulnerability) as vuln
+                  from public.fbf_vulnerability where adm0_name = 'Madagascar' group by 1, 2
+
+            - name: District
+              sql: select (adm0_code, adm1_code, adm2_code) as key, adm2_name as label,
+                  ST_AsBinary(the_geom) as the_geom from iridb.g2015_2014_2
+                  where adm0_name = 'Madagascar'
+                  and adm1_name in ('Androy', 'Anosy', 'Atsimo Andrefana', 'Atsimo Atsinanana')
+              vuln_sql: select (adm0_code, adm1_code, adm2_code) as key, year, sum(vulnerability) as vuln
+                  from public.fbf_vulnerability where adm0_name = 'Madagascar' group by 1, 2
+
+        datasets:
+            observations:
+                enacts-precip:
+                    label: ENACTS precip
+                    path: madagascar/enacts-precip-ond.zarr
+                    var_names:
+                        obs: rfe
+                        lat: Y
+                        lon: X
+                        time: T
+                    colormap: *raincm
+                    worst: lowest
+                enacts-precip-mon:
+                    label: ENACTS precip MON
+                    path: madagascar/enacts-precip-mon-ond.zarr
+                    var_names:
+                        obs: rfe
+                        lat: Y
+                        lon: X
+                        time: T
+                    colormap: *raincm
+                    worst: lowest
+                chirps-precip-ond:
+                    label: CHIRPS Precip
+                    path: madagascar/chirps-precip-ond.zarr
+                    var_names:
+                        obs: precipitation
+                        lat: Y
+                        lon: X
+                        time: T
+                    colormap: *raincm
+                    worst: lowest
+                ndvi:
+                    label: NDVI * 100
+                    path: madagascar/ndvi-ond.zarr
+                    var_names:
+                        obs: NDVI
+                        lat: Y
+                        lon: X
+                        time: T
+                    colormap: *raincm
+                    worst: lowest
+                wrsi:
+                    label: WRSI
+                    path: madagascar/wrsi-ond.zarr
+                    var_names:
+                        obs: do
+                        lat: Y
+                        lon: X
+                        time: T
+                    colormap: *raincm
+                    worst: lowest
+            pnep:
+                path: madagascar/pnep-ond.zarr
+                var_names:
+                    pnep: pne
+                    lat: Y
+                    lon: X
+                    issue: S
+                    lead: null  # dataset has forecasts for only one season; L is implicit.
+                    pct: P
+                colormap: *pnepcm
+            vuln:
+                colormap: *vulncm
+                range: [0.0, 5.0]
+        seasons:
+            season1:
+                label: OND
+                target_month: 10.5  # season center in months since Jan 1: 0.0 <= season < 12.0
+                length: 3.0
+                issue_months: [6, 7, 8]  # months since Jan 1: 0.0 <= season < 12.0
+                year_range: [1993, 2022]
 
     ethiopia:
         logo: Ethiopia_IRI_98x48.png
@@ -395,6 +500,16 @@ countries:
                     path: niger/chirps-precip-jas.zarr
                     var_names:
                         obs: precipitation
+                        lat: Y
+                        lon: X
+                        time: T
+                    colormap: *raincm
+                    worst: lowest
+                enacts-spi-jas:
+                    label: ENACTS SPI JAS
+                    path: niger/enacts-spi-jas.zarr
+                    var_names:
+                        obs: spi
                         lat: Y
                         lon: X
                         time: T
