@@ -213,11 +213,31 @@ countries:
 
         datasets:
             observations:
-                rain:
-                    label: Rain
+                enacts-precip:
+                    label: ENACTS precip
                     path: madagascar/enacts-precip-ond.zarr
                     var_names:
                         obs: rfe
+                        lat: Y
+                        lon: X
+                        time: T
+                    colormap: *raincm
+                    worst: lowest
+                enacts-precip-mon:
+                    label: ENACTS precip MON
+                    path: madagascar/enacts-precip-mon-ond.zarr
+                    var_names:
+                        obs: rfe
+                        lat: Y
+                        lon: X
+                        time: T
+                    colormap: *raincm
+                    worst: lowest
+                chirps-precip-ond:
+                    label: CHIRPS Precip
+                    path: madagascar/chirps-precip-ond.zarr
+                    var_names:
+                        obs: precipitation
                         lat: Y
                         lon: X
                         time: T
