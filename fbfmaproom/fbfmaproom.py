@@ -810,12 +810,12 @@ def display_prob_thresh(val):
     Input("location", "pathname"),
     Input("severity", "value"),
     Input("obs_datasets", "value"),
+    Input("trigger_key", "value"),
     State("season", "value"),
 )
-def table_cb(issue_month0, freq, mode, geom_key, pathname, severity, obs_keys, season):
+def table_cb(issue_month0, freq, mode, geom_key, pathname, severity, obs_keys, trigger_key, season):
     country_key = country(pathname)
     config = CONFIG["countries"][country_key]
-    trigger_key = "pnep"
     forecast_keys = [trigger_key]
     tcs = table_columns(
         config["datasets"],

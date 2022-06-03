@@ -177,6 +177,7 @@ def command_layout():
         [
             dcc.Input(id="geom_key", type="hidden"),
             dcc.Input(id="prob_thresh", type="hidden"),
+            dcc.Input(id="trigger_key", type="hidden", value="pnep"),
             html.Div(
                 [
                     help_layout(

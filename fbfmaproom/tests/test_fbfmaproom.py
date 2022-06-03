@@ -31,6 +31,7 @@ def test_table_cb():
         pathname='/fbfmaproom/ethiopia',
         severity=0,
         obs_keys=['rain', 'ndvi'],
+        trigger_key="pnep",
         season='season1',
     )
     assert np.isclose(prob_thresh, 36.930862)
