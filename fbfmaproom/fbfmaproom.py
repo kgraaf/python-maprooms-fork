@@ -403,6 +403,7 @@ def generate_tables(
     country_key,
     season_config,
     table_columns,
+    trigger_key,
     issue_month0,
     freq,
     mode,
@@ -413,11 +414,11 @@ def generate_tables(
                                       season_config, issue_month0,
                                       freq, mode, geom_key)
     basic_df = basic_ds.drop_vars("pct").to_dataframe()
-    main_df, summary_df, prob_thresh = augment_table_data(
-        basic_df, freq, table_columns
+    main_df, summary_df, trigger_thresh = augment_table_data(
+        basic_df, freq, table_columns, trigger_key
     )
     summary_presentation_df = format_summary_table(summary_df, table_columns)
-    return main_df, summary_presentation_df, prob_thresh
+    return main_df, summary_presentation_df, trigger_thresh
 
 
 def get_mpoly(mode, country_key, geom_key):
@@ -522,9 +523,7 @@ def fundamental_table_data(country_key, table_columns,
     return main_ds
 
 
-def augment_table_data(main_df, freq, table_columns):
-    trigger_key = "pnep"
-
+def augment_table_data(main_df, freq, table_columns, trigger_key):
     main_df = main_df.copy()
 
     main_df["time"] = main_df.index.to_series()
@@ -816,7 +815,8 @@ def display_prob_thresh(val):
 def table_cb(issue_month0, freq, mode, geom_key, pathname, severity, obs_keys, season):
     country_key = country(pathname)
     config = CONFIG["countries"][country_key]
-    forecast_keys = ["pnep"]
+    trigger_key = "pnep"
+    forecast_keys = [trigger_key]
     tcs = table_columns(
         config["datasets"],
         forecast_keys,
@@ -825,17 +825,18 @@ def table_cb(issue_month0, freq, mode, geom_key, pathname, severity, obs_keys, s
         config["seasons"][season]["length"],
     )
     try:
-        dft, dfs, prob_thresh = generate_tables(
+        dft, dfs, trigger_thresh = generate_tables(
             country_key,
             config["seasons"][season],
             tcs,
+            trigger_key,
             issue_month0,
             freq,
             mode,
             geom_key,
             severity,
         )
-        return fbftable.gen_table(tcs, dfs, dft), prob_thresh
+        return fbftable.gen_table(tcs, dfs, dft), trigger_thresh
     except Exception as e:
         if isinstance(e, NotFoundError):
             # If it's the user just asked for a forecast that doesn't

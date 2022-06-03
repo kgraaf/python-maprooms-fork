@@ -102,7 +102,7 @@ def test_augment_table_data():
         },
     }
 
-    aug, summ, prob = fbfmaproom.augment_table_data(main_df, freq, table_columns)
+    aug, summ, prob = fbfmaproom.augment_table_data(main_df, freq, table_columns, "pnep")
 
     expected_aug = main_df.copy()
     expected_aug["pnep"] = [np.nan, 19.606438, 29.27018, 33.800949, 12.312943,  1.]
