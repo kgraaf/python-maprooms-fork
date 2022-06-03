@@ -255,9 +255,12 @@ ENSO_STATES = {
 }
 
 
-def fetch_enso():
+def fetch_enso(month0):
     path = data_path(CONFIG["dataframes"]["enso"])
-    ds = xr.open_zarr(path, consolidated=False)
+    ds = xr.open_zarr(path, consolidated=False).where(
+        lambda ds: ds["T"].dt.month == int(month0) + 1,
+        drop=True
+    )
     df = ds.to_dataframe()
     df["enso_state"] = df["dominant_class"].apply(lambda x: ENSO_STATES[x])
     df = df.drop("dominant_class", axis="columns")
@@ -476,7 +479,7 @@ def fundamental_table_data(country_key, table_columns,
 
     bad_years_df = fetch_bad_years(country_key)
 
-    enso_df = fetch_enso()
+    enso_df = fetch_enso(season_config["target_month"])
 
     forecast_ds = xr.Dataset(
         data_vars={
@@ -491,23 +494,13 @@ def fundamental_table_data(country_key, table_columns,
     obs_keys = regular_columns(table_columns.keys())
     obs_ds = select_obs(country_key, obs_keys, mpolygon)
 
-    # Doing the merge in two steps, first an outer join and then a
-    # left join. Hopefully temporary, until I eliminate spurious rows
-    # that preclude doing one big outer join.
     main_ds = xr.merge(
         [
             bad_years_df["bad_year"].to_xarray(),
             forecast_ds,
-        ]
-    )
-
-    main_ds = xr.merge(
-        [
-            main_ds,
             enso_df["enso_state"].to_xarray(),
             obs_ds,
-        ],
-        join="left"
+        ]
     )
 
     year = main_ds["time"].dt.year
