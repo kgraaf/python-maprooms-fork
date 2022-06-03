@@ -919,7 +919,7 @@ def _(
 
 
 @APP.callback(
-    Output("pnep_layer", "url"),
+    Output("trigger_layer", "url"),
     Output("forecast_warning", "is_open"),
     Output("trigger_colorbar", "colorscale"),
     Input("year", "value"),

@@ -67,7 +67,7 @@ def map_layout():
                         checked=True,
                     ),
                     dlf.Overlay(
-                        dlf.TileLayer(opacity=0.8, id="pnep_layer"),
+                        dlf.TileLayer(opacity=0.8, id="trigger_layer"),
                         name="Forecast",
                         checked=True,
                     ),
