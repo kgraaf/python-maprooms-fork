@@ -25,6 +25,7 @@ from shapely.geometry.multipoint import MultiPoint
 from psycopg2 import sql
 import math
 import traceback
+import enum
 
 import __about__ as about
 import pyaconf
@@ -94,6 +95,7 @@ def table_columns(dataset_config, forecast_keys, obs_keys,
         format=format_funcs['year'],
         class_name=None,
         tooltip="The year whose forecast is displayed on the map",
+        type=ColType.SPECIAL,
     )
     tcs["enso_state"] = dict(
         name="ENSO State",
@@ -102,9 +104,10 @@ def table_columns(dataset_config, forecast_keys, obs_keys,
             "or La Niña state occurred during the year"
         ),
         class_name=class_funcs['nino'],
+        type=ColType.SPECIAL,
     )
 
-    def make_column(ds_config):
+    def make_column(ds_config, col_type):
         format_func = format_funcs[ds_config.get('format', 'number')]
         class_func = class_funcs[ds_config.get('class', 'worst')]
         return dict(
@@ -112,22 +115,30 @@ def table_columns(dataset_config, forecast_keys, obs_keys,
             format=format_func,
             class_name=class_func,
             tooltip=ds_config.get('description'),
-            lower_is_worse=ds_config['lower_is_worse']
+            lower_is_worse=ds_config['lower_is_worse'],
+            type=col_type,
         )
 
     for key in forecast_keys:
-        tcs[key] = make_column(dataset_config['forecasts'][key])
+        tcs[key] = make_column(dataset_config['forecasts'][key], ColType.FORECAST)
 
     for key in obs_keys:
-        tcs[key] = make_column(dataset_config['observations'][key])
+        tcs[key] = make_column(dataset_config['observations'][key], ColType.OBS)
 
     tcs["bad_year"] = dict(
         name="Reported Bad Years",
         format=format_bad,
         class_name=class_funcs['bad_year'],
         tooltip="Historical drought years based on farmers' recollection",
+        type=ColType.SPECIAL,
     )
     return tcs
+
+
+class ColType(enum.Enum):
+    FORECAST = enum.auto()
+    OBS = enum.auto()
+    SPECIAL = enum.auto()
 
 
 def format_number(x):
@@ -475,7 +486,6 @@ def fundamental_table_data(country_key, table_columns,
     season_length = season_config["length"]
     target_month = season_config["target_month"]
     mpolygon = get_mpoly(mode, country_key, geom_key)
-    forecast_keys = ["pnep"]
 
     bad_years_df = fetch_bad_years(country_key)
 
@@ -487,11 +497,12 @@ def fundamental_table_data(country_key, table_columns,
                 country_key, forecast_key, issue_month0, target_month,
                 freq=freq, mpolygon=mpolygon
             ).rename({'target_date':"time"})
-            for forecast_key in forecast_keys
+            for forecast_key, col in table_columns.items()
+            if col["type"] is ColType.FORECAST
         }
     )
 
-    obs_keys = regular_columns(table_columns.keys())
+    obs_keys = [key for key, col in table_columns.items() if col["type"] is ColType.OBS]
     obs_ds = select_obs(country_key, obs_keys, mpolygon)
 
     main_ds = xr.merge(
@@ -511,17 +522,12 @@ def fundamental_table_data(country_key, table_columns,
     return main_ds
 
 
-SPECIAL_COLUMNS = {'time', 'bad_year', 'pnep', 'enso_state'}
-def regular_columns(col_names):
-    return [c for c in col_names if c not in SPECIAL_COLUMNS]
-
-
 def augment_table_data(main_df, freq, table_columns):
     main_df = main_df.copy()
 
     main_df["time"] = main_df.index.to_series()
 
-    obs_keys = regular_columns(table_columns.keys())
+    obs_keys = [key for key, col in table_columns.items() if col["type"] is ColType.OBS]
     obs = {
         key: main_df[key].dropna()
         for key in obs_keys
