@@ -91,7 +91,7 @@ def test_augment_table_data():
         }
     )
     freq = 34
-    aug, summ, prob = fbfmaproom.augment_table_data(main_df, freq, ["rain"], {"rain": {"lower_is_worse": True}})
+    aug, summ, prob = fbfmaproom.augment_table_data(main_df, freq, {"rain": {"lower_is_worse": True}})
 
     expected_aug = main_df.copy()
     expected_aug["rain"] = [np.nan, np.nan, 200, 400, 300, 100]

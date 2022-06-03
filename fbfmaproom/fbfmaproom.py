@@ -387,7 +387,6 @@ def retrieve_vulnerability(
 
 def generate_tables(
     country_key,
-    obs_keys,
     season_config,
     table_columns,
     issue_month0,
@@ -396,13 +395,12 @@ def generate_tables(
     geom_key,
     severity,
 ):
-    basic_ds = fundamental_table_data(country_key, obs_keys,
+    basic_ds = fundamental_table_data(country_key, table_columns,
                                       season_config, issue_month0,
                                       freq, mode, geom_key)
     basic_df = basic_ds.drop_vars("pct").to_dataframe()
-    obs_config = CONFIG["countries"][country_key]["datasets"]["observations"]
     main_df, summary_df, prob_thresh = augment_table_data(
-        basic_df, freq, obs_keys, table_columns
+        basic_df, freq, table_columns
     )
     summary_presentation_df = format_summary_table(summary_df, table_columns)
     return main_df, summary_presentation_df, prob_thresh
@@ -467,7 +465,7 @@ def select_obs(country_key, obs_keys, mpolygon=None):
     return ds
 
 
-def fundamental_table_data(country_key, obs_keys,
+def fundamental_table_data(country_key, table_columns,
                            season_config, issue_month0, freq, mode,
                            geom_key):
     year_min, year_max = season_config["year_range"]
@@ -490,6 +488,7 @@ def fundamental_table_data(country_key, obs_keys,
         }
     )
 
+    obs_keys = regular_columns(table_columns.keys())
     obs_ds = select_obs(country_key, obs_keys, mpolygon)
 
     # Doing the merge in two steps, first an outer join and then a
@@ -519,11 +518,17 @@ def fundamental_table_data(country_key, obs_keys,
     return main_ds
 
 
-def augment_table_data(main_df, freq, obs_keys, table_columns):
+SPECIAL_COLUMNS = {'time', 'bad_year', 'pnep', 'enso_state'}
+def regular_columns(col_names):
+    return [c for c in col_names if c not in SPECIAL_COLUMNS]
+
+
+def augment_table_data(main_df, freq, table_columns):
     main_df = main_df.copy()
 
     main_df["time"] = main_df.index.to_series()
 
+    obs_keys = regular_columns(table_columns.keys())
     obs = {
         key: main_df[key].dropna()
         for key in obs_keys
@@ -823,7 +828,6 @@ def table_cb(issue_month0, freq, mode, geom_key, pathname, severity, obs_keys, s
     try:
         dft, dfs, prob_thresh = generate_tables(
             country_key,
-            obs_keys,
             config["seasons"][season],
             tcs,
             issue_month0,
