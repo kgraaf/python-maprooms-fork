@@ -122,27 +122,35 @@ def test_augment_table_data():
 
     assert np.isclose(prob, 33.800949)
 
-def test_pnep_tile_url_callback_yesdata():
-    url, is_alert = fbfmaproom.pnep_tile_url_callback.__wrapped__(
-        2021, 2, 30, '/fbfmaproom/ethiopia', 'season1'
+def test_forecast_tile_url_callback_yesdata():
+    url, is_alert, colormap = fbfmaproom.tile_url_callback.__wrapped__(
+        2021, 2, 30, '/fbfmaproom/ethiopia', 'pnep', 'season1'
     )
-    assert url == '/fbfmaproom-tiles/pnep/{z}/{x}/{y}/ethiopia/season1/2021/2/30'
+    assert url == '/fbfmaproom-tiles/forecast/pnep/{z}/{x}/{y}/ethiopia/season1/2021/2/30'
     assert not is_alert
+    assert type(colormap) == list
 
-def test_pnep_tile_url_callback_nodata():
-    url, is_alert = fbfmaproom.pnep_tile_url_callback.__wrapped__(
-        3333, 2, 30, '/fbfmaproom/ethiopia', 'season1'
+def test_forecast_tile_url_callback_nodata():
+    url, is_alert, colormap = fbfmaproom.tile_url_callback.__wrapped__(
+        3333, 2, 30, '/fbfmaproom/ethiopia', 'pnep', 'season1'
     )
     assert url == ''
     assert is_alert
+    assert type(colormap) == list
 
-def test_pnep_tiles():
+def test_forecast_tile():
     with fbfmaproom.SERVER.test_client() as client:
-        resp = client.get('/fbfmaproom-tiles/pnep/6/40/27/ethiopia/season1/2021/2/30')
+        resp = client.get('/fbfmaproom-tiles/forecast/pnep/6/40/27/ethiopia/season1/2021/2/30')
     assert resp.status_code == 200
     assert resp.mimetype == "image/png"
 
-def test_vuln_tiles():
+def test_obs_tile():
+    with fbfmaproom.SERVER.test_client() as client:
+        resp = client.get('/fbfmaproom-tiles/obs/rain/6/40/27/ethiopia/season1/2021')
+    assert resp.status_code == 200
+    assert resp.mimetype == "image/png"
+
+def test_vuln_tile():
     with fbfmaproom.SERVER.test_client() as client:
         resp = client.get("/fbfmaproom-tiles/vuln/6/39/30/ethiopia/0/2019")
     assert resp.status_code == 200

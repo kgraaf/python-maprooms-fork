@@ -476,7 +476,8 @@ def select_obs(country_key, obs_keys, mpolygon=None):
             for obs_key in obs_keys
         }
     )
-    ds = pingrid.average_over_trimmed(ds, mpolygon, all_touched=True)
+    if mpolygon is not None:
+        ds = pingrid.average_over_trimmed(ds, mpolygon, all_touched=True)
     return ds
 
 
@@ -619,7 +620,6 @@ def country(pathname: str) -> str:
     Output("marker", "position"),
     Output("season", "options"),
     Output("season", "value"),
-    Output("pnep_colorbar", "colorscale"),
     Output("vuln_colorbar", "colorscale"),
     Output("mode", "options"),
     Output("mode", "value"),
@@ -640,7 +640,6 @@ def _(pathname):
     season_value = min(c["seasons"].keys())
     x, y = c["marker"]
     cx, cy = c["center"]
-    pnep_cs = pingrid.to_dash_colorscale(open_forecast(country_key, "pnep").attrs["colormap"])
     vuln_cs = pingrid.to_dash_colorscale(open_vuln(country_key).attrs["colormap"])
     mode_options = [
         dict(
@@ -666,7 +665,6 @@ def _(pathname):
         [y, x],
         season_options,
         season_value,
-        pnep_cs,
         vuln_cs,
         mode_options,
         mode_value,
@@ -923,32 +921,51 @@ def _(
 @APP.callback(
     Output("pnep_layer", "url"),
     Output("forecast_warning", "is_open"),
+    Output("trigger_colorbar", "colorscale"),
     Input("year", "value"),
     Input("issue_month", "value"),
     Input("freq", "value"),
     Input("location", "pathname"),
+    Input("trigger_key", "value"),
     State("season", "value"),
 )
-def pnep_tile_url_callback(target_year, issue_month0, freq, pathname, season_id):
-    forecast_key = "pnep"
-    country_key = country(pathname)
-    season_config = CONFIG["countries"][country_key]["seasons"][season_id]
-    target_month0 = season_config["target_month"]
-
+def tile_url_callback(target_year, issue_month0, freq, pathname, trigger_key, season_id):
+    colorscale = None  # default value in case an exception is raised
     try:
-        # Check if we have the requested data so that if we don't, we
-        # can explain why the map is blank.
-        select_forecast(country_key, forecast_key, issue_month0, target_month0, target_year, freq)
-        return f"{TILE_PFX}/pnep/{{z}}/{{x}}/{{y}}/{country_key}/{season_id}/{target_year}/{issue_month0}/{freq}", False
+        country_key = country(pathname)
+        country_config = CONFIG["countries"][country_key]
+        target_month0 = country_config["seasons"][season_id]["target_month"]
+        ds_configs = country_config["datasets"]
+        ds_config = ds_configs["forecasts"].get(trigger_key)
+        if ds_config is None:
+            trigger_is_forecast = False
+            ds_config = ds_configs["observations"][trigger_key]
+        else:
+            trigger_is_forecast = True
+        colorscale = pingrid.to_dash_colorscale(ds_config["colormap"])
+
+        if trigger_is_forecast:
+            # Check if we have the requested data so that if we don't, we
+            # can explain why the map is blank.
+            select_forecast(country_key, trigger_key, issue_month0, target_month0, target_year, freq)
+            tile_url = f"{TILE_PFX}/forecast/{trigger_key}/{{z}}/{{x}}/{{y}}/{country_key}/{season_id}/{target_year}/{issue_month0}/{freq}"
+        else:
+            # As for select_forecast above
+            select_obs(country_key, [trigger_key])
+            tile_url = f"{TILE_PFX}/obs/{trigger_key}/{{z}}/{{x}}/{{y}}/{country_key}/{season_id}/{target_year}"
+        error = False
+
     except Exception as e:
+        tile_url = ""
+        error = True
         if isinstance(e, NotFoundError):
             # If user asked for a forecast that hasn't been issued yet, no
             # need to log it.
             pass
         else:
             traceback.print_exc()
-        # if no raster data can be created then set the URL to be blank
-        return "", True
+
+    return tile_url, error, colorscale
 
 
 @APP.callback(
@@ -989,14 +1006,28 @@ def borders(pathname, mode):
 
 
 @SERVER.route(
-    f"{TILE_PFX}/pnep/<int:tz>/<int:tx>/<int:ty>/<country_key>/<season_id>/<int:target_year>/<int:issue_month0>/<int:freq>"
+    f"{TILE_PFX}/forecast/<forecast_key>/<int:tz>/<int:tx>/<int:ty>/<country_key>/<season_id>/<int:target_year>/<int:issue_month0>/<int:freq>"
 )
-def pnep_tiles(tz, tx, ty, country_key, season_id, target_year, issue_month0, freq):
+def forecast_tile(forecast_key, tz, tx, ty, country_key, season_id, target_year, issue_month0, freq):
     season_config = CONFIG["countries"][country_key]["seasons"][season_id]
     target_month0 = season_config["target_month"]
-    forecast_key = "pnep"
 
     da = select_forecast(country_key, forecast_key, issue_month0, target_month0, target_year, freq)
+    p = tuple(CONFIG["countries"][country_key]["marker"])
+    clipping, _ = retrieve_geometry(country_key, p, "0", None)
+    resp = pingrid.tile(da, tx, ty, tz, clipping)
+    return resp
+
+
+@SERVER.route(
+    f"{TILE_PFX}/obs/<obs_key>/<int:tz>/<int:tx>/<int:ty>/<country_key>/<season_id>/<int:target_year>"
+)
+def obs_tile(obs_key, tz, tx, ty, country_key, season_id, target_year):
+    season_config = CONFIG["countries"][country_key]["seasons"][season_id]
+    target_month0 = season_config["target_month"]
+    da = select_obs(country_key, [obs_key])[obs_key]
+    target_date = cftime.Datetime360Day(target_year, int(target_month0) + 1, 16)
+    da = da.sel(time=target_date)
     p = tuple(CONFIG["countries"][country_key]["marker"])
     clipping, _ = retrieve_geometry(country_key, p, "0", None)
     resp = pingrid.tile(da, tx, ty, tz, clipping)

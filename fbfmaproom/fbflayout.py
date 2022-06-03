@@ -114,7 +114,7 @@ def map_layout():
                 opacity=0.8,
             ),
             dlf.Colorbar(
-                id="pnep_colorbar",
+                id="trigger_colorbar",
                 position="bottomleft",
                 width=300,
                 height=10,
