@@ -523,47 +523,47 @@ def fundamental_table_data(country_key, table_columns,
 
 
 def augment_table_data(main_df, freq, table_columns):
+    trigger_key = "pnep"
+
     main_df = main_df.copy()
 
     main_df["time"] = main_df.index.to_series()
 
-    obs_keys = [key for key, col in table_columns.items() if col["type"] is ColType.OBS]
-    obs = {
+    regular_keys = [
+        key for key, col in table_columns.items()
+        if col["type"] is not ColType.SPECIAL
+    ]
+    regular_data = {
         key: main_df[key].dropna()
-        for key in obs_keys
+        for key in regular_keys
     }
-    pnep = main_df["pnep"].dropna()
     bad_year = main_df["bad_year"].dropna().astype(bool)
     el_nino = main_df["enso_state"].dropna() == "El Niño"
 
-    def is_ascending(obs_key):
-        return table_columns[obs_key]["lower_is_worse"]
+    def is_ascending(col_key):
+        return table_columns[col_key]["lower_is_worse"]
 
-    obs_rank_pct = {
-        key: obs[key].rank(method="first", ascending=is_ascending(key), pct=True)
-        for key in obs_keys
+    rank_pct = {
+        key: regular_data[key].rank(method="first", ascending=is_ascending(key), pct=True)
+        for key in regular_keys
     }
-    worst_obs = {
-        key: (obs_rank_pct[key] <= freq / 100).astype(bool)
-        for key in obs_keys
+    worst_flags = {
+        key: (rank_pct[key] <= freq / 100).astype(bool)
+        for key in regular_keys
     }
 
-    pnep_max_rank_pct = pnep.rank(method="first", ascending=False, pct=True)
-    worst_pnep = (pnep_max_rank_pct <= freq / 100).astype(bool)
-    prob_thresh = pnep[worst_pnep].min()
+    thresh = regular_data[trigger_key][worst_flags[trigger_key]].min()
 
     summary_df = pd.DataFrame.from_dict(dict(
         enso_state=hits_and_misses(el_nino, bad_year),
-        pnep=hits_and_misses(worst_pnep, bad_year),
     ))
 
-    for key in obs_keys:
-        summary_df[key] = hits_and_misses(worst_obs[key], bad_year)
-        main_df[key] = obs[key]
-        main_df[f"worst_{key}"] = worst_obs[key].astype(int)
-    main_df["worst_pnep"] = worst_pnep.astype(int)
+    for key in regular_keys:
+        summary_df[key] = hits_and_misses(worst_flags[key], bad_year)
+        main_df[key] = regular_data[key]
+        main_df[f"worst_{key}"] = worst_flags[key].astype(int)
 
-    return main_df, summary_df, prob_thresh
+    return main_df, summary_df, thresh
 
 
 def format_summary_table(summary_df, table_columns):
