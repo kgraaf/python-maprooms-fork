@@ -794,6 +794,42 @@ countries:
                         time: T
                     colormap: *raincm
                     lower_is_worse: yes
+                bad-years-ag:
+                    label: "Ag/food sec bad years"
+                    description: Bad years for agriculture and food security sector (rank)
+                    path: lesotho/bad-years.zarr
+                    var_names:
+                        obs: ag
+                        time: T
+                    colormap: *raincm
+                    lower_is_worse: yes
+                bad-years-early:
+                    label: Early warning bad years
+                    description: Bad years for early warning sector (rank)
+                    path: lesotho/bad-years.zarr
+                    var_names:
+                        obs: early
+                        time: T
+                    colormap: *raincm
+                    lower_is_worse: yes
+                bad-years-nutrition:
+                    label: "Nutrition bad years"
+                    description: Bad years for nutrition sector (rank)
+                    path: lesotho/bad-years.zarr
+                    var_names:
+                        obs: nutrition
+                        time: T
+                    colormap: *raincm
+                    lower_is_worse: yes
+                bad-years-range:
+                    label: "Range resource bad years"
+                    description: Bad years for range resource management sector (rank)
+                    path: lesotho/bad-years.zarr
+                    var_names:
+                        obs: range
+                        time: T
+                    colormap: *raincm
+                    lower_is_worse: yes
             forecasts:
                 pnep:
                     label: Forecast
