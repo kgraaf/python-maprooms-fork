@@ -578,7 +578,7 @@ countries:
                 year_range: [1990, 2022]
 
     lesotho:
-        logo: Guatemala_IRI_120x48.png
+        logo: 
         resolution: [.0375, .0375]
         center: [28.25625, -29.606]
         zoom: 8
