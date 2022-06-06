@@ -785,24 +785,29 @@ countries:
             observations:
                 rain:
                     label: Rain
-                    path: lesotho/rain.zarr
+                    description: ENACTS average precipitation over the season (mm/month)
+                    path: lesotho/enacts-precip-djf.zarr
                     var_names:
                         obs: rfe
                         lat: Y
                         lon: X
                         time: T
                     colormap: *raincm
-                    worst: lowest
-            pnep:
-                path: lesotho/pnep-djf.zarr
-                var_names:
-                    pnep: pne
-                    lat: Y
-                    lon: X
-                    issue: S
-                    lead: null  # dataset has forecasts for only one season; L is implicit.
-                    pct: P
-                colormap: *pnepcm
+                    lower_is_worse: yes
+            forecasts:
+                pnep:
+                    label: Forecast
+                    description: NextGen forecast probability of non-exceedance of selected percentile (percent)
+                    path: lesotho/pnep-djf.zarr
+                    var_names:
+                        pne: pne
+                        lat: Y
+                        lon: X
+                        issue: S
+                        lead: null  # dataset has forecasts for only one season; L is implicit.
+                        pct: P
+                    colormap: *pnepcm
+                    lower_is_worse: no
             vuln:
                 colormap: *vulncm
                 range: [0.0, 5.0]

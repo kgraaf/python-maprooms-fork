@@ -157,7 +157,7 @@ url_datasets = [
         "http://iridl.ldeo.columbia.edu/home/.remic/.Lesotho/.Forecasts/.NextGen/.PRCPPRCP_CCAFCST/.NextGen/.FbF/.pne/",
     ),
     (
-        "lesotho/rain",
+        "lesotho/enacts-precip-djf",
         "https://iridl.ldeo.columbia.edu/home/.audreyv/.dle_lms/.Lesotho/.ENACTS/.ALL/.monthly/.rainfall/.rfe/T/(Dec-Feb)/seasonalAverage/3/mul/",
     ),
 ]
