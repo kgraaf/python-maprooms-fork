@@ -172,11 +172,15 @@ def open_data_array(
     if var_key is None:
         da = xr.DataArray()
     else:
-        da = (
-            xr.open_zarr(data_path(cfg["path"]), consolidated=False)
-            .rename({v: k for k, v in cfg["var_names"].items() if v})
-            [var_key]
-        )
+        try:
+            da = (
+                xr.open_zarr(data_path(cfg["path"]), consolidated=False)
+                .rename({v: k for k, v in cfg["var_names"].items() if v})
+                [var_key]
+            )
+        except Exception as e:
+            raise Exception(f"Couldn't open {data_path(cfg['path'])}") from e
+
     # TODO: some datasets we pulled from ingrid already have colormap,
     # scale_max, and scale_min attributes. Should we just use those,
     # instead of getting them from the config file and/or computing
