@@ -213,9 +213,9 @@ countries:
 
         datasets:
             observations:
-                enacts-precip:
-                    label: ENACTS precip
-                    path: madagascar/enacts-precip-ond.zarr
+                enacts-precip-mon:
+                    label: ENACTS MON precip
+                    path: madagascar/enacts-precip-mon-ond.zarr
                     var_names:
                         obs: rfe
                         lat: Y
@@ -223,9 +223,9 @@ countries:
                         time: T
                     colormap: *raincm
                     worst: lowest
-                enacts-precip-mon:
-                    label: ENACTS precip MON
-                    path: madagascar/enacts-precip-mon-ond.zarr
+                enacts-precip:
+                    label: ENACTS ALL precip
+                    path: madagascar/enacts-precip-ond.zarr
                     var_names:
                         obs: rfe
                         lat: Y
@@ -258,6 +258,16 @@ countries:
                     path: madagascar/wrsi-ond.zarr
                     var_names:
                         obs: do
+                        lat: Y
+                        lon: X
+                        time: T
+                    colormap: *raincm
+                    worst: lowest
+                spi:
+                    label: ENACTS MON SPI
+                    path: madagascar/enacts-mon-spi-ond.zarr
+                    var_names:
+                        obs: spi
                         lat: Y
                         lon: X
                         time: T
