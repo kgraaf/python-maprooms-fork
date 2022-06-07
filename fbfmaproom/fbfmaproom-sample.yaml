@@ -35,9 +35,6 @@ dbpool:
     recycle_interval: 60  # (seconds) set to null to disable recycler thread
 
 dataframes:
-    bad_years:
-        schema: public
-        table: fbf_maproom
     enso: enso.zarr
 
 

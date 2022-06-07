@@ -32,6 +32,7 @@ def test_table_cb():
         severity=0,
         obs_keys=['rain', 'ndvi'],
         trigger_key="pnep",
+        bad_years_key="bad-years",
         season='season1',
     )
     assert np.isclose(prob_thresh, 36.930862)
@@ -84,7 +85,7 @@ def test_augment_table_data():
     main_df = pd.DataFrame(
         index=time,
         data={
-            "bad_year": [True, False, True, False, False, True],
+            "bad-years": [1, 0, 1, 0, 0, 1],
             "enso_state": [np.nan, np.nan, "El Niño", "La Niña", "El Niño", "Neutral"],
             "pnep": [np.nan, 19.606438, 29.270180, 33.800949, 12.312943, 1.],
             "rain": [np.nan, np.nan, 200., 400., 300., 100.],
@@ -93,6 +94,10 @@ def test_augment_table_data():
     )
     freq = 34
     table_columns = {
+        "bad-years": {
+            "lower_is_worse": False,
+            "type": fbfmaproom.ColType.OBS,
+        },
         "pnep": {
             "lower_is_worse": False,
             "type": fbfmaproom.ColType.FORECAST,
@@ -103,11 +108,10 @@ def test_augment_table_data():
         },
     }
 
-    aug, summ, prob = fbfmaproom.augment_table_data(main_df, freq, table_columns, "pnep")
+    aug, summ, prob = fbfmaproom.augment_table_data(main_df, freq, table_columns, "pnep", "bad-years")
 
     expected_aug = main_df.copy()
-    expected_aug["pnep"] = [np.nan, 19.606438, 29.27018, 33.800949, 12.312943,  1.]
-    expected_aug["rain"] = [np.nan, np.nan, 200, 400, 300, 100]
+    expected_aug["worst_bad-years"] = [1, 0, 1, 0, 0, 1]
     expected_aug["worst_pnep"] = [np.nan, 0, 0, 1, 0, 0]
     expected_aug["worst_rain"] = [np.nan, np.nan, 0, 0, 0, 1]
     pd.testing.assert_frame_equal(expected_aug, aug, check_column_type=True)

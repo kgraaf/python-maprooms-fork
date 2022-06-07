@@ -74,17 +74,15 @@ APP.title = "FBF--Maproom"
 APP.layout = fbflayout.app_layout()
 
 
-def table_columns(dataset_config, forecast_keys, obs_keys,
+def table_columns(dataset_config, bad_years_key, forecast_keys, obs_keys,
                   severity, season_length):
     format_funcs = {
         'year': lambda midpoint: year_label(midpoint, season_length),
         'number': format_number,
         'timedelta_days': format_timedelta_days,
-        'bad_year': format_bad,
     }
 
     class_funcs = {
-        'bad_year': bad_year_class,
         'nino': nino_class,
         'worst': lambda col_name, row: worst_class(col_name, row, severity),
     }
@@ -125,13 +123,8 @@ def table_columns(dataset_config, forecast_keys, obs_keys,
     for key in obs_keys:
         tcs[key] = make_column(dataset_config['observations'][key], ColType.OBS)
 
-    tcs["bad_year"] = dict(
-        name="Reported Bad Years",
-        format=format_bad,
-        class_name=class_funcs['bad_year'],
-        tooltip="Historical drought years based on farmers' recollection",
-        type=ColType.SPECIAL,
-    )
+    tcs[bad_years_key] = make_column(dataset_config['observations'][bad_years_key], ColType.OBS)
+
     return tcs
 
 
@@ -149,32 +142,6 @@ def format_number(x):
 
 def format_timedelta_days(x):
         return format_number(x.days + x.seconds / 60 / 60 / 24)
-
-
-def format_bad(x):
-    # TODO some parts of the program use pandas boolean arrays, which
-    # use pd.NA as the missing value indicator, while others use
-    # xarray, which uses np.nan. This is annoying; I think we need to
-    # stop using boolean arrays. They're marked experimental in the
-    # pandas docs anyway.
-    if pd.isna(x):
-        return None
-    if np.isnan(x):
-        return None
-    if x is True:
-        return "Bad"
-    if x is False:
-        return ""
-    raise Exception(f"Invalid bad_year value {x}")
-
-
-def bad_year_class(col_name, row):
-    val = row[col_name]
-    if pd.isna(val):
-        return ""
-    if val:
-        return "cell-bad-year"
-    return "cell-good-year"
 
 
 def nino_class(col_name, row):
@@ -279,36 +246,6 @@ def fetch_enso(month0):
     return df
 
 
-def fetch_bad_years(country_key):
-    config = CONFIG
-    dbpool = DBPOOL
-    dc = config["dataframes"]["bad_years"]
-    with dbpool.take() as cm:
-        conn = cm.resource
-        with conn:  # transaction
-            df = pd.read_sql_query(
-                sql.SQL(
-                    """
-                    select month_since_01011960, bad_year2 as bad_year
-                    from {schema}.{table}
-                    where lower(adm0_name) = %(country_key)s
-                    """
-                ).format(
-                    schema=sql.Identifier(dc["schema"]),
-                    table=sql.Identifier(dc["table"]),
-                ),
-                conn,
-                params={"country_key": country_key},
-                # Using pandas' nullable boolean type. boolean is
-                # different from bool, which is not nullable :-(
-                dtype={"bad_year": "boolean"},
-            )
-    df["time"] = df["month_since_01011960"].apply(from_month_since_360Day)
-    df = df.drop("month_since_01011960", axis=1)
-    df = df.set_index("time")
-    return df
-
-
 def from_month_since_360Day(months):
     year = 1960 + months // 12
     month_zero_based = math.floor(months % 12)
@@ -404,6 +341,7 @@ def generate_tables(
     season_config,
     table_columns,
     trigger_key,
+    bad_years_key,
     issue_month0,
     freq,
     mode,
@@ -415,7 +353,7 @@ def generate_tables(
                                       freq, mode, geom_key)
     basic_df = basic_ds.drop_vars("pct").to_dataframe()
     main_df, summary_df, trigger_thresh = augment_table_data(
-        basic_df, freq, table_columns, trigger_key
+        basic_df, freq, table_columns, trigger_key, bad_years_key
     )
     summary_presentation_df = format_summary_table(summary_df, table_columns)
     return main_df, summary_presentation_df, trigger_thresh
@@ -489,8 +427,6 @@ def fundamental_table_data(country_key, table_columns,
     target_month = season_config["target_month"]
     mpolygon = get_mpoly(mode, country_key, geom_key)
 
-    bad_years_df = fetch_bad_years(country_key)
-
     enso_df = fetch_enso(season_config["target_month"])
 
     forecast_ds = xr.Dataset(
@@ -509,7 +445,6 @@ def fundamental_table_data(country_key, table_columns,
 
     main_ds = xr.merge(
         [
-            bad_years_df["bad_year"].to_xarray(),
             forecast_ds,
             enso_df["enso_state"].to_xarray(),
             obs_ds,
@@ -524,7 +459,7 @@ def fundamental_table_data(country_key, table_columns,
     return main_ds
 
 
-def augment_table_data(main_df, freq, table_columns, trigger_key):
+def augment_table_data(main_df, freq, table_columns, trigger_key, bad_years_key):
     main_df = main_df.copy()
 
     main_df["time"] = main_df.index.to_series()
@@ -537,14 +472,13 @@ def augment_table_data(main_df, freq, table_columns, trigger_key):
         key: main_df[key].dropna()
         for key in regular_keys
     }
-    bad_year = main_df["bad_year"].dropna().astype(bool)
     el_nino = main_df["enso_state"].dropna() == "El Niño"
 
     def is_ascending(col_key):
         return table_columns[col_key]["lower_is_worse"]
 
     rank_pct = {
-        key: regular_data[key].rank(method="first", ascending=is_ascending(key), pct=True)
+        key: regular_data[key].rank(method="min", ascending=is_ascending(key), pct=True)
         for key in regular_keys
     }
     worst_flags = {
@@ -552,7 +486,7 @@ def augment_table_data(main_df, freq, table_columns, trigger_key):
         for key in regular_keys
     }
 
-    thresh = regular_data[trigger_key][worst_flags[trigger_key]].min()
+    bad_year = worst_flags[bad_years_key].dropna().astype(bool)
 
     summary_df = pd.DataFrame.from_dict(dict(
         enso_state=hits_and_misses(el_nino, bad_year),
@@ -562,6 +496,8 @@ def augment_table_data(main_df, freq, table_columns, trigger_key):
         summary_df[key] = hits_and_misses(worst_flags[key], bad_year)
         main_df[key] = regular_data[key]
         main_df[f"worst_{key}"] = worst_flags[key].astype(int)
+
+    thresh = regular_data[trigger_key][worst_flags[trigger_key]].min()
 
     return main_df, summary_df, thresh
 
@@ -623,6 +559,8 @@ def country(pathname: str) -> str:
     Output("vuln_colorbar", "colorscale"),
     Output("mode", "options"),
     Output("mode", "value"),
+    Output("bad_years", "options"),
+    Output("bad_years", "value"),
     Output("obs_datasets", "options"),
     Output("obs_datasets", "value"),
     Input("location", "pathname"),
@@ -650,14 +588,16 @@ def _(pathname):
     ] + [dict(label="Pixel", value="pixel")]
     mode_value = "0"
     obs_datasets_cfg = c["datasets"]["observations"]
-    obs_datasets_options = [
+    bad_years_options = [
         dict(
             label=v["label"],
             value=k,
         )
         for k, v in obs_datasets_cfg.items()
     ]
-    obs_datasets_value = [next(iter(obs_datasets_cfg.keys()))]
+    bad_years_value = bad_years_options[0]["value"]
+    obs_datasets_options = bad_years_options#[1:]
+    obs_datasets_value = [obs_datasets_options[0]["value"]]
     return (
         f"{PFX}/custom/{c['logo']}",
         [cy, cx],
@@ -668,6 +608,8 @@ def _(pathname):
         vuln_cs,
         mode_options,
         mode_value,
+        bad_years_options,
+        bad_years_value,
         obs_datasets_options,
         obs_datasets_value,
     )
@@ -809,14 +751,16 @@ def display_prob_thresh(val):
     Input("severity", "value"),
     Input("obs_datasets", "value"),
     Input("trigger_key", "value"),
+    Input("bad_years", "value"),
     State("season", "value"),
 )
-def table_cb(issue_month0, freq, mode, geom_key, pathname, severity, obs_keys, trigger_key, season):
+def table_cb(issue_month0, freq, mode, geom_key, pathname, severity, obs_keys, trigger_key, bad_years_key, season):
     country_key = country(pathname)
     config = CONFIG["countries"][country_key]
     forecast_keys = [trigger_key]
     tcs = table_columns(
         config["datasets"],
+        bad_years_key,
         forecast_keys,
         obs_keys,
         severity,
@@ -828,6 +772,7 @@ def table_cb(issue_month0, freq, mode, geom_key, pathname, severity, obs_keys, t
             config["seasons"][season],
             tcs,
             trigger_key,
+            bad_years_key,
             issue_month0,
             freq,
             mode,

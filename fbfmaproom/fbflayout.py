@@ -387,6 +387,20 @@ def table_layout():
             html.Div(id="log"),
             html.Div(
                 [
+                    html.Label("Ground truth:"),
+                    dcc.Dropdown(
+                        id="bad_years",
+                        clearable=False,
+                    ),
+                ],
+                style={
+                    "display": "inline-block",
+                    "padding": "10px",
+                    "vertical-align": "top",
+                },
+            ),
+            html.Div(
+                [
                     html.Label("Observations:"),
                     dcc.Dropdown(
                         id="obs_datasets",
