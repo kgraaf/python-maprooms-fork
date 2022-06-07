@@ -397,6 +397,7 @@ def table_layout():
                     "display": "inline-block",
                     "padding": "10px",
                     "vertical-align": "top",
+                    "width": "30%",
                 },
             ),
             html.Div(
@@ -412,6 +413,7 @@ def table_layout():
                     "display": "inline-block",
                     "padding": "10px",
                     "vertical-align": "top",
+                    "width": "70%",
                 },
             ),
 
