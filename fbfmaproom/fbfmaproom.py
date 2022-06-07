@@ -593,17 +593,19 @@ def _(pathname):
         for i, k in enumerate(c["shapes"])
     ] + [dict(label="Pixel", value="pixel")]
     mode_value = "0"
-    obs_datasets_cfg = c["datasets"]["observations"]
-    bad_years_options = [
+
+    datasets_config = c["datasets"]
+    obs_datasets_options = [
         dict(
             label=v["label"],
             value=k,
         )
-        for k, v in obs_datasets_cfg.items()
+        for k, v in datasets_config["observations"].items()
     ]
-    bad_years_value = bad_years_options[0]["value"]
-    obs_datasets_options = bad_years_options#[1:]
-    obs_datasets_value = [obs_datasets_options[0]["value"]]
+    obs_datasets_value = [datasets_config["defaults"]["observations"]]
+    bad_years_options = obs_datasets_options
+    bad_years_value = datasets_config["defaults"]["bad_years"]
+
     return (
         f"{PFX}/custom/{c['logo']}",
         [cy, cx],

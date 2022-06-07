@@ -779,6 +779,9 @@ countries:
                   from public.fbf_vulnerability where adm0_name = 'Lesotho' group by 1, 2
 
         datasets:
+            defaults:
+                observations: rain
+                bad_years: bad-years-ag
             observations:
                 rain:
                     label: Rain
