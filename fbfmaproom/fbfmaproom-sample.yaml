@@ -296,6 +296,7 @@ countries:
                         time: T
                     colormap: *raincm
                     lower_is_worse: no
+                    format: bad
             forecasts:
                 pnep:
                     label: Forecast
@@ -815,6 +816,7 @@ countries:
                         time: T
                     colormap: *raincm
                     lower_is_worse: yes
+                    format: number0
                 bad-years-early:
                     label: Early warning bad years
                     description: Bad years for early warning sector (rank)
@@ -824,6 +826,7 @@ countries:
                         time: T
                     colormap: *raincm
                     lower_is_worse: yes
+                    format: number0
                 bad-years-nutrition:
                     label: "Nutrition bad years"
                     description: Bad years for nutrition sector (rank)
@@ -833,6 +836,7 @@ countries:
                         time: T
                     colormap: *raincm
                     lower_is_worse: yes
+                    format: number0
                 bad-years-range:
                     label: "Range resource bad years"
                     description: Bad years for range resource management sector (rank)
@@ -842,6 +846,7 @@ countries:
                         time: T
                     colormap: *raincm
                     lower_is_worse: yes
+                    format: number0
             forecasts:
                 pnep:
                     label: Forecast

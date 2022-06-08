@@ -78,8 +78,13 @@ def table_columns(dataset_config, bad_years_key, forecast_keys, obs_keys,
                   severity, season_length):
     format_funcs = {
         'year': lambda midpoint: year_label(midpoint, season_length),
-        'number': format_number,
+        'number0': number_formatter(0),
+        'number1': number_formatter(1),
+        'number2': number_formatter(2),
+        'number3': number_formatter(3),
+        'number4': number_formatter(4),
         'timedelta_days': format_timedelta_days,
+        'bad': format_bad,
     }
 
     class_funcs = {
@@ -97,7 +102,7 @@ def table_columns(dataset_config, bad_years_key, forecast_keys, obs_keys,
     )
 
     def make_column(ds_config, col_type):
-        format_func = format_funcs[ds_config.get('format', 'number')]
+        format_func = format_funcs[ds_config.get('format', 'number1')]
         class_func = class_funcs[ds_config.get('class', 'worst')]
         return dict(
             name=ds_config['label'],
@@ -135,10 +140,19 @@ class ColType(enum.Enum):
     SPECIAL = enum.auto()
 
 
-def format_number(x):
-    if np.isnan(x):
+def number_formatter(precision):
+    def f(x):
+        if np.isnan(x):
+            return ""
+        return f"{x:.{precision}f}"
+    return f
+
+
+def format_bad(x):
+    if np.isnan(x) or np.isclose(x, 0):
         return ""
-    return f"{x:.2f}"
+    else:
+        return "Bad"
 
 
 def format_timedelta_days(x):
