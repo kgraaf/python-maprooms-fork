@@ -875,3 +875,116 @@ countries:
                 length: 3.0
                 issue_months: [8, 9, 10]
                 year_range: [1983, 2022]
+    lesotho-ond:
+        logo: 
+        resolution: [.0375, .0375]
+        center: [28.25625, -29.606]
+        zoom: 8
+        rotation: 0
+        marker:  [28.25625, -29.606]
+        origin: [0, 0]
+        shapes:
+            - name: National
+              sql: select adm0_code as key, adm0_name as label, ST_AsBinary(the_geom) as the_geom
+                  from iridb.g2015_2012_0 where adm0_name = 'Lesotho'
+              vuln_sql: select adm0_code as key, year, sum(vulnerability) as vuln
+                  from public.fbf_vulnerability where adm0_name = 'Lesotho' group by 1, 2
+
+            - name: Regional
+              sql: select (adm0_code, adm1_code) as key, adm1_name as label,
+                  ST_AsBinary(the_geom) as the_geom from iridb.g2015_2014_1
+                  where adm0_name = 'Lesotho'
+              vuln_sql: select (adm0_code, adm1_code) as key, year, sum(vulnerability) as vuln
+                  from public.fbf_vulnerability where adm0_name = 'Lesotho' group by 1, 2
+
+            - name: District
+              sql: select (adm0_code, adm1_code, adm2_code) as key, adm2_name as label,
+                  ST_AsBinary(the_geom) as the_geom from iridb.g2015_2014_2
+                  where adm0_name = 'Lesotho'
+              vuln_sql: select (adm0_code, adm1_code, adm2_code) as key, year, sum(vulnerability) as vuln
+                  from public.fbf_vulnerability where adm0_name = 'Lesotho' group by 1, 2
+
+        datasets:
+            defaults:
+                observations: rain
+                bad_years: bad-years-ag
+            observations:
+                rain:
+                    label: Rain
+                    description: ENACTS average precipitation over the season
+                    path: lesotho/enacts-precip-ond.zarr
+                    var_names:
+                        obs: rfe
+                        lat: Y
+                        lon: X
+                        time: T
+                    colormap: *raincm
+                    lower_is_worse: yes
+                bad-years-ag:
+                    label: "Ag/food sec bad years"
+                    description: Bad years for agriculture and food security sector
+                    units: rank
+                    path: lesotho/bad-years-ond.zarr
+                    var_names:
+                        obs: ag
+                        time: T
+                    colormap: *raincm
+                    lower_is_worse: yes
+                    format: number0
+                bad-years-early:
+                    label: Early warning bad years
+                    description: Bad years for early warning sector
+                    units: rank
+                    path: lesotho/bad-years-ond.zarr
+                    var_names:
+                        obs: early
+                        time: T
+                    colormap: *raincm
+                    lower_is_worse: yes
+                    format: number0
+                bad-years-nutrition:
+                    label: "Nutrition bad years"
+                    description: Bad years for nutrition sector
+                    units: rank
+                    path: lesotho/bad-years-ond.zarr
+                    var_names:
+                        obs: ag
+                        time: T
+                    colormap: *raincm
+                    lower_is_worse: yes
+                    format: number0
+                bad-years-range:
+                    label: "Range resource bad years"
+                    description: Bad years for range resource management sector
+                    units: rank
+                    path: lesotho/bad-years-ond.zarr
+                    var_names:
+                        obs: ag
+                        time: T
+                    colormap: *raincm
+                    lower_is_worse: yes
+                    format: number0
+            forecasts:
+                pnep:
+                    label: Forecast prob non-exc
+                    description: NextGen forecast probability of non-exceedance of selected percentile
+                    path: lesotho/pnep-ond.zarr
+                    var_names:
+                        pne: pne
+                        lat: Y
+                        lon: X
+                        issue: S
+                        lead: null  # dataset has forecasts for only one season; L is implicit.
+                        pct: P
+                    colormap: *pnepcm
+                    lower_is_worse: no
+            vuln:
+                colormap: *vulncm
+                range: [0.0, 5.0]
+        seasons:
+            season1:
+                label: OND
+                target_month: 10.5
+                length: 3.0
+                issue_months: [6, 7, 8]
+                year_range: [1983, 2022]

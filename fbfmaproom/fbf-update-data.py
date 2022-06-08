@@ -1,4 +1,5 @@
 import argparse
+import cftime
 import xarray as xr
 import os
 import pandas as pd
@@ -154,11 +155,19 @@ url_datasets = [
     ),
     (
         "lesotho/pnep-djf",
-        "http://iridl.ldeo.columbia.edu/home/.remic/.Lesotho/.Forecasts/.NextGen/.PRCPPRCP_CCAFCST/.NextGen/.FbF/.pne/",
+        "http://iridl.ldeo.columbia.edu/home/.remic/.Lesotho/.Forecasts/.NextGen/.DJF_PRCPPRCP_CCAFCST/.NextGen/.FbF/.pne/",
     ),
     (
         "lesotho/enacts-precip-djf",
         "https://iridl.ldeo.columbia.edu/home/.audreyv/.dle_lms/.Lesotho/.ENACTS/.ALL/.monthly/.rainfall/.rfe/T/(Dec-Feb)/seasonalAverage/3/mul/",
+    ),
+    (
+        "lesotho/pnep-ond",
+        "http://iridl.ldeo.columbia.edu/home/.remic/.Lesotho/.Forecasts/.NextGen/.OND_PRCPPRCP_CCAFCST/.NextGen/.FbF/.pne/",
+    ),
+    (
+        "lesotho/enacts-precip-ond",
+        "https://iridl.ldeo.columbia.edu/home/.audreyv/.dle_lms/.Lesotho/.ENACTS/.ALL/.monthly/.rainfall/.rfe/T/(Oct-Dec)/seasonalAverage/3/mul/",
     ),
 ]
 
@@ -255,3 +264,11 @@ for country in DB_BAD_YEARS_COUNTRIES:
         df = fetch_bad_years(country)
         zarrpath = f'{opts.datadir}/{ds_key}.zarr'
         df.to_xarray().to_zarr(zarrpath)
+
+if 'lesotho/bad-years-ond' in opts.datasets:
+    ds = xr.open_zarr(f'{opts.datadir}/lesotho/bad-years.zarr')
+    ds['T'] = list(map(
+        lambda x: cftime.Datetime360Day(x.year, (x.month - 1 - 2) % 12 + 1, x.day),
+        ds['T'].values
+    ))
+    ds.to_zarr(f'{opts.datadir}/lesotho/bad-years-ond.zarr')
