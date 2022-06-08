@@ -88,7 +88,7 @@ def table_columns(dataset_config, bad_years_key, forecast_keys, obs_keys,
     }
 
     class_funcs = {
-        'nino': nino_class,
+        'nino': lambda col_name, row: nino_class(col_name, row, severity),
         'worst': lambda col_name, row: worst_class(col_name, row, severity),
     }
 
@@ -159,12 +159,10 @@ def format_timedelta_days(x):
         return format_number(x.days + x.seconds / 60 / 60 / 24)
 
 
-def nino_class(col_name, row):
-    return {
-        'El Niño': 'cell-el-nino',
-        'La Niña': 'cell-la-nina',
-        'Neutral': 'cell-neutral'
-    }.get(row[col_name], "")
+def nino_class(col_name, row, severity):
+    if row[col_name] == 'El Niño':
+        return f'cell-severity-{severity}'
+    return ""
 
 
 def worst_class(col_name, row, severity):
