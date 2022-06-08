@@ -257,8 +257,8 @@ countries:
                     colormap: *raincm
                     lower_is_worse: yes
                 ndvi:
-                    label: NDVI * 100
-                    description: MODIS NDVI average over the season, multiplied by 100 to display greater precision
+                    label: NDVI
+                    description: MODIS NDVI average over the season
                     path: madagascar/ndvi-ond.zarr
                     var_names:
                         obs: NDVI
@@ -267,6 +267,7 @@ countries:
                         time: T
                     colormap: *raincm
                     lower_is_worse: yes
+                    format: number4
                 wrsi:
                     label: WRSI
                     path: madagascar/wrsi-ond.zarr
