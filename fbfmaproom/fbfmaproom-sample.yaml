@@ -71,6 +71,9 @@ countries:
               vuln_sql: select (adm0_code, adm1_code, adm2_code) as key, year, sum(vulnerability) as vuln
                   from public.fbf_vulnerability where adm0_name = 'Malawi' group by 1, 2
         datasets:
+            defaults:
+                observations: rain
+                bad_years: bad-years
             observations:
                 rain:
                     label: Rain
@@ -87,6 +90,15 @@ countries:
                         5285200 [5285200 23] 4625990 [4625990 22] 3966780 [3966780 23]
                         3307570 [3307570 23] 2648360 [2648360 23] 1989150]"
                     lower_is_worse: yes
+                bad-years:
+                    label: Reported bad years
+                    path: malawi/bad-years.zarr
+                    var_names:
+                        obs: bad
+                        time: T
+                    colormap: *raincm
+                    lower_is_worse: no
+                    format: bad
             forecasts:
                 pnep:
                     label: Forecast prob non-exc
@@ -149,6 +161,9 @@ countries:
                   from public.fbf_vulnerability where adm0_name = 'Madagascar' group by 1, 2
 
         datasets:
+            defaults:
+                observations: rain
+                bad_years: bad-years
             observations:
                 rain:
                     label: Rain
@@ -161,6 +176,15 @@ countries:
                         time: T
                     colormap: *raincm
                     lower_is_worse: yes
+                bad-years:
+                    label: Reported bad years
+                    path: madagascar/bad-years.zarr
+                    var_names:
+                        obs: bad
+                        time: T
+                    colormap: *raincm
+                    lower_is_worse: no
+                    format: bad
             forecasts:
                 pnep:
                     label: Forecast prob non-exc
@@ -354,6 +378,9 @@ countries:
                   g.adm2_pcode=v.adm2_pcode)
 
         datasets:
+            defaults:
+                observations: rain
+                bad_years: bad-years
             observations:
                 rain:
                     label: Rain
@@ -387,6 +414,15 @@ countries:
                         time: T
                     colormap: *raincm
                     lower_is_worse: yes
+                bad-years:
+                    label: Reported bad years
+                    path: ethiopia/bad-years.zarr
+                    var_names:
+                        obs: bad
+                        time: T
+                    colormap: *raincm
+                    lower_is_worse: no
+                    format: bad
             forecasts:
                 pnep:
                     label: Forecast prob non-exc
@@ -441,6 +477,9 @@ countries:
                   g.adm2_pcode=v.adm2_pcode)
 
         datasets:
+            defaults:
+                observations: rain
+                bad_years: bad-years
             observations:
                 rain:
                     label: Rain
@@ -453,6 +492,15 @@ countries:
                         time: T
                     colormap: *raincm
                     lower_is_worse: yes
+                bad-years:
+                    label: Reported bad years
+                    path: ethiopia-ond/bad-years.zarr
+                    var_names:
+                        obs: bad
+                        time: T
+                    colormap: *raincm
+                    lower_is_worse: no
+                    format: bad
             forecasts:
                 pnep:
                     label: Forecast prob non-exc
@@ -515,6 +563,9 @@ countries:
               # there are zero rows
 
         datasets:
+            defaults:
+              observations: enacts-precip-jas
+              bad_years: bad-years
             observations:
                 enacts-precip-jas:
                     label: ENACTS Precip JAS
@@ -597,6 +648,15 @@ countries:
                     colormap: *raincm
                     lower_is_worse: no
                     format: timedelta_days
+                bad-years:
+                    label: Reported bad years
+                    path: niger/bad-years.zarr
+                    var_names:
+                        obs: bad
+                        time: T
+                    colormap: *raincm
+                    lower_is_worse: no
+                    format: bad
             forecasts:
                 pnep:
                     label: Forecast prob non-exc
@@ -652,6 +712,9 @@ countries:
                   from public.fbf_vulnerability where adm0_name = 'Guatemala' group by 1, 2
 
         datasets:
+            defaults:
+                observations: rain
+                bad_years: bad-years
             observations:
                 rain:
                     label: Rain
@@ -664,6 +727,15 @@ countries:
                         time: T
                     colormap: *raincm
                     lower_is_worse: yes
+                bad-years:
+                    label: Reported bad years
+                    path: guatemala/bad-years.zarr
+                    var_names:
+                        obs: bad
+                        time: T
+                    colormap: *raincm
+                    lower_is_worse: no
+                    format: bad
             forecasts:
                 pnep:
                     label: Forecast prob non-exc
@@ -719,6 +791,9 @@ countries:
               #     from public.fbf_vulnerability where adm0_name = 'Djibouti' group by 1, 2
 
         datasets:
+            defaults:
+                observations: rain
+                bad_years: bad-years
             observations:
                 rain:
                     label: Rain
@@ -741,6 +816,15 @@ countries:
                         time: T
                     colormap: *raincm
                     lower_is_worse: yes
+                bad-years:
+                    label: Reported bad years
+                    path: djibouti/bad-years.zarr
+                    var_names:
+                        obs: bad
+                        time: T
+                    colormap: *raincm
+                    lower_is_worse: no
+                    format: bad
             forecasts:
                 pnep:
                     label: Forecast prob non-exc
