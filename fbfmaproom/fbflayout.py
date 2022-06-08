@@ -387,7 +387,7 @@ def table_layout():
             html.Div(id="log"),
             html.Div(
                 [
-                    html.Label("Ground truth:"),
+                    html.Label("Baseline observations:"),
                     dcc.Dropdown(
                         id="bad_years",
                         clearable=False,
@@ -402,7 +402,7 @@ def table_layout():
             ),
             html.Div(
                 [
-                    html.Label("Observations:"),
+                    html.Label("Other observations:"),
                     dcc.Dropdown(
                         id="obs_datasets",
                         clearable=False,
