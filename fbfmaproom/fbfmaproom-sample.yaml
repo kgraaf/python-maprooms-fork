@@ -74,7 +74,7 @@ countries:
             observations:
                 rain:
                     label: Rain
-                    description: CMAP average precipitation over the season (mm/day)
+                    description: CMAP average precipitation over the season
                     path: rain-malawi.zarr
                     var_names:
                         obs: prcp_est
@@ -89,8 +89,8 @@ countries:
                     lower_is_worse: yes
             forecasts:
                 pnep:
-                    label: Forecast
-                    description: IRI Flexible Seasonal Forecast probability of non-exceedance of the selected percentile (percent)
+                    label: Forecast prob non-exc
+                    description: IRI Flexible Seasonal Forecast probability of non-exceedance of the selected percentile
                     path: pnep-malawi.zarr
                     var_names:
                         pne: prob
@@ -152,7 +152,7 @@ countries:
             observations:
                 rain:
                     label: Rain
-                    description: ENACTS average precipitation over the season (mm/month)
+                    description: ENACTS average precipitation over the season
                     path: madagascar/enacts-precip-djf.zarr
                     var_names:
                         obs: rfe
@@ -163,8 +163,8 @@ countries:
                     lower_is_worse: yes
             forecasts:
                 pnep:
-                    label: Forecast
-                    description: NextGen forecast probability of non-exceedance of the selected percentile (percent)
+                    label: Forecast prob non-exc
+                    description: NextGen forecast probability of non-exceedance of the selected percentile
                     path: madagascar/pnep-djf.zarr
                     var_names:
                         pne: pne
@@ -225,7 +225,7 @@ countries:
             observations:
                 enacts-precip-mon:
                     label: ENACTS MON precip
-                    description: ENACTS monitoring average precipitation over the season (mm/month)
+                    description: ENACTS monitoring average precipitation over the season
                     path: madagascar/enacts-precip-mon-ond.zarr
                     var_names:
                         obs: rfe
@@ -236,7 +236,7 @@ countries:
                     lower_is_worse: yes
                 enacts-precip:
                     label: ENACTS ALL precip
-                    description: ENACTS all stations average precipitation over the season (mm/month)
+                    description: ENACTS all stations average precipitation over the season
                     path: madagascar/enacts-precip-ond.zarr
                     var_names:
                         obs: rfe
@@ -247,7 +247,7 @@ countries:
                     lower_is_worse: yes
                 chirps-precip-ond:
                     label: CHIRPS Precip
-                    description: CHIRPS average precipitation over the season (mm/month)
+                    description: CHIRPS average precipitation over the season
                     path: madagascar/chirps-precip-ond.zarr
                     var_names:
                         obs: precipitation
@@ -280,6 +280,7 @@ countries:
                     lower_is_worse: yes
                 spi:
                     label: ENACTS MON SPI
+                    description: SPI calculated from ENACTS monitoring product
                     path: madagascar/enacts-mon-spi-ond.zarr
                     var_names:
                         obs: spi
@@ -300,8 +301,8 @@ countries:
                     format: bad
             forecasts:
                 pnep:
-                    label: Forecast
-                    description: NextGen forecast probability of non-exceedance of the selected percentile (percent)
+                    label: Forecast prob non-exc
+                    description: NextGen forecast probability of non-exceedance of the selected percentile
                     path: madagascar/pnep-ond.zarr
                     var_names:
                         pne: pne
@@ -356,7 +357,7 @@ countries:
             observations:
                 rain:
                     label: Rain
-                    description: CHIRPS average precipitation over the season (mm/month)
+                    description: CHIRPS average precipitation over the season
                     path: rain-ethiopia.zarr
                     var_names:
                         obs: prcp
@@ -388,8 +389,8 @@ countries:
                     lower_is_worse: yes
             forecasts:
                 pnep:
-                    label: Forecast
-                    description: NextGen forecast probability of non-exceedance of selected percentile (percent)
+                    label: Forecast prob non-exc
+                    description: NextGen forecast probability of non-exceedance of selected percentile
                     path: pnep-ethiopia.zarr
                     var_names:
                         pne: pne
@@ -443,7 +444,7 @@ countries:
             observations:
                 rain:
                     label: Rain
-                    description: CHIRPS average precipitation (mm/month)
+                    description: CHIRPS average precipitation
                     path: rain-ethiopia-ond.zarr
                     var_names:
                         obs: prcp
@@ -454,8 +455,8 @@ countries:
                     lower_is_worse: yes
             forecasts:
                 pnep:
-                    label: Forecast
-                    description: NextGen forecast probability of non-exceedance of selected percentile (percent)
+                    label: Forecast prob non-exc
+                    description: NextGen forecast probability of non-exceedance of selected percentile
                     path: pnep-ethiopia-ond.zarr
                     var_names:
                         pne: pne
@@ -517,7 +518,7 @@ countries:
             observations:
                 enacts-precip-jas:
                     label: ENACTS Precip JAS
-                    description: ENACTS total precipitation for Jul-Sep (mm)
+                    description: ENACTS total precipitation for Jul-Sep
                     path: niger/enacts-precip-jas.zarr
                     var_names:
                         obs: obs
@@ -528,7 +529,7 @@ countries:
                     lower_is_worse: yes
                 chirps-precip-jun:
                     label: CHIRPS Precip Jun
-                    description: CHIRPS total precipitation for Jun (mm)
+                    description: CHIRPS total precipitation for Jun
                     path: niger/chirps-precip-jun.zarr
                     var_names:
                         obs: precipitation
@@ -539,7 +540,7 @@ countries:
                     lower_is_worse: yes
                 chirps-precip-jjaso:
                     label: CHIRPS Precip Jun-Oct
-                    description: CHIRPS total precipitation for Jun-Oct (mm)
+                    description: CHIRPS total precipitation for Jun-Oct
                     path: niger/chirps-precip-jjaso.zarr
                     var_names:
                         obs: precipitation
@@ -550,7 +551,7 @@ countries:
                     lower_is_worse: yes
                 chirps-precip-jas:
                     label: CHIRPS Precip JAS
-                    description: CHIRPS total precipitation for Jul-Sep (mm)
+                    description: CHIRPS total precipitation for Jul-Sep
                     path: niger/chirps-precip-jas.zarr
                     var_names:
                         obs: precipitation
@@ -572,32 +573,34 @@ countries:
                     lower_is_worse: yes
                 chirps-dryspell:
                     label: Dry Spell
-                    description: Longest dry spell, calculated from CHIRPS (days)
+                    description: Longest dry spell, calculated from CHIRPS
                     path: niger/chirps-dryspell.zarr
                     var_names:
                         obs: lls
                         lat: Y
                         lon: X
                         time: T
+                    units: days
                     colormap: *raincm
                     lower_is_worse: no
                     format: timedelta_days
                 chirps-onset:
                     label: Onset
-                    description: Onset of rain, calculated from CHIRPS (days after May 1)
+                    description: Onset of rain, calculated from CHIRPS
                     path: niger/chirps-onset.zarr
                     var_names:
                         obs: adif
                         lat: Y
                         lon: X
                         time: T
+                    units: days after May 1
                     colormap: *raincm
                     lower_is_worse: no
                     format: timedelta_days
             forecasts:
                 pnep:
-                    label: Forecast
-                    description: NextGen forecast probability of non-exceedance of the selected percentile (percent)
+                    label: Forecast prob non-exc
+                    description: NextGen forecast probability of non-exceedance of the selected percentile
                     path: niger/pnep-jas.zarr
                     var_names:
                         pne: pne
@@ -652,7 +655,7 @@ countries:
             observations:
                 rain:
                     label: Rain
-                    description: CHIRPS average precipitation over the season (mm/month)
+                    description: CHIRPS average precipitation over the season
                     path: rain-guatemala.zarr
                     var_names:
                         obs: prcp_est
@@ -663,8 +666,8 @@ countries:
                     lower_is_worse: yes
             forecasts:
                 pnep:
-                    label: Forecast
-                    description: NextGen forecast probability of non-exceedance of selected percentile (percent)
+                    label: Forecast prob non-exc
+                    description: NextGen forecast probability of non-exceedance of selected percentile
                     path: pnep-guatemala.zarr
                     var_names:
                         pne: pne
@@ -719,7 +722,7 @@ countries:
             observations:
                 rain:
                     label: Rain
-                    description: CHIRPS average precipitation over the season (mm/month)
+                    description: CHIRPS average precipitation over the season
                     path: rain-djibouti.zarr
                     var_names:
                         obs: prcp
@@ -740,8 +743,8 @@ countries:
                     lower_is_worse: yes
             forecasts:
                 pnep:
-                    label: Forecast
-                    description: NextGen forecast probability of non-exceedance of selected percentile (percent)
+                    label: Forecast prob non-exc
+                    description: NextGen forecast probability of non-exceedance of selected percentile
                     path: pnep-djibouti.zarr
                     var_names:
                         pne: pne
@@ -799,7 +802,7 @@ countries:
             observations:
                 rain:
                     label: Rain
-                    description: ENACTS average precipitation over the season (mm/month)
+                    description: ENACTS average precipitation over the season
                     path: lesotho/enacts-precip-djf.zarr
                     var_names:
                         obs: rfe
@@ -810,7 +813,7 @@ countries:
                     lower_is_worse: yes
                 bad-years-ag:
                     label: "Ag/food sec bad years"
-                    description: Bad years for agriculture and food security sector (rank)
+                    description: Bad years for agriculture and food security sector
                     path: lesotho/bad-years.zarr
                     var_names:
                         obs: ag
@@ -820,7 +823,7 @@ countries:
                     format: number0
                 bad-years-early:
                     label: Early warning bad years
-                    description: Bad years for early warning sector (rank)
+                    description: Bad years for early warning sector
                     path: lesotho/bad-years.zarr
                     var_names:
                         obs: early
@@ -829,8 +832,8 @@ countries:
                     lower_is_worse: yes
                     format: number0
                 bad-years-nutrition:
-                    label: "Nutrition bad years"
-                    description: Bad years for nutrition sector (rank)
+                    label: Nutrition bad years
+                    description: Bad years for nutrition sector
                     path: lesotho/bad-years.zarr
                     var_names:
                         obs: nutrition
@@ -839,8 +842,8 @@ countries:
                     lower_is_worse: yes
                     format: number0
                 bad-years-range:
-                    label: "Range resource bad years"
-                    description: Bad years for range resource management sector (rank)
+                    label: Range resource bad years
+                    description: Bad years for range resource management sector
                     path: lesotho/bad-years.zarr
                     var_names:
                         obs: range
@@ -850,8 +853,8 @@ countries:
                     format: number0
             forecasts:
                 pnep:
-                    label: Forecast
-                    description: NextGen forecast probability of non-exceedance of selected percentile (percent)
+                    label: Forecast prob non-exc
+                    description: NextGen forecast probability of non-exceedance of selected percentile
                     path: lesotho/pnep-djf.zarr
                     var_names:
                         pne: pne

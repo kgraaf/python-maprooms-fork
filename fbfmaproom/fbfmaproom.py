@@ -104,8 +104,17 @@ def table_columns(dataset_config, bad_years_key, forecast_keys, obs_keys,
     def make_column(ds_config, col_type):
         format_func = format_funcs[ds_config.get('format', 'number1')]
         class_func = class_funcs[ds_config.get('class', 'worst')]
+        if 'units' in ds_config:
+            units = ds_config['units']
+        elif col_type is ColType.OBS:
+            units = open_obs_from_config(ds_config).attrs.get('units')
+        elif col_type is ColType.FORECAST:
+            units = open_forecast_from_config(ds_config).attrs.get('units')
+        else:
+            units = None
         return dict(
             name=ds_config['label'],
+            units=units,
             format=format_func,
             class_name=class_func,
             tooltip=ds_config.get('description'),
@@ -226,13 +235,10 @@ def open_vuln(country_key):
 
 def open_forecast(country_key, forecast_key):
     cfg = CONFIG["countries"][country_key]["datasets"]["forecasts"][forecast_key]
-    return open_data_array(
-        cfg,
-        "pne",
-        val_min=0.0,
-        val_max=100.0,
-    )
+    return open_forecast_from_config(cfg)
 
+def open_forecast_from_config(ds_config):
+    return open_data_array(ds_config, "pne", val_min=0.0, val_max=100.0)
 
 def open_obs(country_key, obs_key):
     cfg = CONFIG["countries"][country_key]["datasets"]["observations"][obs_key]

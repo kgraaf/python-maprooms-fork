@@ -48,7 +48,7 @@ def test_table_cb():
 
     assert row.children[1].children == 5
     assert thead.children[4].children[1].children == "66.67%"
-    assert thead.children[5].children[3].children[0].children == 'Rain'
+    assert thead.children[5].children[3].children[0].children == 'Rain (mm/month)'
 
     assert len(tbody.children) == 40 # will break when we add a new year
 
