@@ -219,6 +219,9 @@ countries:
                   from public.fbf_vulnerability where adm0_name = 'Madagascar' group by 1, 2
 
         datasets:
+            defaults:
+                observations: enacts-precip-mon
+                bad_years: bad-years
             observations:
                 enacts-precip-mon:
                     label: ENACTS MON precip
@@ -284,6 +287,15 @@ countries:
                         time: T
                     colormap: *raincm
                     lower_is_worse: yes
+                bad-years:
+                    label: Reported bad years
+                    description: Farmer reported bad years
+                    path: madagascar-ond/bad-years.zarr
+                    var_names:
+                        obs: bad
+                        time: T
+                    colormap: *raincm
+                    lower_is_worse: no
             forecasts:
                 pnep:
                     label: Forecast
