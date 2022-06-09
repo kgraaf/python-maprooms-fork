@@ -65,7 +65,7 @@ def test_table_cb():
     assert row.children[1].className == ''
     assert row.children[3].children == '43.4'
     assert row.children[3].className == ''
-    assert row.children[4].children == '0.2'
+    assert row.children[4].children == '0.2361'
     assert row.children[4].className == 'cell-severity-0'
     assert row.children[2].children == ''
     assert row.children[2].className == ''
@@ -313,3 +313,10 @@ def test_hits_and_misses():
     assert false_neg == 1
     assert true_neg == 1
     assert pct == "50.00%"
+
+def test_format_timedelta_number():
+    td = pd.Timedelta(days=3.14159)
+    assert fbfmaproom.format_timedelta_days(td) == "3.14"
+
+def test_format_timedelta_nan():
+    assert fbfmaproom.format_timedelta_days(pd.NaT) == ""
