@@ -165,7 +165,7 @@ def format_bad(x):
 
 
 def format_timedelta_days(x):
-        return format_number(x.days + x.seconds / 60 / 60 / 24)
+    return number_formatter(2)(x.days + x.seconds / 60 / 60 / 24)
 
 
 def nino_class(col_name, row, severity):
