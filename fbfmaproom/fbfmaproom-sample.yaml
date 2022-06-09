@@ -290,15 +290,15 @@ countries:
                     colormap: *raincm
                     lower_is_worse: yes
                 bad-years:
-                    label: Reported bad years
-                    description: Farmer reported bad years
-                    path: madagascar-ond/bad-years.zarr
+                    label: Drought humanitarian ranking
+                    description: Drought ranking of expert committee humanitarian data review
+                    path: madagascar/bad-years-ond.zarr
                     var_names:
-                        obs: bad
+                        obs: rank
                         time: T
                     colormap: *raincm
-                    lower_is_worse: no
-                    format: bad
+                    lower_is_worse: yes
+                    format: number0
             forecasts:
                 pnep:
                     label: Forecast prob non-exc
