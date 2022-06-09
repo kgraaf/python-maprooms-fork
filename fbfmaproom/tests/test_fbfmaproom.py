@@ -39,35 +39,36 @@ def test_table_cb():
 
     thead, tbody = table.children
     assert len(thead.children) == 6
-    row = thead.children[1]
-    assert len(row.children) == 6
+    assert len(thead.children[0].children) == 6
 
-    cell = row.children[0]
-    div, tooltip = row.children[0].children
-    assert div.children == 'Act-in-vain:'
+    assert thead.children[0].children[0].children[0].children == 'Worthy-action:'
+    assert thead.children[1].children[0].children[0].children == 'Act-in-vain:'
+    assert thead.children[2].children[0].children[0].children == 'Fail-to-act:'
+    assert thead.children[3].children[0].children[0].children == 'Worthy-Inaction:'
+    assert thead.children[4].children[0].children[0].children == 'Rate:'
 
-    assert row.children[1].children == 5
-    assert thead.children[4].children[1].children == "66.67%"
-    assert thead.children[5].children[3].children[0].children == 'Rain (mm/month)'
+    assert thead.children[5].children[5].children[0].children == "ENSO State"
+    assert thead.children[0].children[5].children == 2
+    assert thead.children[1].children[5].children == 5
+    assert thead.children[2].children[5].children == 8
+    assert thead.children[3].children[5].children == 24
+    assert thead.children[4].children[5].children == "66.67%"
 
     assert len(tbody.children) == 40 # will break when we add a new year
 
     row = tbody.children[3]
-    cell = row.children[0]
     assert row.children[0].children == '2019'
     assert row.children[0].className == ''
-    assert row.children[1].children == 'El Niño'
-    assert row.children[1].className == 'cell-el-nino'
-    assert row.children[2].children == '34.28'
-    assert row.children[2].className == ''
-    assert row.children[3].children == '43.36'
+    assert row.children[5].children == 'El Niño'
+    assert row.children[5].className == 'cell-severity-0'
+    assert row.children[1].children == '34.3'
+    assert row.children[1].className == ''
+    assert row.children[3].children == '43.4'
     assert row.children[3].className == ''
-    assert row.children[4].children == '0.24'
+    assert row.children[4].children == '0.2'
     assert row.children[4].className == 'cell-severity-0'
-    assert row.children[5].children == ''
-    assert row.children[5].className == 'cell-good-year'
-
-    assert tbody.children[5].children[5].className == 'cell-bad-year'
+    assert row.children[2].children == ''
+    assert row.children[2].className == ''
 
 
 # overlaps with test_generate_tables, but this one uses synthetic
