@@ -387,7 +387,12 @@ def table_layout():
             html.Div(id="log"),
             html.Div(
                 [
-                    html.Label("Baseline observations:"),
+                    help_layout(
+                        "Baseline observations:",
+                        "bad_years_label",
+                        "Column that serves as the baseline. Other columns will be "
+                        "scored by how well they predict this one.",
+                    ),
                     dcc.Dropdown(
                         id="bad_years",
                         clearable=False,
@@ -402,7 +407,11 @@ def table_layout():
             ),
             html.Div(
                 [
-                    html.Label("Other observations:"),
+                    help_layout(
+                        "Other observations:",
+                        "obs_datasets_label",
+                        "Other columns to display in the table"
+                    ),
                     dcc.Dropdown(
                         id="obs_datasets",
                         clearable=False,
