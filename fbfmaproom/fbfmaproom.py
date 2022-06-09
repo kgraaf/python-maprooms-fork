@@ -95,15 +95,6 @@ def table_columns(dataset_config, bad_years_key, forecast_keys, obs_keys,
         tooltip="The year whose forecast is displayed on the map",
         type=ColType.SPECIAL,
     )
-    tcs["enso_state"] = dict(
-        name="ENSO State",
-        tooltip=(
-            "Displays whether an El Niño, Neutral, "
-            "or La Niña state occurred during the year"
-        ),
-        class_name=class_funcs['nino'],
-        type=ColType.SPECIAL,
-    )
 
     def make_column(ds_config, col_type):
         format_func = format_funcs[ds_config.get('format', 'number')]
@@ -120,10 +111,20 @@ def table_columns(dataset_config, bad_years_key, forecast_keys, obs_keys,
     for key in forecast_keys:
         tcs[key] = make_column(dataset_config['forecasts'][key], ColType.FORECAST)
 
+    tcs[bad_years_key] = make_column(dataset_config['observations'][bad_years_key], ColType.OBS)
+
     for key in obs_keys:
         tcs[key] = make_column(dataset_config['observations'][key], ColType.OBS)
 
-    tcs[bad_years_key] = make_column(dataset_config['observations'][bad_years_key], ColType.OBS)
+    tcs["enso_state"] = dict(
+        name="ENSO State",
+        tooltip=(
+            "Displays whether an El Niño, Neutral, "
+            "or La Niña state occurred during the year"
+        ),
+        class_name=class_funcs['nino'],
+        type=ColType.SPECIAL,
+    )
 
     return tcs
 
