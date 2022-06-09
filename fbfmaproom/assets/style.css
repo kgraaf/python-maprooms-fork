@@ -134,12 +134,3 @@ table.supertable tr:last-child td {
     background-color: #ff6961;
     color: white;
 }
-
-.cell-good-year {
-    background-color: rgb(230, 230, 250);
-}
-
-.cell-bad-year {
-    background-color: rgb(64, 9, 101);
-    color: white;
-}

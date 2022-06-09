@@ -22,122 +22,54 @@ def test_year_label_straddle():
 def test_from_month_since_360Day():
     assert fbfmaproom.from_month_since_360Day(735.5) == DT360(2021, 4, 16)
 
-def test_generate_tables():
-    main_df, summary_df, prob_thresh = fbfmaproom.generate_tables(
-        country_key='ethiopia',
-        obs_dataset_keys=['rain', 'ndvi'],
-        season_config={
-            'label': 'MAM',
-            'target_month': 3.5,
-            'length': 3.0,
-            'issue_months': [11, 0, 1],
-            'year_range': [1983, 2021]
-        },
-        table_columns=OrderedDict([
-            ('year_label', {'name': 'Year'}),
-            ('enso_state', {'name': 'ENSO State'}),
-            ('pnep', {'name': 'Forecast, %'}),
-            ('rain', {'name': 'Rain'}),
-            ('ndvi', {'name': 'NDVI'}),
-            ('bad_year', {'name': 'Reported Bad Years'}),
-        ]),
-        issue_month0=1,
+def test_table_cb():
+    table, prob_thresh = fbfmaproom.table_cb.__wrapped__(
+        issue_month0 = 1,
         freq=30,
         mode='0',
         geom_key='ET05',
+        pathname='/fbfmaproom/ethiopia',
         severity=0,
+        obs_keys=['rain', 'ndvi'],
+        trigger_key="pnep",
+        bad_years_key="bad-years",
+        season='season1',
     )
+    assert np.isclose(prob_thresh, 36.930862)
 
-    # for c in main_df.columns:
-    #     print(f'{c}={list(main_df[c].values)}')
+    thead, tbody = table.children
+    assert len(thead.children) == 6
+    assert len(thead.children[0].children) == 6
 
-    expected_main = pd.DataFrame.from_dict(dict(
-        time=[DT360(year, 4, 16) for year in range(2021, 1982, -1)],
-        year_label=[
-            '2021', '2020', '2019', '2018', '2017', '2016', '2015', '2014',
-            '2013', '2012', '2011', '2010', '2009', '2008', '2007', '2006',
-            '2005', '2004', '2003', '2002', '2001', '2000', '1999', '1998',
-            '1997', '1996', '1995', '1994', '1993', '1992', '1991', '1990',
-            '1989', '1988', '1987', '1986', '1985', '1984', '1983'
-        ],
-        enso_state=[
-            'La Niña', 'Neutral', 'El Niño', 'La Niña', 'Neutral', 'El Niño',
-            'El Niño', 'Neutral', 'Neutral', 'La Niña', 'La Niña', 'Neutral',
-            'Neutral', 'La Niña', 'Neutral', 'Neutral', 'Neutral', 'Neutral',
-            'Neutral', 'Neutral', 'Neutral', 'La Niña', 'La Niña', 'El Niño',
-            'Neutral', 'Neutral', 'Neutral', 'Neutral', 'Neutral', 'El Niño',
-            'Neutral', 'Neutral', 'La Niña', 'Neutral', 'El Niño', 'Neutral',
-            'La Niña', 'Neutral', 'El Niño'
-        ],
-        pnep=[
-            '34.04', '26.84', '34.28', '32.35', '36.43', '31.38', '32.21',
-            '33.35', '38.26', '38.26', '37.05', '30.61', '36.07', '41.86',
-            '34.10', '42.46', '36.14', '36.93', '35.87', '31.45', '35.50',
-            '40.70', '40.95', '28.68', '35.04', '33.82', '35.92', '37.54',
-            '29.53', '39.90', '27.96', '28.82', '34.68', '35.84', '31.13',
-            '35.42', '38.82', '38.87', '36.09'
-        ],
-        rain=[
-            "59.67", "71.92", "43.36", "81.79", "40.73", "67.25", "52.72",
-            "45.29", "76.64", "50.87", "37.18", "77.10", "39.50", "38.61",
-            "57.76", "58.02", "57.87", "42.22", "48.64", "42.44", "42.78",
-            "39.53", "40.38", "57.17", "58.75", "64.03", "67.12", "59.67",
-            "59.69", "36.44", "61.27", "60.49", "73.32", "58.78", "93.17",
-            "63.68", "76.74", "31.49", "56.26"
-        ],
-        ndvi=[
-            "0.30", "0.32", "0.24", "0.31", "0.24", "0.27", "0.27", "0.25",
-            "0.31", "0.24", "0.22", "0.31", "0.23", "0.22", "0.27", "0.26",
-            "0.26", "0.25", "0.25", "0.25", "0.24", "", "", "", "", "", "",
-            "", "", "", "", "", "", "", "", "", "", "", ""
-        ],
-        bad_year=[
-            '', '', '', '', 'Bad', 'Bad', '', '', '', '', 'Bad',
-            '', 'Bad', 'Bad', '', '', 'Bad', '', '', '', '', 'Bad',
-            'Bad', '', '', '', '', '', '', 'Bad', '', '', '',
-            '', '', '', '', 'Bad', ''
-        ],
-        worst_rain=[
-            0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1, 1, 0, 0, 0, 1, 0, 1, 1, 1,
-            1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0
-        ],
-        worst_ndvi=[
-            0.,  0.,  1.,  0.,  1.,  0.,  0.,  0.,  0.,  0.,  1.,  0.,  1.,  1.,
-            0.,  0.,  0.,  0., 0.,  0.,  1., np.nan, np.nan, np.nan, np.nan,
-            np.nan, np.nan, np.nan, np.nan, np.nan, np.nan, np.nan, np.nan,
-            np.nan, np.nan, np.nan, np.nan, np.nan, np.nan
-        ],
-        worst_pnep=[
-            0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1,
-            1, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 1, 1, 0
-        ],
-    )).set_index("time")
-    pd.testing.assert_frame_equal(main_df, expected_main, check_index_type=False)
+    assert thead.children[0].children[0].children[0].children == 'Worthy-action:'
+    assert thead.children[1].children[0].children[0].children == 'Act-in-vain:'
+    assert thead.children[2].children[0].children[0].children == 'Fail-to-act:'
+    assert thead.children[3].children[0].children[0].children == 'Worthy-Inaction:'
+    assert thead.children[4].children[0].children[0].children == 'Rate:'
 
-    # for c in summary_df.columns:
-    #     print(f'{c}={list(summary_df[c].values)}')
-    expected_summary = pd.DataFrame.from_dict(dict(
-        year_label=['Worthy-action:', 'Act-in-vain:', 'Fail-to-act:',
-                    'Worthy-Inaction:', 'Rate:'],
-        enso_state=[2, 5, 8, 24, '66.67%'],
-        pnep=[6, 5, 4, 24, '76.92%'],
-        rain=[8, 3, 2, 26, '87.18%'],
-        ndvi=[4, 2, 2, 13, '80.95%'],
-        tooltip=[
-            "Drought was forecasted and a ‘bad year’ occurred",
-            "Drought was forecasted but a ‘bad year’ did not occur",
-            "No drought was forecasted but a ‘bad year’ occurred",
-            "No drought was forecasted, and no ‘bad year’ occurred",
-            "Gives the percentage of worthy-action and worthy-inactions",
-        ],
-        bad_year=[np.nan, np.nan, np.nan, np.nan, np.nan],
-    ))
-    pd.testing.assert_frame_equal(
-        summary_df.set_index("year_label"),
-        expected_summary.set_index("year_label")
-    )
+    assert thead.children[5].children[5].children[0].children == "ENSO State"
+    assert thead.children[0].children[5].children == 2
+    assert thead.children[1].children[5].children == 5
+    assert thead.children[2].children[5].children == 8
+    assert thead.children[3].children[5].children == 24
+    assert thead.children[4].children[5].children == "66.67%"
 
-    assert np.isclose(prob_thresh, 37.052727)
+    assert len(tbody.children) == 40 # will break when we add a new year
+
+    row = tbody.children[3]
+    assert row.children[0].children == '2019'
+    assert row.children[0].className == ''
+    assert row.children[5].children == 'El Niño'
+    assert row.children[5].className == 'cell-severity-0'
+    assert row.children[1].children == '34.3'
+    assert row.children[1].className == ''
+    assert row.children[3].children == '43.4'
+    assert row.children[3].className == ''
+    assert row.children[4].children == '0.2'
+    assert row.children[4].className == 'cell-severity-0'
+    assert row.children[2].children == ''
+    assert row.children[2].className == ''
+
 
 # overlaps with test_generate_tables, but this one uses synthetic
 # data. Merge them?
@@ -150,23 +82,39 @@ def test_augment_table_data():
     # obs_summ             fn   tn   tn   tp
     # worst_pnep      F    F    T    F    F
     # pnep_summ       tn   fn   fp   tn   fn
+    time = [DT360(y, 1, 16) for y in range(2022, 2016, -1)]
     main_df = pd.DataFrame(
-        index=[DT360(y, 1, 16) for y in range(2022, 2016, -1)],
+        index=time,
         data={
-            "bad_year": [True, False, True, False, False, True],
+            "bad-years": [1, 0, 1, 0, 0, 1],
             "enso_state": [np.nan, np.nan, "El Niño", "La Niña", "El Niño", "Neutral"],
-            "rain": [np.nan, np.nan, 200., 400., 300., 100.],
             "pnep": [np.nan, 19.606438, 29.270180, 33.800949, 12.312943, 1.],
+            "rain": [np.nan, np.nan, 200., 400., 300., 100.],
+            "time": time,
         }
     )
     freq = 34
-    aug, summ, prob = fbfmaproom.augment_table_data(main_df, freq, ["rain"], {"rain": {"worst": "lowest"}})
+    table_columns = {
+        "bad-years": {
+            "lower_is_worse": False,
+            "type": fbfmaproom.ColType.OBS,
+        },
+        "pnep": {
+            "lower_is_worse": False,
+            "type": fbfmaproom.ColType.FORECAST,
+        },
+        "rain": {
+            "lower_is_worse": True,
+            "type": fbfmaproom.ColType.OBS,
+        },
+    }
+
+    aug, summ, prob = fbfmaproom.augment_table_data(main_df, freq, table_columns, "pnep", "bad-years")
 
     expected_aug = main_df.copy()
-    expected_aug["rain"] = [np.nan, np.nan, 200, 400, 300, 100]
-    expected_aug["worst_rain"] = [np.nan, np.nan, 0, 0, 0, 1]
-    expected_aug["pnep"] = [np.nan, 19.606438, 29.27018, 33.800949, 12.312943,  1.]
+    expected_aug["worst_bad-years"] = [1, 0, 1, 0, 0, 1]
     expected_aug["worst_pnep"] = [np.nan, 0, 0, 1, 0, 0]
+    expected_aug["worst_rain"] = [np.nan, np.nan, 0, 0, 0, 1]
     pd.testing.assert_frame_equal(expected_aug, aug, check_column_type=True)
 
     expected_summ = pd.DataFrame(dict(
@@ -179,27 +127,35 @@ def test_augment_table_data():
 
     assert np.isclose(prob, 33.800949)
 
-def test_pnep_tile_url_callback_yesdata():
-    url, is_alert = fbfmaproom.pnep_tile_url_callback.__wrapped__(
-        2021, 2, 30, '/fbfmaproom/ethiopia', 'season1'
+def test_forecast_tile_url_callback_yesdata():
+    url, is_alert, colormap = fbfmaproom.tile_url_callback.__wrapped__(
+        2021, 2, 30, '/fbfmaproom/ethiopia', 'pnep', 'season1'
     )
-    assert url == '/fbfmaproom-tiles/pnep/{z}/{x}/{y}/ethiopia/season1/2021/2/30'
+    assert url == '/fbfmaproom-tiles/forecast/pnep/{z}/{x}/{y}/ethiopia/season1/2021/2/30'
     assert not is_alert
+    assert type(colormap) == list
 
-def test_pnep_tile_url_callback_nodata():
-    url, is_alert = fbfmaproom.pnep_tile_url_callback.__wrapped__(
-        3333, 2, 30, '/fbfmaproom/ethiopia', 'season1'
+def test_forecast_tile_url_callback_nodata():
+    url, is_alert, colormap = fbfmaproom.tile_url_callback.__wrapped__(
+        3333, 2, 30, '/fbfmaproom/ethiopia', 'pnep', 'season1'
     )
     assert url == ''
     assert is_alert
+    assert type(colormap) == list
 
-def test_pnep_tiles():
+def test_forecast_tile():
     with fbfmaproom.SERVER.test_client() as client:
-        resp = client.get('/fbfmaproom-tiles/pnep/6/40/27/ethiopia/season1/2021/2/30')
+        resp = client.get('/fbfmaproom-tiles/forecast/pnep/6/40/27/ethiopia/season1/2021/2/30')
     assert resp.status_code == 200
     assert resp.mimetype == "image/png"
 
-def test_vuln_tiles():
+def test_obs_tile():
+    with fbfmaproom.SERVER.test_client() as client:
+        resp = client.get('/fbfmaproom-tiles/obs/rain/6/40/27/ethiopia/season1/2021')
+    assert resp.status_code == 200
+    assert resp.mimetype == "image/png"
+
+def test_vuln_tile():
     with fbfmaproom.SERVER.test_client() as client:
         resp = client.get("/fbfmaproom-tiles/vuln/6/39/30/ethiopia/0/2019")
     assert resp.status_code == 200
@@ -275,62 +231,6 @@ def test_pnep_percentile_straddle():
     d = r.json
     assert np.isclose(d["probability"], 33.10532)
     assert d["triggered"] is True
-
-
-def test_download_table_all_freq():
-    with fbfmaproom.SERVER.test_client() as client:
-        resp = client.get(
-            '/fbfmaproom/download_table?country_key=ethiopia'
-            '&obs_dataset_key=rain'
-            '&season_id=season1'
-            '&issue_month=jan'
-            '&mode=0'
-            '&geom_key=ET05'
-        )
-    #print(resp.data)
-    assert resp.status_code == 200
-    assert resp.mimetype == "text/csv"
-    csv_file = io.StringIO(resp.get_data(as_text=True))
-    df = pd.read_csv(csv_file)
-    print(df.columns)
-    assert list(df.columns) == [
-       'time', 'bad_year', 'obs', 'enso_state', 'pnep_05', 'pnep_10',
-       'pnep_15', 'pnep_20', 'pnep_25', 'pnep_30', 'pnep_35', 'pnep_40',
-       'pnep_45', 'pnep_50', 'pnep_55', 'pnep_60', 'pnep_65', 'pnep_70',
-       'pnep_75', 'pnep_80', 'pnep_85', 'pnep_90', 'pnep_95'
-    ]
-    onerow = df[df["time"] == "2019-04-16"]
-    assert len(onerow) == 1
-    assert onerow["bad_year"].values[0] == 0.0
-    assert np.isclose(onerow["obs"].values[0], 43.36238)
-    assert np.isclose(onerow["pnep_30"].values[0], 33.700)
-    assert onerow["enso_state"].values[0] == "El Niño"
-
-def test_download_table_one_freq():
-    with fbfmaproom.SERVER.test_client() as client:
-        resp = client.get(
-            '/fbfmaproom/download_table?country_key=ethiopia'
-            '&obs_dataset_key=rain'
-            '&season_id=season1'
-            '&issue_month=jan'
-            '&mode=0'
-            '&geom_key=ET05'
-            '&freq=30'
-        )
-    assert resp.status_code == 200
-    assert resp.mimetype == "text/csv"
-    csv_file = io.StringIO(resp.get_data(as_text=True))
-    df = pd.read_csv(csv_file)
-    assert list(df.columns) == [
-        'time', 'bad_year', 'obs', 'enso_state', 'worst_pnep', 'pnep_30',
-    ]
-    onerow = df[df["time"] == "2019-04-16"]
-    assert len(onerow) == 1
-    assert onerow["bad_year"].values[0] == 0.0
-    assert np.isclose(onerow["obs"].values[0], 43.36238)
-    assert np.isclose(onerow["pnep_30"].values[0], 33.700)
-    assert onerow["enso_state"].values[0] == "El Niño"
-    assert onerow["worst_pnep"].values[0] == 0
 
 
 def test_stats():

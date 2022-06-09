@@ -25,6 +25,7 @@ from shapely.geometry.multipoint import MultiPoint
 from psycopg2 import sql
 import math
 import traceback
+import enum
 
 import __about__ as about
 import pyaconf
@@ -73,51 +74,110 @@ APP.title = "FBF--Maproom"
 APP.layout = fbflayout.app_layout()
 
 
-def table_columns(obs_config, obs_dataset_keys, severity):
+def table_columns(dataset_config, bad_years_key, forecast_keys, obs_keys,
+                  severity, season_length):
+    format_funcs = {
+        'year': lambda midpoint: year_label(midpoint, season_length),
+        'number0': number_formatter(0),
+        'number1': number_formatter(1),
+        'number2': number_formatter(2),
+        'number3': number_formatter(3),
+        'number4': number_formatter(4),
+        'timedelta_days': format_timedelta_days,
+        'bad': format_bad,
+    }
 
-    obs_dataset_names = {k: v["label"] for k, v in obs_config.items()}
+    class_funcs = {
+        'nino': lambda col_name, row: nino_class(col_name, row, severity),
+        'worst': lambda col_name, row: worst_class(col_name, row, severity),
+    }
+
     tcs = OrderedDict()
-    tcs["year_label"] = dict(name="Year", style=None,
-                             tooltip="The year whose forecast is displayed on the map")
-    tcs["enso_state"] = dict(name="ENSO State",
-                             tooltip="Displays whether an El Niño, Neutral, or La Niña state occurred during the year",
-                             style=lambda row: {'El Niño': 'cell-el-nino',
-                                                'La Niña': 'cell-la-nina',
-                                                'Neutral': 'cell-neutral'}.get(row['enso_state'], ""))
-    tcs["pnep"] = dict(name="Forecast, %",
-                           tooltip="Displays all the historical flexible forecast for the selected issue month and location",
-                           style=lambda row: "cell-severity-" + str(severity) if row['worst_pnep'] == 1 else "")
+    tcs["time"] = dict(
+        name="Year",
+        format=format_funcs['year'],
+        class_name=None,
+        tooltip="The year whose forecast is displayed on the map",
+        type=ColType.SPECIAL,
+    )
 
-    def units(obs_key):
-        ds_config = obs_config[obs_key]
+    def make_column(ds_config, col_type):
+        format_func = format_funcs[ds_config.get('format', 'number1')]
+        class_func = class_funcs[ds_config.get('class', 'worst')]
         if 'units' in ds_config:
-            return ds_config['units']
-        return open_obs_from_config(ds_config).attrs.get('units')
-
-    def make_obs_column(obs_key):
+            units = ds_config['units']
+        elif col_type is ColType.OBS:
+            units = open_obs_from_config(ds_config).attrs.get('units')
+        elif col_type is ColType.FORECAST:
+            units = open_forecast_from_config(ds_config).attrs.get('units')
+        else:
+            units = None
         return dict(
-            name=obs_dataset_names[obs_key],
-            units=units(obs_key),
-            style=lambda row: "cell-severity-" + str(severity) if row[f'worst_{obs_key}'] == 1 else "",
-            tooltip=None,
+            name=ds_config['label'],
+            units=units,
+            format=format_func,
+            class_name=class_func,
+            tooltip=ds_config.get('description'),
+            lower_is_worse=ds_config['lower_is_worse'],
+            type=col_type,
         )
 
-    for obs_key in obs_dataset_keys:
-        tcs[obs_key] = make_obs_column(obs_key)
+    for key in forecast_keys:
+        tcs[key] = make_column(dataset_config['forecasts'][key], ColType.FORECAST)
 
-    def bad_year_css(row):
-        r = row['bad_year']
-        if pd.notna(r):
-            if r == "Bad":
-                return "cell-bad-year"
-            else:
-                return "cell-good-year"
-        else:
-            return ""
-    tcs["bad_year"] = dict(name="Reported Bad Years",
-                           style=bad_year_css,
-                           tooltip="Historical drought years based on farmers' recollection")
+    tcs[bad_years_key] = make_column(dataset_config['observations'][bad_years_key], ColType.OBS)
+
+    for key in obs_keys:
+        tcs[key] = make_column(dataset_config['observations'][key], ColType.OBS)
+
+    tcs["enso_state"] = dict(
+        name="ENSO State",
+        tooltip=(
+            "Displays whether an El Niño, Neutral, "
+            "or La Niña state occurred during the year"
+        ),
+        class_name=class_funcs['nino'],
+        type=ColType.SPECIAL,
+    )
+
     return tcs
+
+
+class ColType(enum.Enum):
+    FORECAST = enum.auto()
+    OBS = enum.auto()
+    SPECIAL = enum.auto()
+
+
+def number_formatter(precision):
+    def f(x):
+        if np.isnan(x):
+            return ""
+        return f"{x:.{precision}f}"
+    return f
+
+
+def format_bad(x):
+    if np.isnan(x) or np.isclose(x, 0):
+        return ""
+    else:
+        return "Bad"
+
+
+def format_timedelta_days(x):
+        return format_number(x.days + x.seconds / 60 / 60 / 24)
+
+
+def nino_class(col_name, row, severity):
+    if row[col_name] == 'El Niño':
+        return f'cell-severity-{severity}'
+    return ""
+
+
+def worst_class(col_name, row, severity):
+    if row[f'worst_{col_name}'] == 1:
+        return f'cell-severity-{severity}'
+    return ''
 
 
 def data_path(relpath):
@@ -133,11 +193,15 @@ def open_data_array(
     if var_key is None:
         da = xr.DataArray()
     else:
-        da = (
-            xr.open_zarr(data_path(cfg["path"]), consolidated=False)
-            .rename({v: k for k, v in cfg["var_names"].items() if v})
-            [var_key]
-        )
+        try:
+            da = (
+                xr.open_zarr(data_path(cfg["path"]), consolidated=False)
+                .rename({v: k for k, v in cfg["var_names"].items() if v})
+                [var_key]
+            )
+        except Exception as e:
+            raise Exception(f"Couldn't open {data_path(cfg['path'])}") from e
+
     # TODO: some datasets we pulled from ingrid already have colormap,
     # scale_max, and scale_min attributes. Should we just use those,
     # instead of getting them from the config file and/or computing
@@ -169,19 +233,15 @@ def open_vuln(country_key):
     )
 
 
-def open_pnep(country_key):
-    dataset_key = "pnep"
-    cfg = CONFIG["countries"][country_key]["datasets"][dataset_key]
-    return open_data_array(
-        cfg,
-        "pnep",
-        val_min=0.0,
-        val_max=100.0,
-    )
+def open_forecast(country_key, forecast_key):
+    cfg = CONFIG["countries"][country_key]["datasets"]["forecasts"][forecast_key]
+    return open_forecast_from_config(cfg)
 
+def open_forecast_from_config(ds_config):
+    return open_data_array(ds_config, "pne", val_min=0.0, val_max=100.0)
 
-def open_obs(country_key, obs_dataset_key):
-    cfg = CONFIG["countries"][country_key]["datasets"]["observations"][obs_dataset_key]
+def open_obs(country_key, obs_key):
+    cfg = CONFIG["countries"][country_key]["datasets"]["observations"][obs_key]
     return open_obs_from_config(cfg)
 
 
@@ -196,43 +256,16 @@ ENSO_STATES = {
 }
 
 
-def fetch_enso():
+def fetch_enso(month0):
     path = data_path(CONFIG["dataframes"]["enso"])
-    ds = xr.open_zarr(path, consolidated=False)
+    ds = xr.open_zarr(path, consolidated=False).where(
+        lambda ds: ds["T"].dt.month == int(month0) + 1,
+        drop=True
+    )
     df = ds.to_dataframe()
     df["enso_state"] = df["dominant_class"].apply(lambda x: ENSO_STATES[x])
     df = df.drop("dominant_class", axis="columns")
     df = df.set_index(df.index.rename("time"))
-    return df
-
-
-def fetch_bad_years(country_key):
-    config = CONFIG
-    dbpool = DBPOOL
-    dc = config["dataframes"]["bad_years"]
-    with dbpool.take() as cm:
-        conn = cm.resource
-        with conn:  # transaction
-            df = pd.read_sql_query(
-                sql.SQL(
-                    """
-                    select month_since_01011960, bad_year2 as bad_year
-                    from {schema}.{table}
-                    where lower(adm0_name) = %(country_key)s
-                    """
-                ).format(
-                    schema=sql.Identifier(dc["schema"]),
-                    table=sql.Identifier(dc["table"]),
-                ),
-                conn,
-                params={"country_key": country_key},
-                # Using pandas' nullable boolean type. boolean is
-                # different from bool, which is not nullable :-(
-                dtype={"bad_year": "boolean"},
-            )
-    df["time"] = df["month_since_01011960"].apply(from_month_since_360Day)
-    df = df.drop("month_since_01011960", axis=1)
-    df = df.set_index("time")
     return df
 
 
@@ -328,28 +361,25 @@ def retrieve_vulnerability(
 
 def generate_tables(
     country_key,
-    obs_dataset_keys,
     season_config,
     table_columns,
+    trigger_key,
+    bad_years_key,
     issue_month0,
     freq,
     mode,
     geom_key,
     severity,
 ):
-    basic_ds = fundamental_table_data(country_key, obs_dataset_keys,
+    basic_ds = fundamental_table_data(country_key, table_columns,
                                       season_config, issue_month0,
                                       freq, mode, geom_key)
-    obs_config = CONFIG["countries"][country_key]["datasets"]["observations"]
-    main_df, summary_df, prob_thresh = augment_table_data(
-        basic_ds.to_dataframe(), freq, obs_dataset_keys, obs_config
+    basic_df = basic_ds.drop_vars("pct").to_dataframe()
+    main_df, summary_df, trigger_thresh = augment_table_data(
+        basic_df, freq, table_columns, trigger_key, bad_years_key
     )
-    main_presentation_df = format_main_table(main_df, season_config["length"],
-                                             table_columns, severity, obs_dataset_keys)
     summary_presentation_df = format_summary_table(summary_df, table_columns)
-    # TODO no longer handling the case where geom_key is None. Does
-    # that ever actually happen?
-    return main_presentation_df, summary_presentation_df, prob_thresh
+    return main_df, summary_presentation_df, trigger_thresh
 
 
 def get_mpoly(mode, country_key, geom_key):
@@ -361,11 +391,11 @@ def get_mpoly(mode, country_key, geom_key):
     return mpolygon
 
 
-def select_pnep(country_key, issue_month0, target_month0,
-                target_year=None, freq=None, mpolygon=None):
+def select_forecast(country_key, forecast_key, issue_month0, target_month0,
+                    target_year=None, freq=None, mpolygon=None):
     l = (target_month0 - issue_month0) % 12
 
-    da = open_pnep(country_key)
+    da = open_forecast(country_key, forecast_key)
 
     issue_dates = da["issue"].where(da["issue"].dt.month == issue_month0 + 1, drop=True)
     da = da.sel(issue=issue_dates)
@@ -400,18 +430,19 @@ def select_pnep(country_key, issue_month0, target_month0,
 
 
 
-def select_obs(country_key, obs_dataset_keys, mpolygon=None):
+def select_obs(country_key, obs_keys, mpolygon=None):
     ds = xr.Dataset(
         data_vars={
             obs_key: open_obs(country_key, obs_key)
-            for obs_key in obs_dataset_keys
+            for obs_key in obs_keys
         }
     )
-    ds = pingrid.average_over_trimmed(ds, mpolygon, all_touched=True)
+    if mpolygon is not None and 'lon' in ds.coords:
+        ds = pingrid.average_over_trimmed(ds, mpolygon, all_touched=True)
     return ds
 
 
-def fundamental_table_data(country_key, obs_dataset_keys,
+def fundamental_table_data(country_key, table_columns,
                            season_config, issue_month0, freq, mode,
                            geom_key):
     year_min, year_max = season_config["year_range"]
@@ -419,28 +450,28 @@ def fundamental_table_data(country_key, obs_dataset_keys,
     target_month = season_config["target_month"]
     mpolygon = get_mpoly(mode, country_key, geom_key)
 
-    bad_years_df = fetch_bad_years(country_key)
+    enso_df = fetch_enso(season_config["target_month"])
 
-    enso_df = fetch_enso()
-
-    obs_ds = select_obs(country_key, obs_dataset_keys, mpolygon)
-
-    pnep_da = select_pnep(country_key, issue_month0, target_month,
-                          freq=freq, mpolygon=mpolygon)
-
-    main_ds = xr.Dataset(
-        data_vars=dict(
-            bad_year=bad_years_df["bad_year"].to_xarray(),
-            pnep=pnep_da.rename({'target_date':"time"}),
-        )
+    forecast_ds = xr.Dataset(
+        data_vars={
+            forecast_key: select_forecast(
+                country_key, forecast_key, issue_month0, target_month,
+                freq=freq, mpolygon=mpolygon
+            ).rename({'target_date':"time"})
+            for forecast_key, col in table_columns.items()
+            if col["type"] is ColType.FORECAST
+        }
     )
+
+    obs_keys = [key for key, col in table_columns.items() if col["type"] is ColType.OBS]
+    obs_ds = select_obs(country_key, obs_keys, mpolygon)
+
     main_ds = xr.merge(
         [
-            main_ds,
+            forecast_ds,
+            enso_df["enso_state"].to_xarray(),
             obs_ds,
-            enso_df["enso_state"].to_xarray()
-        ],
-        join="left"
+        ]
     )
 
     year = main_ds["time"].dt.year
@@ -451,102 +482,57 @@ def fundamental_table_data(country_key, obs_dataset_keys,
     return main_ds
 
 
-def augment_table_data(main_df, freq, obs_dataset_keys, obs_config):
-    main_df = pd.DataFrame(main_df)
+def augment_table_data(main_df, freq, table_columns, trigger_key, bad_years_key):
+    main_df = main_df.copy()
 
-    obs = {
+    main_df["time"] = main_df.index.to_series()
+
+    regular_keys = [
+        key for key, col in table_columns.items()
+        if col["type"] is not ColType.SPECIAL
+    ]
+    regular_data = {
         key: main_df[key].dropna()
-        for key in obs_dataset_keys
+        for key in regular_keys
     }
-    pnep = main_df["pnep"].dropna()
-    bad_year = main_df["bad_year"].dropna().astype(bool)
     el_nino = main_df["enso_state"].dropna() == "El Niño"
 
-    def is_ascending(obs_dataset_key):
-        return obs_config[obs_dataset_key]["worst"] == "lowest"
+    def is_ascending(col_key):
+        return table_columns[col_key]["lower_is_worse"]
 
-    obs_rank_pct = {
-        key: obs[key].rank(method="first", ascending=is_ascending(key), pct=True)
-        for key in obs_dataset_keys
-    }
-    worst_obs = {
-        key: (obs_rank_pct[key] <= freq / 100).astype(bool)
-        for key in obs_dataset_keys
+    rank_pct = {
+        key: regular_data[key].rank(method="min", ascending=is_ascending(key), pct=True)
+        for key in regular_keys
     }
 
-    pnep_max_rank_pct = pnep.rank(method="first", ascending=False, pct=True)
-    worst_pnep = (pnep_max_rank_pct <= freq / 100).astype(bool)
-    prob_thresh = pnep[worst_pnep].min()
+    worst_flags = {}
+    for key in regular_keys:
+        if len(regular_data[key].unique()) == 2:
+            # special case for legacy boolean bad years
+            worst_flags[key] = regular_data[key].astype(bool)
+        else:
+            worst_flags[key] = (rank_pct[key] <= freq / 100).astype(bool)
+
+    bad_year = worst_flags[bad_years_key].dropna().astype(bool)
 
     summary_df = pd.DataFrame.from_dict(dict(
         enso_state=hits_and_misses(el_nino, bad_year),
-        pnep=hits_and_misses(worst_pnep, bad_year),
     ))
 
-    for key in obs_dataset_keys:
-        summary_df[key] = hits_and_misses(worst_obs[key], bad_year)
-        main_df[key] = obs[key]
-        main_df[f"worst_{key}"] = worst_obs[key].astype(int)
-    main_df["worst_pnep"] = worst_pnep.astype(int)
+    for key in regular_keys:
+        if key != bad_years_key:
+            summary_df[key] = hits_and_misses(worst_flags[key], bad_year)
+        main_df[key] = regular_data[key]
+        main_df[f"worst_{key}"] = worst_flags[key].astype(int)
 
-    return main_df, summary_df, prob_thresh
+    thresh = regular_data[trigger_key][worst_flags[trigger_key]].min()
 
-
-def format_number(x):
-    if np.isnan(x):
-        return ""
-    return f"{x:.2f}"
-
-
-def format_number_or_timedelta(x):
-    if hasattr(x, 'days'):
-        x = x.days + x.seconds / 60 / 60 / 24
-    return format_number(x)
-
-
-def format_bad(x):
-    # TODO some parts of the program use pandas boolean arrays, which
-    # use pd.NA as the missing value indicator, while others use
-    # xarray, which uses np.nan. This is annoying; I think we need to
-    # stop using boolean arrays. They're marked experimental in the
-    # pandas docs anyway.
-    if pd.isna(x):
-        return None
-    if np.isnan(x):
-        return None
-    if x is True:
-        return "Bad"
-    if x is False:
-        return ""
-    raise Exception(f"Invalid bad_year value {x}")
-
-
-def format_main_table(main_df, season_length, table_columns, severity, obs_dataset_keys):
-    main_df = pd.DataFrame(main_df)
-    midpoints = main_df.index.to_series()
-    main_df["year_label"] = midpoints.apply(lambda x: year_label(x, season_length))
-
-    main_df["pnep"] = main_df["pnep"].apply(format_number)
-
-    main_df["bad_year"] = main_df["bad_year"].apply(format_bad)
-
-    for key in obs_dataset_keys:
-        main_df[key] = main_df[key].apply(format_number_or_timedelta)
-
-    # Get the order right, and discard unneeded columns. I don't think
-    # order is actually important, but the test tests it.
-    main_df = main_df[
-        list(table_columns.keys()) +
-        [f"worst_{key}" for key in obs_dataset_keys] +
-        ["worst_pnep"]
-    ]
-
-    return main_df
+    return main_df, summary_df, thresh
 
 
 def format_summary_table(summary_df, table_columns):
     summary_df = pd.DataFrame(summary_df)
-    summary_df["year_label"] = [
+    summary_df["time"] = [
         "Worthy-action:",
         "Act-in-vain:",
         "Fail-to-act:",
@@ -598,10 +584,11 @@ def country(pathname: str) -> str:
     Output("marker", "position"),
     Output("season", "options"),
     Output("season", "value"),
-    Output("pnep_colorbar", "colorscale"),
     Output("vuln_colorbar", "colorscale"),
     Output("mode", "options"),
     Output("mode", "value"),
+    Output("bad_years", "options"),
+    Output("bad_years", "value"),
     Output("obs_datasets", "options"),
     Output("obs_datasets", "value"),
     Input("location", "pathname"),
@@ -619,7 +606,6 @@ def _(pathname):
     season_value = min(c["seasons"].keys())
     x, y = c["marker"]
     cx, cy = c["center"]
-    pnep_cs = pingrid.to_dash_colorscale(open_pnep(country_key).attrs["colormap"])
     vuln_cs = pingrid.to_dash_colorscale(open_vuln(country_key).attrs["colormap"])
     mode_options = [
         dict(
@@ -629,15 +615,19 @@ def _(pathname):
         for i, k in enumerate(c["shapes"])
     ] + [dict(label="Pixel", value="pixel")]
     mode_value = "0"
-    obs_datasets_cfg = c["datasets"]["observations"]
+
+    datasets_config = c["datasets"]
     obs_datasets_options = [
         dict(
             label=v["label"],
             value=k,
         )
-        for k, v in obs_datasets_cfg.items()
+        for k, v in datasets_config["observations"].items()
     ]
-    obs_datasets_value = [next(iter(obs_datasets_cfg.keys()))]
+    obs_datasets_value = [datasets_config["defaults"]["observations"]]
+    bad_years_options = obs_datasets_options
+    bad_years_value = datasets_config["defaults"]["bad_years"]
+
     return (
         f"{PFX}/custom/{c['logo']}",
         [cy, cx],
@@ -645,10 +635,11 @@ def _(pathname):
         [y, x],
         season_options,
         season_value,
-        pnep_cs,
         vuln_cs,
         mode_options,
         mode_value,
+        bad_years_options,
+        bad_years_value,
         obs_datasets_options,
         obs_datasets_value,
     )
@@ -789,25 +780,36 @@ def display_prob_thresh(val):
     Input("location", "pathname"),
     Input("severity", "value"),
     Input("obs_datasets", "value"),
+    Input("trigger_key", "value"),
+    Input("bad_years", "value"),
     State("season", "value"),
 )
-def _(issue_month0, freq, mode, geom_key, pathname, severity, obs_dataset_keys, season):
+def table_cb(issue_month0, freq, mode, geom_key, pathname, severity, obs_keys, trigger_key, bad_years_key, season):
     country_key = country(pathname)
     config = CONFIG["countries"][country_key]
-    tcs = table_columns(config["datasets"]["observations"], obs_dataset_keys, severity)
+    forecast_keys = [trigger_key]
+    tcs = table_columns(
+        config["datasets"],
+        bad_years_key,
+        forecast_keys,
+        obs_keys,
+        severity,
+        config["seasons"][season]["length"],
+    )
     try:
-        dft, dfs, prob_thresh = generate_tables(
+        dft, dfs, trigger_thresh = generate_tables(
             country_key,
-            obs_dataset_keys,
             config["seasons"][season],
             tcs,
+            trigger_key,
+            bad_years_key,
             issue_month0,
             freq,
             mode,
             geom_key,
             severity,
         )
-        return fbftable.gen_table(tcs, dfs, dft), prob_thresh
+        return fbftable.gen_table(tcs, dfs, dft), trigger_thresh
     except Exception as e:
         if isinstance(e, NotFoundError):
             # If it's the user just asked for a forecast that doesn't
@@ -892,33 +894,53 @@ def _(
 
 
 @APP.callback(
-    Output("pnep_layer", "url"),
+    Output("trigger_layer", "url"),
     Output("forecast_warning", "is_open"),
+    Output("trigger_colorbar", "colorscale"),
     Input("year", "value"),
     Input("issue_month", "value"),
     Input("freq", "value"),
     Input("location", "pathname"),
+    Input("trigger_key", "value"),
     State("season", "value"),
 )
-def pnep_tile_url_callback(target_year, issue_month0, freq, pathname, season_id):
-    country_key = country(pathname)
-    season_config = CONFIG["countries"][country_key]["seasons"][season_id]
-    target_month0 = season_config["target_month"]
-
+def tile_url_callback(target_year, issue_month0, freq, pathname, trigger_key, season_id):
+    colorscale = None  # default value in case an exception is raised
     try:
-        # Check if we have the requested data so that if we don't, we
-        # can explain why the map is blank.
-        select_pnep(country_key, issue_month0, target_month0, target_year, freq)
-        return f"{TILE_PFX}/pnep/{{z}}/{{x}}/{{y}}/{country_key}/{season_id}/{target_year}/{issue_month0}/{freq}", False
+        country_key = country(pathname)
+        country_config = CONFIG["countries"][country_key]
+        target_month0 = country_config["seasons"][season_id]["target_month"]
+        ds_configs = country_config["datasets"]
+        ds_config = ds_configs["forecasts"].get(trigger_key)
+        if ds_config is None:
+            trigger_is_forecast = False
+            ds_config = ds_configs["observations"][trigger_key]
+        else:
+            trigger_is_forecast = True
+        colorscale = pingrid.to_dash_colorscale(ds_config["colormap"])
+
+        if trigger_is_forecast:
+            # Check if we have the requested data so that if we don't, we
+            # can explain why the map is blank.
+            select_forecast(country_key, trigger_key, issue_month0, target_month0, target_year, freq)
+            tile_url = f"{TILE_PFX}/forecast/{trigger_key}/{{z}}/{{x}}/{{y}}/{country_key}/{season_id}/{target_year}/{issue_month0}/{freq}"
+        else:
+            # As for select_forecast above
+            select_obs(country_key, [trigger_key])
+            tile_url = f"{TILE_PFX}/obs/{trigger_key}/{{z}}/{{x}}/{{y}}/{country_key}/{season_id}/{target_year}"
+        error = False
+
     except Exception as e:
+        tile_url = ""
+        error = True
         if isinstance(e, NotFoundError):
             # If user asked for a forecast that hasn't been issued yet, no
             # need to log it.
             pass
         else:
             traceback.print_exc()
-        # if no raster data can be created then set the URL to be blank
-        return "", True
+
+    return tile_url, error, colorscale
 
 
 @APP.callback(
@@ -959,13 +981,28 @@ def borders(pathname, mode):
 
 
 @SERVER.route(
-    f"{TILE_PFX}/pnep/<int:tz>/<int:tx>/<int:ty>/<country_key>/<season_id>/<int:target_year>/<int:issue_month0>/<int:freq>"
+    f"{TILE_PFX}/forecast/<forecast_key>/<int:tz>/<int:tx>/<int:ty>/<country_key>/<season_id>/<int:target_year>/<int:issue_month0>/<int:freq>"
 )
-def pnep_tiles(tz, tx, ty, country_key, season_id, target_year, issue_month0, freq):
+def forecast_tile(forecast_key, tz, tx, ty, country_key, season_id, target_year, issue_month0, freq):
     season_config = CONFIG["countries"][country_key]["seasons"][season_id]
     target_month0 = season_config["target_month"]
 
-    da = select_pnep(country_key, issue_month0, target_month0, target_year, freq)
+    da = select_forecast(country_key, forecast_key, issue_month0, target_month0, target_year, freq)
+    p = tuple(CONFIG["countries"][country_key]["marker"])
+    clipping, _ = retrieve_geometry(country_key, p, "0", None)
+    resp = pingrid.tile(da, tx, ty, tz, clipping)
+    return resp
+
+
+@SERVER.route(
+    f"{TILE_PFX}/obs/<obs_key>/<int:tz>/<int:tx>/<int:ty>/<country_key>/<season_id>/<int:target_year>"
+)
+def obs_tile(obs_key, tz, tx, ty, country_key, season_id, target_year):
+    season_config = CONFIG["countries"][country_key]["seasons"][season_id]
+    target_month0 = season_config["target_month"]
+    da = select_obs(country_key, [obs_key])[obs_key]
+    target_date = cftime.Datetime360Day(target_year, int(target_month0) + 1, 16)
+    da = da.sel(time=target_date)
     p = tuple(CONFIG["countries"][country_key]["marker"])
     clipping, _ = retrieve_geometry(country_key, p, "0", None)
     resp = pingrid.tile(da, tx, ty, tz, clipping)
@@ -1051,6 +1088,8 @@ def pnep_percentile():
     bounds = parse_arg("bounds", required=False)
     region = parse_arg("region", required=False)
 
+    forecast_key = "pnep"
+
     if mode == "pixel":
         if bounds is None:
             raise InvalidRequestError("If mode is pixel then bounds must be provided")
@@ -1074,8 +1113,9 @@ def pnep_percentile():
     mpoly = get_mpoly(mode, country_key, geom_key)
 
     try:
-        pnep = select_pnep(country_key, issue_month0, target_month0, season_year,
-                           freq, mpolygon=mpoly)
+        pnep = select_forecast(country_key, forecast_key,issue_month0,
+                               target_month0, season_year, freq,
+                               mpolygon=mpoly)
     except KeyError:
         pnep = None
 
@@ -1116,64 +1156,6 @@ def retrieve_geometry2(country_key: str, mode: int, region_key: str):
     row = df.iloc[0]
     geom = wkb.loads(row["the_geom"].tobytes())
     return row["label"], geom
-
-
-@SERVER.route(f"{PFX}/download_table")
-def download_table():
-    country_key = parse_arg("country_key")
-    obs_dataset_key = parse_arg("obs_dataset_key")
-    season_id = parse_arg("season_id")
-    issue_month = parse_arg("issue_month")
-    mode = parse_arg("mode")
-    geom_key = parse_arg("geom_key")
-    freq = parse_arg("freq", int, required=False)
-
-    country_config = CONFIG["countries"][country_key]
-    season_config = country_config["seasons"][season_id]
-    issue_month0 = abbrev_to_month0[issue_month]
-    obs_dataset_keys = [obs_dataset_key]
-
-    main_ds = fundamental_table_data(
-        country_key, obs_dataset_keys, season_config, issue_month0, freq=freq,
-        mode=mode, geom_key=geom_key
-    )
-    if freq is not None:
-        obs_config = country_config["datasets"]["observations"]
-        augmented_df, _, _ = augment_table_data(
-            main_ds.to_dataframe(), freq, obs_dataset_keys, obs_config
-        )
-        main_ds["worst_pnep"] = augmented_df["worst_pnep"]
-
-    # flatten the 2d variable pnep into 19 1d variables pnep_05, pnep_10, ...
-    if freq is None:
-        freqs = range(5, 100, 5)
-    else:
-        freqs = [freq]
-        # Add a pct dimension with a single value so that
-        # .sel(pct=pct) below will work.
-        main_ds["pnep"] = main_ds["pnep"].expand_dims("pct")
-    for pct in freqs:
-        main_ds[f'pnep_{pct:02}'] = main_ds["pnep"].sel(pct=pct)
-    main_ds = main_ds.drop_vars(["pnep", "pct"])
-
-    buf = io.StringIO()
-    df = main_ds.to_dataframe()
-    time = df.index.map(lambda x: x.strftime('%Y-%m-%d'))
-    df["time"] = time
-    df["bad_year"] = df["bad_year"].astype("float") # to acommodate NaN as missing value indicator
-
-    # rename the obs column "obs" for backwards compatibility
-    df = df.rename(columns={obs_dataset_key: "obs"})
-
-    cols = ["time", "bad_year", "obs", "enso_state"]
-    if freq is not None:
-        cols.append("worst_pnep")
-    cols += [f"pnep_{pct:02}" for pct in freqs]
-    df.to_csv(buf, columns=cols, index=False)
-    output = flask.make_response(buf.getvalue())
-    output.headers["Content-Disposition"] = "attachment; filename=export.csv"
-    output.headers["Content-Type"] = "text/csv"
-    return output
 
 
 if __name__ == "__main__":

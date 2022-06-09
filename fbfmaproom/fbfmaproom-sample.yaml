@@ -35,9 +35,6 @@ dbpool:
     recycle_interval: 60  # (seconds) set to null to disable recycler thread
 
 dataframes:
-    bad_years:
-        schema: public
-        table: fbf_maproom
     enso: enso.zarr
 
 
@@ -74,9 +71,13 @@ countries:
               vuln_sql: select (adm0_code, adm1_code, adm2_code) as key, year, sum(vulnerability) as vuln
                   from public.fbf_vulnerability where adm0_name = 'Malawi' group by 1, 2
         datasets:
+            defaults:
+                observations: rain
+                bad_years: bad-years
             observations:
                 rain:
                     label: Rain
+                    description: CMAP average precipitation over the season
                     path: rain-malawi.zarr
                     var_names:
                         obs: prcp_est
@@ -88,19 +89,32 @@ countries:
                         7262835 [7262835 22] 6931300 [6931300 23] 5944410 [5944410 23]
                         5285200 [5285200 23] 4625990 [4625990 22] 3966780 [3966780 23]
                         3307570 [3307570 23] 2648360 [2648360 23] 1989150]"
-                    worst: lowest
-            pnep:
-                path: pnep-malawi.zarr
-                var_names:
-                    pnep: prob
-                    lat: Y
-                    lon: X
-                    issue: S
-                    lead: L
-                    pct: P
-                colormap: &pnepcm "[0x0000ba 0x004fff 0x3ec5f5 0x7fffd4 0x97fc00
-                    0xd8fe00 0xffe800 0xffac00 0xff7b00 0xff5900 0xff3500 0xff1300
-                    0xef0000 0xd10000 0xb00000 0x8f0000 [0x800000 4]]"
+                    lower_is_worse: yes
+                bad-years:
+                    label: Reported bad years
+                    path: malawi/bad-years.zarr
+                    var_names:
+                        obs: bad
+                        time: T
+                    colormap: *raincm
+                    lower_is_worse: no
+                    format: bad
+            forecasts:
+                pnep:
+                    label: Forecast prob non-exc
+                    description: IRI Flexible Seasonal Forecast probability of non-exceedance of the selected percentile
+                    path: pnep-malawi.zarr
+                    var_names:
+                        pne: prob
+                        lat: Y
+                        lon: X
+                        issue: S
+                        lead: L
+                        pct: P
+                    colormap: &pnepcm "[0x0000ba 0x004fff 0x3ec5f5 0x7fffd4 0x97fc00
+                        0xd8fe00 0xffe800 0xffac00 0xff7b00 0xff5900 0xff3500 0xff1300
+                        0xef0000 0xd10000 0xb00000 0x8f0000 [0x800000 4]]"
+                    lower_is_worse: no
             vuln:
                 colormap: &vulncm "[0xffff00 [0xffff00 4] 0xfff500 0xffde00 0xffc300 0xffae00
                     0xff9900 0xff7e00 0xff6200 0xff4600 0xff2f00 0xff0b00 0xf70000
@@ -147,9 +161,13 @@ countries:
                   from public.fbf_vulnerability where adm0_name = 'Madagascar' group by 1, 2
 
         datasets:
+            defaults:
+                observations: rain
+                bad_years: bad-years
             observations:
                 rain:
                     label: Rain
+                    description: ENACTS average precipitation over the season
                     path: madagascar/enacts-precip-djf.zarr
                     var_names:
                         obs: rfe
@@ -157,17 +175,30 @@ countries:
                         lon: X
                         time: T
                     colormap: *raincm
-                    worst: lowest
-            pnep:
-                path: madagascar/pnep-djf.zarr
-                var_names:
-                    pnep: pne
-                    lat: Y
-                    lon: X
-                    issue: S
-                    lead: null  # dataset has forecasts for only one season; L is implicit.
-                    pct: P
-                colormap: *pnepcm
+                    lower_is_worse: yes
+                bad-years:
+                    label: Reported bad years
+                    path: madagascar/bad-years.zarr
+                    var_names:
+                        obs: bad
+                        time: T
+                    colormap: *raincm
+                    lower_is_worse: no
+                    format: bad
+            forecasts:
+                pnep:
+                    label: Forecast prob non-exc
+                    description: NextGen forecast probability of non-exceedance of the selected percentile
+                    path: madagascar/pnep-djf.zarr
+                    var_names:
+                        pne: pne
+                        lat: Y
+                        lon: X
+                        issue: S
+                        lead: null  # dataset has forecasts for only one season; L is implicit.
+                        pct: P
+                    colormap: *pnepcm
+                    lower_is_worse: no
             vuln:
                 colormap: *vulncm
                 range: [0.0, 5.0]
@@ -212,9 +243,13 @@ countries:
                   from public.fbf_vulnerability where adm0_name = 'Madagascar' group by 1, 2
 
         datasets:
+            defaults:
+                observations: enacts-precip-mon
+                bad_years: bad-years
             observations:
                 enacts-precip-mon:
                     label: ENACTS MON precip
+                    description: ENACTS monitoring average precipitation over the season
                     path: madagascar/enacts-precip-mon-ond.zarr
                     var_names:
                         obs: rfe
@@ -222,9 +257,10 @@ countries:
                         lon: X
                         time: T
                     colormap: *raincm
-                    worst: lowest
+                    lower_is_worse: yes
                 enacts-precip:
                     label: ENACTS ALL precip
+                    description: ENACTS all stations average precipitation over the season
                     path: madagascar/enacts-precip-ond.zarr
                     var_names:
                         obs: rfe
@@ -232,9 +268,10 @@ countries:
                         lon: X
                         time: T
                     colormap: *raincm
-                    worst: lowest
+                    lower_is_worse: yes
                 chirps-precip-ond:
                     label: CHIRPS Precip
+                    description: CHIRPS average precipitation over the season
                     path: madagascar/chirps-precip-ond.zarr
                     var_names:
                         obs: precipitation
@@ -242,9 +279,10 @@ countries:
                         lon: X
                         time: T
                     colormap: *raincm
-                    worst: lowest
+                    lower_is_worse: yes
                 ndvi:
-                    label: NDVI * 100
+                    label: NDVI
+                    description: MODIS NDVI average over the season
                     path: madagascar/ndvi-ond.zarr
                     var_names:
                         obs: NDVI
@@ -252,7 +290,8 @@ countries:
                         lon: X
                         time: T
                     colormap: *raincm
-                    worst: lowest
+                    lower_is_worse: yes
+                    format: number4
                 wrsi:
                     label: WRSI
                     path: madagascar/wrsi-ond.zarr
@@ -262,9 +301,10 @@ countries:
                         lon: X
                         time: T
                     colormap: *raincm
-                    worst: lowest
+                    lower_is_worse: yes
                 spi:
                     label: ENACTS MON SPI
+                    description: SPI calculated from ENACTS monitoring product
                     path: madagascar/enacts-mon-spi-ond.zarr
                     var_names:
                         obs: spi
@@ -272,17 +312,31 @@ countries:
                         lon: X
                         time: T
                     colormap: *raincm
-                    worst: lowest
-            pnep:
-                path: madagascar/pnep-ond.zarr
-                var_names:
-                    pnep: pne
-                    lat: Y
-                    lon: X
-                    issue: S
-                    lead: null  # dataset has forecasts for only one season; L is implicit.
-                    pct: P
-                colormap: *pnepcm
+                    lower_is_worse: yes
+                bad-years:
+                    label: Drought humanitarian ranking
+                    description: Drought ranking of expert committee humanitarian data review
+                    path: madagascar/bad-years-ond.zarr
+                    var_names:
+                        obs: rank
+                        time: T
+                    colormap: *raincm
+                    lower_is_worse: yes
+                    format: number0
+            forecasts:
+                pnep:
+                    label: Forecast prob non-exc
+                    description: NextGen forecast probability of non-exceedance of the selected percentile
+                    path: madagascar/pnep-ond.zarr
+                    var_names:
+                        pne: pne
+                        lat: Y
+                        lon: X
+                        issue: S
+                        lead: null  # dataset has forecasts for only one season; L is implicit.
+                        pct: P
+                    colormap: *pnepcm
+                    lower_is_worse: no
             vuln:
                 colormap: *vulncm
                 range: [0.0, 5.0]
@@ -324,9 +378,13 @@ countries:
                   g.adm2_pcode=v.adm2_pcode)
 
         datasets:
+            defaults:
+                observations: rain
+                bad_years: bad-years
             observations:
                 rain:
                     label: Rain
+                    description: CHIRPS average precipitation over the season
                     path: rain-ethiopia.zarr
                     var_names:
                         obs: prcp
@@ -334,7 +392,7 @@ countries:
                         lon: X
                         time: T
                     colormap: *raincm
-                    worst: lowest
+                    lower_is_worse: yes
                 ndvi:
                     label: NDVI
                     path: ndvi-ethiopia.zarr
@@ -344,9 +402,10 @@ countries:
                         lon: X
                         time: T
                     colormap: *raincm
-                    worst: lowest
+                    lower_is_worse: yes
                 spi:
                     label: SPI
+                    description: SPI calculated from CHIRPS
                     path: spi-ethiopia.zarr
                     var_names:
                         obs: spi
@@ -354,17 +413,30 @@ countries:
                         lon: X
                         time: T
                     colormap: *raincm
-                    worst: lowest
-            pnep:
-                path: pnep-ethiopia.zarr
-                var_names:
-                    pnep: pne
-                    lat: Y
-                    lon: X
-                    issue: S
-                    lead: null  # dataset has forecasts for only one season; L is implicit.
-                    pct: P
-                colormap: *pnepcm
+                    lower_is_worse: yes
+                bad-years:
+                    label: Reported bad years
+                    path: ethiopia/bad-years.zarr
+                    var_names:
+                        obs: bad
+                        time: T
+                    colormap: *raincm
+                    lower_is_worse: no
+                    format: bad
+            forecasts:
+                pnep:
+                    label: Forecast prob non-exc
+                    description: NextGen forecast probability of non-exceedance of selected percentile
+                    path: pnep-ethiopia.zarr
+                    var_names:
+                        pne: pne
+                        lat: Y
+                        lon: X
+                        issue: S
+                        lead: null  # dataset has forecasts for only one season; L is implicit.
+                        pct: P
+                    colormap: *pnepcm
+                    lower_is_worse: no
             vuln:
                 colormap: *vulncm
                 range: [0.0, 5.0]
@@ -405,9 +477,13 @@ countries:
                   g.adm2_pcode=v.adm2_pcode)
 
         datasets:
+            defaults:
+                observations: rain
+                bad_years: bad-years
             observations:
                 rain:
                     label: Rain
+                    description: CHIRPS average precipitation
                     path: rain-ethiopia-ond.zarr
                     var_names:
                         obs: prcp
@@ -415,17 +491,30 @@ countries:
                         lon: X
                         time: T
                     colormap: *raincm
-                    worst: lowest
-            pnep:
-                path: pnep-ethiopia-ond.zarr
-                var_names:
-                    pnep: pne
-                    lat: Y
-                    lon: X
-                    issue: S
-                    lead: null  # dataset has forecasts for only one season; L is implicit.
-                    pct: P
-                colormap: *pnepcm
+                    lower_is_worse: yes
+                bad-years:
+                    label: Reported bad years
+                    path: ethiopia-ond/bad-years.zarr
+                    var_names:
+                        obs: bad
+                        time: T
+                    colormap: *raincm
+                    lower_is_worse: no
+                    format: bad
+            forecasts:
+                pnep:
+                    label: Forecast prob non-exc
+                    description: NextGen forecast probability of non-exceedance of selected percentile
+                    path: pnep-ethiopia-ond.zarr
+                    var_names:
+                        pne: pne
+                        lat: Y
+                        lon: X
+                        issue: S
+                        lead: null  # dataset has forecasts for only one season; L is implicit.
+                        pct: P
+                    colormap: *pnepcm
+                    lower_is_worse: no
             vuln:
                 colormap: *vulncm
                 range: [0.0, 5.0]
@@ -474,9 +563,13 @@ countries:
               # there are zero rows
 
         datasets:
+            defaults:
+              observations: enacts-precip-jas
+              bad_years: bad-years
             observations:
                 enacts-precip-jas:
                     label: ENACTS Precip JAS
+                    description: ENACTS total precipitation for Jul-Sep
                     path: niger/enacts-precip-jas.zarr
                     var_names:
                         obs: obs
@@ -484,9 +577,10 @@ countries:
                         lon: X
                         time: T
                     colormap: *raincm
-                    worst: lowest
+                    lower_is_worse: yes
                 chirps-precip-jun:
                     label: CHIRPS Precip Jun
+                    description: CHIRPS total precipitation for Jun
                     path: niger/chirps-precip-jun.zarr
                     var_names:
                         obs: precipitation
@@ -494,9 +588,10 @@ countries:
                         lon: X
                         time: T
                     colormap: *raincm
-                    worst: lowest
+                    lower_is_worse: yes
                 chirps-precip-jjaso:
                     label: CHIRPS Precip Jun-Oct
+                    description: CHIRPS total precipitation for Jun-Oct
                     path: niger/chirps-precip-jjaso.zarr
                     var_names:
                         obs: precipitation
@@ -504,9 +599,10 @@ countries:
                         lon: X
                         time: T
                     colormap: *raincm
-                    worst: lowest
+                    lower_is_worse: yes
                 chirps-precip-jas:
                     label: CHIRPS Precip JAS
+                    description: CHIRPS total precipitation for Jul-Sep
                     path: niger/chirps-precip-jas.zarr
                     var_names:
                         obs: precipitation
@@ -514,9 +610,10 @@ countries:
                         lon: X
                         time: T
                     colormap: *raincm
-                    worst: lowest
+                    lower_is_worse: yes
                 enacts-spi-jas:
                     label: ENACTS SPI JAS
+                    description: Average SPI over the season, calculated from ENACTS
                     path: niger/enacts-spi-jas.zarr
                     var_names:
                         obs: spi
@@ -524,39 +621,56 @@ countries:
                         lon: X
                         time: T
                     colormap: *raincm
-                    worst: lowest
+                    lower_is_worse: yes
                 chirps-dryspell:
-                    label: CHIRPS Dry Spells
+                    label: Dry Spell
+                    description: Longest dry spell, calculated from CHIRPS
                     path: niger/chirps-dryspell.zarr
                     var_names:
                         obs: lls
                         lat: Y
                         lon: X
                         time: T
-                    colormap: *raincm
-                    worst: highest
                     units: days
+                    colormap: *raincm
+                    lower_is_worse: no
+                    format: timedelta_days
                 chirps-onset:
-                    label: CHIRPS Onset
+                    label: Onset
+                    description: Onset of rain, calculated from CHIRPS
                     path: niger/chirps-onset.zarr
                     var_names:
                         obs: adif
                         lat: Y
                         lon: X
                         time: T
-                    colormap: *raincm
-                    worst: highest
                     units: days after May 1
-            pnep:
-                path: niger/pnep-jas.zarr
-                var_names:
-                    pnep: pne
-                    lat: Y
-                    lon: X
-                    issue: S
-                    lead: null  # dataset has forecasts for only one season; L is implicit.
-                    pct: P
-                colormap: *pnepcm
+                    colormap: *raincm
+                    lower_is_worse: no
+                    format: timedelta_days
+                bad-years:
+                    label: Reported bad years
+                    path: niger/bad-years.zarr
+                    var_names:
+                        obs: bad
+                        time: T
+                    colormap: *raincm
+                    lower_is_worse: no
+                    format: bad
+            forecasts:
+                pnep:
+                    label: Forecast prob non-exc
+                    description: NextGen forecast probability of non-exceedance of the selected percentile
+                    path: niger/pnep-jas.zarr
+                    var_names:
+                        pne: pne
+                        lat: Y
+                        lon: X
+                        issue: S
+                        lead: null  # dataset has forecasts for only one season; L is implicit.
+                        pct: P
+                    colormap: *pnepcm
+                    lower_is_worse: no
             vuln:
                 colormap: *vulncm
                 range: [0.0, 5.0]
@@ -598,9 +712,13 @@ countries:
                   from public.fbf_vulnerability where adm0_name = 'Guatemala' group by 1, 2
 
         datasets:
+            defaults:
+                observations: rain
+                bad_years: bad-years
             observations:
                 rain:
                     label: Rain
+                    description: CHIRPS average precipitation over the season
                     path: rain-guatemala.zarr
                     var_names:
                         obs: prcp_est
@@ -608,17 +726,30 @@ countries:
                         lon: X
                         time: T
                     colormap: *raincm
-                    worst: lowest
-            pnep:
-                path: pnep-guatemala.zarr
-                var_names:
-                    pnep: pne
-                    lat: Y
-                    lon: X
-                    issue: S
-                    lead: null  # dataset has forecasts for only one season; L is implicit.
-                    pct: P
-                colormap: *pnepcm
+                    lower_is_worse: yes
+                bad-years:
+                    label: Reported bad years
+                    path: guatemala/bad-years.zarr
+                    var_names:
+                        obs: bad
+                        time: T
+                    colormap: *raincm
+                    lower_is_worse: no
+                    format: bad
+            forecasts:
+                pnep:
+                    label: Forecast prob non-exc
+                    description: NextGen forecast probability of non-exceedance of selected percentile
+                    path: pnep-guatemala.zarr
+                    var_names:
+                        pne: pne
+                        lat: Y
+                        lon: X
+                        issue: S
+                        lead: null  # dataset has forecasts for only one season; L is implicit.
+                        pct: P
+                    colormap: *pnepcm
+                    lower_is_worse: no
             vuln:
                 colormap: *vulncm
                 range: [0.0, 5.0]
@@ -660,9 +791,13 @@ countries:
               #     from public.fbf_vulnerability where adm0_name = 'Djibouti' group by 1, 2
 
         datasets:
+            defaults:
+                observations: rain
+                bad_years: bad-years
             observations:
                 rain:
                     label: Rain
+                    description: CHIRPS average precipitation over the season
                     path: rain-djibouti.zarr
                     var_names:
                         obs: prcp
@@ -670,7 +805,7 @@ countries:
                         lon: X
                         time: T
                     colormap: *raincm
-                    worst: lowest
+                    lower_is_worse: yes
                 ndvi:
                     label: NDVI
                     path: ndvi-djibouti.zarr
@@ -680,17 +815,30 @@ countries:
                         lon: X
                         time: T
                     colormap: *raincm
-                    worst: lowest
-            pnep:
-                path: pnep-djibouti.zarr
-                var_names:
-                    pnep: pne
-                    lat: Y
-                    lon: X
-                    issue: S
-                    lead: null  # dataset has forecasts for only one season; L is implicit.
-                    pct: P
-                colormap: *pnepcm
+                    lower_is_worse: yes
+                bad-years:
+                    label: Reported bad years
+                    path: djibouti/bad-years.zarr
+                    var_names:
+                        obs: bad
+                        time: T
+                    colormap: *raincm
+                    lower_is_worse: no
+                    format: bad
+            forecasts:
+                pnep:
+                    label: Forecast prob non-exc
+                    description: NextGen forecast probability of non-exceedance of selected percentile
+                    path: pnep-djibouti.zarr
+                    var_names:
+                        pne: pne
+                        lat: Y
+                        lon: X
+                        issue: S
+                        lead: null  # dataset has forecasts for only one season; L is implicit.
+                        pct: P
+                    colormap: *pnepcm
+                    lower_is_worse: no
             vuln:
                 colormap: *vulncm
                 range: [0.0, 5.0]
@@ -732,27 +880,75 @@ countries:
                   from public.fbf_vulnerability where adm0_name = 'Lesotho' group by 1, 2
 
         datasets:
+            defaults:
+                observations: rain
+                bad_years: bad-years-ag
             observations:
                 rain:
                     label: Rain
-                    path: lesotho/rain.zarr
+                    description: ENACTS average precipitation over the season
+                    path: lesotho/enacts-precip-djf.zarr
                     var_names:
                         obs: rfe
                         lat: Y
                         lon: X
                         time: T
                     colormap: *raincm
-                    worst: lowest
-            pnep:
-                path: lesotho/pnep-djf.zarr
-                var_names:
-                    pnep: pne
-                    lat: Y
-                    lon: X
-                    issue: S
-                    lead: null  # dataset has forecasts for only one season; L is implicit.
-                    pct: P
-                colormap: *pnepcm
+                    lower_is_worse: yes
+                bad-years-ag:
+                    label: "Ag/food sec bad years"
+                    description: Bad years for agriculture and food security sector
+                    path: lesotho/bad-years.zarr
+                    var_names:
+                        obs: ag
+                        time: T
+                    colormap: *raincm
+                    lower_is_worse: yes
+                    format: number0
+                bad-years-early:
+                    label: Early warning bad years
+                    description: Bad years for early warning sector
+                    path: lesotho/bad-years.zarr
+                    var_names:
+                        obs: early
+                        time: T
+                    colormap: *raincm
+                    lower_is_worse: yes
+                    format: number0
+                bad-years-nutrition:
+                    label: Nutrition bad years
+                    description: Bad years for nutrition sector
+                    path: lesotho/bad-years.zarr
+                    var_names:
+                        obs: nutrition
+                        time: T
+                    colormap: *raincm
+                    lower_is_worse: yes
+                    format: number0
+                bad-years-range:
+                    label: Range resource bad years
+                    description: Bad years for range resource management sector
+                    path: lesotho/bad-years.zarr
+                    var_names:
+                        obs: range
+                        time: T
+                    colormap: *raincm
+                    lower_is_worse: yes
+                    format: number0
+            forecasts:
+                pnep:
+                    label: Forecast prob non-exc
+                    description: NextGen forecast probability of non-exceedance of selected percentile
+                    path: lesotho/pnep-djf.zarr
+                    var_names:
+                        pne: pne
+                        lat: Y
+                        lon: X
+                        issue: S
+                        lead: null  # dataset has forecasts for only one season; L is implicit.
+                        pct: P
+                    colormap: *pnepcm
+                    lower_is_worse: no
             vuln:
                 colormap: *vulncm
                 range: [0.0, 5.0]
@@ -762,4 +958,117 @@ countries:
                 target_month: 0.5
                 length: 3.0
                 issue_months: [8, 9, 10]
+                year_range: [1983, 2022]
+    lesotho-ond:
+        logo: 
+        resolution: [.0375, .0375]
+        center: [28.25625, -29.606]
+        zoom: 8
+        rotation: 0
+        marker:  [28.25625, -29.606]
+        origin: [0, 0]
+        shapes:
+            - name: National
+              sql: select adm0_code as key, adm0_name as label, ST_AsBinary(the_geom) as the_geom
+                  from iridb.g2015_2012_0 where adm0_name = 'Lesotho'
+              vuln_sql: select adm0_code as key, year, sum(vulnerability) as vuln
+                  from public.fbf_vulnerability where adm0_name = 'Lesotho' group by 1, 2
+
+            - name: Regional
+              sql: select (adm0_code, adm1_code) as key, adm1_name as label,
+                  ST_AsBinary(the_geom) as the_geom from iridb.g2015_2014_1
+                  where adm0_name = 'Lesotho'
+              vuln_sql: select (adm0_code, adm1_code) as key, year, sum(vulnerability) as vuln
+                  from public.fbf_vulnerability where adm0_name = 'Lesotho' group by 1, 2
+
+            - name: District
+              sql: select (adm0_code, adm1_code, adm2_code) as key, adm2_name as label,
+                  ST_AsBinary(the_geom) as the_geom from iridb.g2015_2014_2
+                  where adm0_name = 'Lesotho'
+              vuln_sql: select (adm0_code, adm1_code, adm2_code) as key, year, sum(vulnerability) as vuln
+                  from public.fbf_vulnerability where adm0_name = 'Lesotho' group by 1, 2
+
+        datasets:
+            defaults:
+                observations: rain
+                bad_years: bad-years-ag
+            observations:
+                rain:
+                    label: Rain
+                    description: ENACTS average precipitation over the season
+                    path: lesotho/enacts-precip-ond.zarr
+                    var_names:
+                        obs: rfe
+                        lat: Y
+                        lon: X
+                        time: T
+                    colormap: *raincm
+                    lower_is_worse: yes
+                bad-years-ag:
+                    label: "Ag/food sec bad years"
+                    description: Bad years for agriculture and food security sector
+                    units: rank
+                    path: lesotho/bad-years-ond.zarr
+                    var_names:
+                        obs: ag
+                        time: T
+                    colormap: *raincm
+                    lower_is_worse: yes
+                    format: number0
+                bad-years-early:
+                    label: Early warning bad years
+                    description: Bad years for early warning sector
+                    units: rank
+                    path: lesotho/bad-years-ond.zarr
+                    var_names:
+                        obs: early
+                        time: T
+                    colormap: *raincm
+                    lower_is_worse: yes
+                    format: number0
+                bad-years-nutrition:
+                    label: "Nutrition bad years"
+                    description: Bad years for nutrition sector
+                    units: rank
+                    path: lesotho/bad-years-ond.zarr
+                    var_names:
+                        obs: ag
+                        time: T
+                    colormap: *raincm
+                    lower_is_worse: yes
+                    format: number0
+                bad-years-range:
+                    label: "Range resource bad years"
+                    description: Bad years for range resource management sector
+                    units: rank
+                    path: lesotho/bad-years-ond.zarr
+                    var_names:
+                        obs: ag
+                        time: T
+                    colormap: *raincm
+                    lower_is_worse: yes
+                    format: number0
+            forecasts:
+                pnep:
+                    label: Forecast prob non-exc
+                    description: NextGen forecast probability of non-exceedance of selected percentile
+                    path: lesotho/pnep-ond.zarr
+                    var_names:
+                        pne: pne
+                        lat: Y
+                        lon: X
+                        issue: S
+                        lead: null  # dataset has forecasts for only one season; L is implicit.
+                        pct: P
+                    colormap: *pnepcm
+                    lower_is_worse: no
+            vuln:
+                colormap: *vulncm
+                range: [0.0, 5.0]
+        seasons:
+            season1:
+                label: OND
+                target_month: 10.5
+                length: 3.0
+                issue_months: [6, 7, 8]
                 year_range: [1983, 2022]

@@ -67,7 +67,7 @@ def map_layout():
                         checked=True,
                     ),
                     dlf.Overlay(
-                        dlf.TileLayer(opacity=0.8, id="pnep_layer"),
+                        dlf.TileLayer(opacity=0.8, id="trigger_layer"),
                         name="Forecast",
                         checked=True,
                     ),
@@ -114,7 +114,7 @@ def map_layout():
                 opacity=0.8,
             ),
             dlf.Colorbar(
-                id="pnep_colorbar",
+                id="trigger_colorbar",
                 position="bottomleft",
                 width=300,
                 height=10,
@@ -177,6 +177,7 @@ def command_layout():
         [
             dcc.Input(id="geom_key", type="hidden"),
             dcc.Input(id="prob_thresh", type="hidden"),
+            dcc.Input(id="trigger_key", type="hidden", value="pnep"),
             html.Div(
                 [
                     help_layout(
@@ -386,7 +387,31 @@ def table_layout():
             html.Div(id="log"),
             html.Div(
                 [
-                    html.Label("Observations:"),
+                    help_layout(
+                        "Baseline observations:",
+                        "bad_years_label",
+                        "Column that serves as the baseline. Other columns will be "
+                        "scored by how well they predict this one.",
+                    ),
+                    dcc.Dropdown(
+                        id="bad_years",
+                        clearable=False,
+                    ),
+                ],
+                style={
+                    "display": "inline-block",
+                    "padding": "10px",
+                    "vertical-align": "top",
+                    "width": "30%",
+                },
+            ),
+            html.Div(
+                [
+                    help_layout(
+                        "Other observations:",
+                        "obs_datasets_label",
+                        "Other columns to display in the table"
+                    ),
                     dcc.Dropdown(
                         id="obs_datasets",
                         clearable=False,
@@ -397,6 +422,7 @@ def table_layout():
                     "display": "inline-block",
                     "padding": "10px",
                     "vertical-align": "top",
+                    "width": "70%",
                 },
             ),
 

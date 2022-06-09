@@ -1,9 +1,14 @@
 import argparse
+import cftime
 import xarray as xr
 import os
+import pandas as pd
+import psycopg2
+import pyaconf
 import shutil
 
 import pingrid
+import fbfmaproom
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--cookiefile', type=os.path.expanduser)
@@ -17,7 +22,7 @@ opts = parser.parse_args()
 
 base = "http://iridl.ldeo.columbia.edu"
 
-all_datasets = [
+url_datasets = [
     (
         "enso",
         "http://iridl.ldeo.columbia.edu/SOURCES/.NOAA/.NCDC/.ERSST/.version5/.sst/zlev/removeGRID/X/-170/-120/RANGE/Y/-5/5/RANGEEDGES/dup/T/12.0/splitstreamgrid/dup/T2/(1856)/last/RANGE/T2/30.0/12.0/mul/runningAverage/T2/12.0/5.0/mul/STEP/%5BT2%5DregridLB/nip/T2/12/pad1/T/unsplitstreamgrid/sub/%7BY/cosd%7D%5BX/Y%5Dweighted-average/T/3/1.0/runningAverage/%7BLaNina/-0.45/Neutral/0.45/ElNino%7Dclassify/T/-2/1/2/shiftdata/%5BT_lag%5Dsum/5/flagge/T/-2/1/2/shiftdata/%5BT_lag%5Dsum/1.0/flagge/dup/a%3A/sst/(LaNina)/VALUE/%3Aa%3A/sst/(ElNino)/VALUE/%3Aa/add/1/maskge/dataflag/1/index/2/flagge/add/sst/(phil)/unitmatrix/sst_out/(Neutral)/VALUE/mul/exch/sst/(phil2)/unitmatrix/sst_out/(LaNina)/(ElNino)/VALUES/%5Bsst_out%5Dsum/mul/add/%5Bsst%5Ddominant_class//long_name/(ENSO%20Phase)/def/startcolormap/DATA/1/3/RANGE/blue/blue/blue/grey/red/red/endcolormap/T/(1980)/last/RANGE/"
@@ -52,7 +57,7 @@ all_datasets = [
     ),
     (
         "madagascar/ndvi-ond",
-        "http://iridl.ldeo.columbia.edu/SOURCES/.USGS/.LandDAAC/.MODIS/.version_006/.SAF/.NDVI/X/42.525/.0375/48.975/GRID/Y/-25.9875/.0375/-20.025/GRID/T/(Oct-Dec)/seasonalAverage/100/mul/",
+        "http://iridl.ldeo.columbia.edu/SOURCES/.USGS/.LandDAAC/.MODIS/.version_006/.SAF/.NDVI/X/42.525/.0375/48.975/GRID/Y/-25.9875/.0375/-20.025/GRID/T/(Oct-Dec)/seasonalAverage/",
     ),
     (
         "madagascar/wrsi-ond",
@@ -150,17 +155,26 @@ all_datasets = [
     ),
     (
         "lesotho/pnep-djf",
-        "http://iridl.ldeo.columbia.edu/home/.remic/.Lesotho/.Forecasts/.NextGen/.PRCPPRCP_CCAFCST/.NextGen/.FbF/.pne/",
+        "http://iridl.ldeo.columbia.edu/home/.remic/.Lesotho/.Forecasts/.NextGen/.DJF_PRCPPRCP_CCAFCST/.NextGen/.FbF/.pne/",
     ),
     (
-        "lesotho/rain",
+        "lesotho/enacts-precip-djf",
         "https://iridl.ldeo.columbia.edu/home/.audreyv/.dle_lms/.Lesotho/.ENACTS/.ALL/.monthly/.rainfall/.rfe/T/(Dec-Feb)/seasonalAverage/3/mul/",
+    ),
+    (
+        "lesotho/pnep-ond",
+        "http://iridl.ldeo.columbia.edu/home/.remic/.Lesotho/.Forecasts/.NextGen/.OND_PRCPPRCP_CCAFCST/.NextGen/.FbF/.pne/",
+    ),
+    (
+        "lesotho/enacts-precip-ond",
+        "https://iridl.ldeo.columbia.edu/home/.audreyv/.dle_lms/.Lesotho/.ENACTS/.ALL/.monthly/.rainfall/.rfe/T/(Oct-Dec)/seasonalAverage/3/mul/",
     ),
 ]
 
-dataset_names = opts.datasets or [ds[0] for ds in all_datasets]
 
-for dataset in all_datasets:
+selected_url_datasets = opts.datasets or [ds[0] for ds in url_datasets]
+
+for dataset in url_datasets:
     name = dataset[0]
     pattern = dataset[1]
     if len(dataset) == 3:
@@ -168,7 +182,7 @@ for dataset in all_datasets:
     else:
         slices = ({},)
 
-    if name not in dataset_names:
+    if name not in selected_url_datasets:
         continue
     for i, args in enumerate(slices):
         ncfilepath = f'{opts.datadir}/{name}-{i}.nc'
@@ -202,3 +216,59 @@ for dataset in all_datasets:
         if os.path.exists(zarrpath):
             shutil.rmtree(zarrpath)
         ds.to_zarr(zarrpath)
+
+
+def fetch_bad_years(country_key):
+    config = CONFIG
+    conn = psycopg2.connect(
+        dbname=dbconfig['name'],
+        host=dbconfig['host'],
+        port=dbconfig['port'],
+        user=dbconfig['user'],
+        password=dbconfig['password'],
+    )
+    df = pd.read_sql_query(
+        psycopg2.sql.SQL(
+            """
+            select month_since_01011960, bad_year2 as bad
+            from public.fbf_maproom
+            where lower(adm0_name) = %(country_key)s
+            """
+        ),
+        conn,
+        params={"country_key": country_key},
+        dtype={"bad": float},
+    )
+    df["T"] = df["month_since_01011960"].apply(fbfmaproom.from_month_since_360Day)
+    df = df.drop("month_since_01011960", axis=1)
+    df = df.set_index("T")
+    return df
+
+
+config_files = os.environ["CONFIG"].split(":")
+
+CONFIG = {}
+for fname in config_files:
+    CONFIG = pyaconf.merge([CONFIG, pyaconf.load(fname)])
+dbconfig = CONFIG['dbpool']
+
+# Countries for which the zarr bad years data is a copy of the
+# db. These are legacy bad years datasets. New ones go directly to
+# zarr.
+DB_BAD_YEARS_COUNTRIES = ['malawi', 'madagascar', 'madagascar-ond', 'ethiopia', 'ethiopia-ond', 'niger', 'guatemala', 'djibouti']
+# lesotho is explictly not. The bad years data for lesotho in the db is outdated.
+for country in DB_BAD_YEARS_COUNTRIES:
+    ds_key = f'{country}/bad-years'
+    if ds_key in opts.datasets:
+        print(ds_key)
+        df = fetch_bad_years(country)
+        zarrpath = f'{opts.datadir}/{ds_key}.zarr'
+        df.to_xarray().to_zarr(zarrpath)
+
+if 'lesotho/bad-years-ond' in opts.datasets:
+    ds = xr.open_zarr(f'{opts.datadir}/lesotho/bad-years.zarr')
+    ds['T'] = list(map(
+        lambda x: cftime.Datetime360Day(x.year, (x.month - 1 - 2) % 12 + 1, x.day),
+        ds['T'].values
+    ))
+    ds.to_zarr(f'{opts.datadir}/lesotho/bad-years-ond.zarr')
