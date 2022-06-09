@@ -481,10 +481,14 @@ def augment_table_data(main_df, freq, table_columns, trigger_key, bad_years_key)
         key: regular_data[key].rank(method="min", ascending=is_ascending(key), pct=True)
         for key in regular_keys
     }
-    worst_flags = {
-        key: (rank_pct[key] <= freq / 100).astype(bool)
-        for key in regular_keys
-    }
+
+    worst_flags = {}
+    for key in regular_keys:
+        if len(regular_data[key].unique()) == 2:
+            # special case for legacy boolean bad years
+            worst_flags[key] = regular_data[key].astype(bool)
+        else:
+            worst_flags[key] = (rank_pct[key] <= freq / 100).astype(bool)
 
     bad_year = worst_flags[bad_years_key].dropna().astype(bool)
 
