@@ -437,7 +437,7 @@ def select_obs(country_key, obs_keys, mpolygon=None):
             for obs_key in obs_keys
         }
     )
-    if mpolygon is not None:
+    if mpolygon is not None and 'lon' in ds.coords:
         ds = pingrid.average_over_trimmed(ds, mpolygon, all_touched=True)
     return ds
 
