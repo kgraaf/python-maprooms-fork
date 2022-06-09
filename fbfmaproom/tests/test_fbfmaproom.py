@@ -65,7 +65,7 @@ def test_table_cb():
     assert row.children[1].className == ''
     assert row.children[3].children == '43.4'
     assert row.children[3].className == ''
-    assert row.children[4].children == '0.2'
+    assert row.children[4].children == '0.2361'
     assert row.children[4].className == 'cell-severity-0'
     assert row.children[2].children == ''
     assert row.children[2].className == ''
