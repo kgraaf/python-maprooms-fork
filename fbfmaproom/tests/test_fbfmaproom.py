@@ -313,3 +313,10 @@ def test_hits_and_misses():
     assert false_neg == 1
     assert true_neg == 1
     assert pct == "50.00%"
+
+def test_format_timedelta_number():
+    td = pd.Timedelta(days=3.14159)
+    assert fbfmaproom.format_timedelta_days(td) == "3.14"
+
+def test_format_timedelta_nan():
+    assert fbfmaproom.format_timedelta_days(pd.NaT) == ""
