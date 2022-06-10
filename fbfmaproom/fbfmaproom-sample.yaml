@@ -853,7 +853,7 @@ countries:
                 year_range: [1990, 2022]
 
     lesotho:
-        logo: 
+        logo: Lesotho_IRI_94x48.png
         resolution: [.0375, .0375]
         center: [28.25625, -29.606]
         zoom: 8
