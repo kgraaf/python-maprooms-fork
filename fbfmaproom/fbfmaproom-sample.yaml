@@ -962,7 +962,7 @@ countries:
                 issue_months: [8, 9, 10]
                 year_range: [1983, 2022]
     lesotho-ond:
-        logo: 
+        logo: Lesotho_IRI_94x48.png
         resolution: [.0375, .0375]
         center: [28.25625, -29.606]
         zoom: 8
@@ -1034,7 +1034,7 @@ countries:
                     units: rank
                     path: lesotho/bad-years-ond.zarr
                     var_names:
-                        obs: ag
+                        obs: nutrition
                         time: T
                     colormap: *raincm
                     lower_is_worse: yes
@@ -1045,7 +1045,7 @@ countries:
                     units: rank
                     path: lesotho/bad-years-ond.zarr
                     var_names:
-                        obs: ag
+                        obs: range
                         time: T
                     colormap: *raincm
                     lower_is_worse: yes
