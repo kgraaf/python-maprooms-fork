@@ -1224,6 +1224,24 @@ def skill_endpoint():
     return response
 
 
+@SERVER.route(f"{PFX}/regions")
+def regions_endpoint():
+    country_key = parse_arg("country")
+    level = parse_arg("level", int)
+
+    shapes_config = CONFIG["countries"][country_key]["shapes"][level]
+    query = sql.Composed([
+        sql.SQL("with a as ("),
+        sql.SQL(shapes_config["sql"]),
+        sql.SQL(") select key, label from a"),
+    ])
+    with DBPOOL.take() as cm:
+        conn = cm.resource
+        with conn:  # transaction
+            df = pd.read_sql(query, conn)
+    d = {'regions': df.to_dict(orient="records")}
+    return flask.jsonify(d)
+
 
 if __name__ == "__main__":
     if CONFIG["mode"] != "prod":

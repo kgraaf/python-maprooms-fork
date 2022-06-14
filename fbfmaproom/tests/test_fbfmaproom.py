@@ -341,3 +341,13 @@ def test_skill_endpoint():
     assert d['worthy_inaction'] == 24
     assert np.isclose(d['accuracy'], .79487)
 
+
+def test_regions_endpoint():
+    with fbfmaproom.SERVER.test_client() as client:
+        resp = client.get('/fbfmaproom/regions?country=ethiopia&level=1')
+        assert resp.status_code == 200
+        d = resp.json
+        regions = d['regions']
+        assert len(regions) == 11
+        assert regions[0]['key'] == '(ET05,ET0508)'
+        assert regions[0]['label'] == 'Afder'
