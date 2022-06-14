@@ -531,25 +531,39 @@ def augment_table_data(main_df, freq, table_columns, trigger_key, bad_years_key)
 
 
 def format_summary_table(summary_df, table_columns):
-    summary_df = pd.DataFrame(summary_df)
-    summary_df["time"] = [
+    format_accuracy = lambda x: f"{x * 100:.2f}%"
+    format_count = lambda x: f"{x:.0f}"
+
+    formatted_df = pd.DataFrame()
+
+    formatted_df["time"] = [
         "Worthy-action:",
         "Act-in-vain:",
         "Fail-to-act:",
         "Worthy-Inaction:",
         "Rate:",
     ]
-    summary_df["tooltip"] = [
+    formatted_df["tooltip"] = [
         "Drought was forecasted and a ‘bad year’ occurred",
         "Drought was forecasted but a ‘bad year’ did not occur",
         "No drought was forecasted but a ‘bad year’ occurred",
         "No drought was forecasted, and no ‘bad year’ occurred",
         "Gives the percentage of worthy-action and worthy-inactions",
     ]
-    for c in set(table_columns) - set(summary_df.columns):
-        summary_df[c] = np.nan
 
-    return summary_df
+    for c in summary_df.columns:
+        if c == 'time':
+            continue
+
+        formatted_df[c] = (
+            list(map(format_count, summary_df[c][0:4])) +
+            [format_accuracy(summary_df[c][4])]
+        )
+
+    for c in set(table_columns) - set(formatted_df.columns):
+        formatted_df[c] = ''
+
+    return formatted_df
 
 
 def hits_and_misses(prediction, truth):
@@ -560,8 +574,7 @@ def hits_and_misses(prediction, truth):
     false_neg = (~prediction & truth).sum()
     true_neg = (~prediction & ~truth).sum()
     accuracy = (true_pos + true_neg) / (true_pos + true_neg + false_pos + false_neg)
-    return [true_pos, false_pos, false_neg, true_neg,
-            f"{accuracy * 100:.2f}%"]
+    return [true_pos, false_pos, false_neg, true_neg, accuracy]
 
 
 def calculate_bounds(pt, res, origin):
