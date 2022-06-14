@@ -320,3 +320,24 @@ def test_format_timedelta_number():
 
 def test_format_timedelta_nan():
     assert fbfmaproom.format_timedelta_days(pd.NaT) == ""
+
+def test_skill_endpoint():
+    with fbfmaproom.SERVER.test_client() as client:
+        resp = client.get(
+            '/fbfmaproom/skill?country=ethiopia'
+            '&mode=0'
+            '&season=season1'
+            '&issue_month0=0'
+            '&freq=30'
+            '&region=ET05'
+            '&predictor=pnep'
+            '&predictand=bad-years'
+        )
+    assert resp.status_code == 200
+    d = resp.json
+    assert d['act_in_vain'] == 5
+    assert d['fail_to_act'] == 3
+    assert d['worthy_action'] == 7
+    assert d['worthy_inaction'] == 24
+    assert np.isclose(d['accuracy'], .79487)
+
