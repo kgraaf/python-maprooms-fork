@@ -1224,6 +1224,63 @@ def skill_endpoint():
     return response
 
 
+@SERVER.route(f"{PFX}/export")
+def export_endpoint():
+    country_key = parse_arg("country")
+    mode = parse_arg("mode", int) # not supporting pixel mode for now
+    season = parse_arg("season")
+    issue_month0 = parse_arg("issue_month0", int)
+    freq = parse_arg("freq", float)
+    geom_key = parse_arg("region")
+    predictor_key = parse_arg("predictor")
+    predictand_key = parse_arg("predictand")
+
+    if predictor_key != "pnep":
+        raise InvalidRequestError("Unsupported value for predictor_key")
+
+    config = CONFIG["countries"][country_key]
+    season_config = config["seasons"][season]
+
+    target_month0 = season_config["target_month"]
+
+    mpoly = get_mpoly(mode, country_key, geom_key)
+
+    forecast_key = 'pnep'
+
+    cols = table_columns(
+        config["datasets"],
+        predictand_key,
+        [predictor_key],
+        obs_keys=[],
+        severity=0, # unimportant because we won't be formatting it
+        season_length=season_config["length"],
+    )
+    basic_ds = fundamental_table_data(
+        country_key, cols, season_config, issue_month0,
+        freq, mode, geom_key
+    )
+    basic_df = basic_ds.drop_vars("pct").to_dataframe()
+    main_df, summary_df, thresh = augment_table_data(
+        basic_df, freq, cols, predictor_key, predictand_key
+    )
+
+    (worthy_action, act_in_vain, fail_to_act, worthy_inaction, accuracy) = (
+        summary_df[predictor_key]
+    )
+    response = flask.jsonify({
+        'skill': {
+            'worthy_action': worthy_action,
+            'act_in_vain': act_in_vain,
+            'fail_to_act': fail_to_act,
+            'worthy_inaction': worthy_inaction,
+            'accuracy': accuracy,
+        },
+        'history': [],
+        'threshold': float(thresh),
+    })
+    return response
+
+
 @SERVER.route(f"{PFX}/regions")
 def regions_endpoint():
     country_key = parse_arg("country")
