@@ -902,41 +902,67 @@ countries:
                     description: Bad years for agriculture and food security sector
                     path: lesotho/bad-years.zarr
                     var_names:
-                        obs: ag
+                        obs: Agriculture and Food Security
                         time: T
                     colormap: *raincm
                     lower_is_worse: yes
                     format: number0
-                bad-years-early:
-                    label: Early warning bad years
-                    description: Bad years for early warning sector
+                    units: rank
+                bad-years-dma-rep:
+                    label: DMA district rep bad years
+                    description: Bad years according to DMA district representative
                     path: lesotho/bad-years.zarr
                     var_names:
-                        obs: early
+                        obs: "DMA district Representative"
                         time: T
                     colormap: *raincm
                     lower_is_worse: yes
                     format: number0
+                    units: rank
+                bad-years-dma-general:
+                    label: DMA general bad years
+                    description: DMA general bad years
+                    path: lesotho/bad-years.zarr
+                    var_names:
+                        obs: "DMA district Representative"
+                        time: T
+                    colormap: *raincm
+                    lower_is_worse: yes
+                    format: number0
+                    units: rank
+                bad-years-humanitarian:
+                    label: Humanitarian org bad years
+                    description: Bad years according to humanitarian organizations
+                    path: lesotho/bad-years.zarr
+                    var_names:
+                        obs: Humanitarian Organizations
+                        time: T
+                    colormap: *raincm
+                    lower_is_worse: yes
+                    format: number0
+                    units: rank
+                bad-years-natural-resources:
+                    label: Natural resources bad years
+                    description: Bad years for natural resources sector
+                    path: lesotho/bad-years.zarr
+                    var_names:
+                        obs: Natural Resources
+                        time: T
+                    colormap: *raincm
+                    lower_is_worse: yes
+                    format: number0
+                    units: rank
                 bad-years-nutrition:
                     label: Nutrition bad years
                     description: Bad years for nutrition sector
                     path: lesotho/bad-years.zarr
                     var_names:
-                        obs: nutrition
+                        obs: Nutrition
                         time: T
                     colormap: *raincm
                     lower_is_worse: yes
                     format: number0
-                bad-years-range:
-                    label: Range resource bad years
-                    description: Bad years for range resource management sector
-                    path: lesotho/bad-years.zarr
-                    var_names:
-                        obs: range
-                        time: T
-                    colormap: *raincm
-                    lower_is_worse: yes
-                    format: number0
+                    units: rank
             forecasts:
                 pnep:
                     label: Forecast prob non-exc
@@ -1009,47 +1035,69 @@ countries:
                 bad-years-ag:
                     label: "Ag/food sec bad years"
                     description: Bad years for agriculture and food security sector
-                    units: rank
                     path: lesotho/bad-years-ond.zarr
                     var_names:
-                        obs: ag
+                        obs: Agriculture and Food Security
                         time: T
                     colormap: *raincm
                     lower_is_worse: yes
                     format: number0
-                bad-years-early:
-                    label: Early warning bad years
-                    description: Bad years for early warning sector
                     units: rank
+                bad-years-dma-rep:
+                    label: DMA district rep bad years
+                    description: Bad years according to DMA district representative
                     path: lesotho/bad-years-ond.zarr
                     var_names:
-                        obs: early
+                        obs: "DMA district Representative"
                         time: T
                     colormap: *raincm
                     lower_is_worse: yes
                     format: number0
+                    units: rank
+                bad-years-dma-general:
+                    label: DMA general bad years
+                    description: DMA general bad years
+                    path: lesotho/bad-years-ond.zarr
+                    var_names:
+                        obs: "DMA district Representative"
+                        time: T
+                    colormap: *raincm
+                    lower_is_worse: yes
+                    format: number0
+                    units: rank
+                bad-years-humanitarian:
+                    label: Humanitarian org bad years
+                    description: Bad years according to humanitarian organizations
+                    path: lesotho/bad-years-ond.zarr
+                    var_names:
+                        obs: Humanitarian Organizations
+                        time: T
+                    colormap: *raincm
+                    lower_is_worse: yes
+                    format: number0
+                    units: rank
+                bad-years-natural-resources:
+                    label: Natural resources bad years
+                    description: Bad years for natural resources sector
+                    path: lesotho/bad-years-ond.zarr
+                    var_names:
+                        obs: Natural Resources
+                        time: T
+                    colormap: *raincm
+                    lower_is_worse: yes
+                    format: number0
+                    units: rank
                 bad-years-nutrition:
-                    label: "Nutrition bad years"
+                    label: Nutrition bad years
                     description: Bad years for nutrition sector
-                    units: rank
                     path: lesotho/bad-years-ond.zarr
                     var_names:
-                        obs: nutrition
+                        obs: Nutrition
                         time: T
                     colormap: *raincm
                     lower_is_worse: yes
                     format: number0
-                bad-years-range:
-                    label: "Range resource bad years"
-                    description: Bad years for range resource management sector
                     units: rank
-                    path: lesotho/bad-years-ond.zarr
-                    var_names:
-                        obs: range
-                        time: T
-                    colormap: *raincm
-                    lower_is_worse: yes
-                    format: number0
             forecasts:
                 pnep:
                     label: Forecast prob non-exc
