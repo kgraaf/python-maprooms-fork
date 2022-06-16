@@ -321,10 +321,10 @@ def test_format_timedelta_number():
 def test_format_timedelta_nan():
     assert fbfmaproom.format_timedelta_days(pd.NaT) == ""
 
-def test_skill_endpoint():
+def test_export_endpoint():
     with fbfmaproom.SERVER.test_client() as client:
         resp = client.get(
-            '/fbfmaproom/skill?country=ethiopia'
+            '/fbfmaproom/export?country=ethiopia'
             '&mode=0'
             '&season=season1'
             '&issue_month0=0'
@@ -335,11 +335,15 @@ def test_skill_endpoint():
         )
     assert resp.status_code == 200
     d = resp.json
-    assert d['act_in_vain'] == 5
-    assert d['fail_to_act'] == 3
-    assert d['worthy_action'] == 7
-    assert d['worthy_inaction'] == 24
-    assert np.isclose(d['accuracy'], .79487)
+
+    s = d['skill']
+    assert s['act_in_vain'] == 5
+    assert s['fail_to_act'] == 3
+    assert s['worthy_action'] == 7
+    assert s['worthy_inaction'] == 24
+    assert np.isclose(s['accuracy'], .79487)
+
+    assert np.isclose(d['threshold'], 40.96825)
 
 
 def test_regions_endpoint():
