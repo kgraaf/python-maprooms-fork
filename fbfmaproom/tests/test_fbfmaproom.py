@@ -48,10 +48,10 @@ def test_table_cb():
     assert thead.children[4].children[0].children[0].children == 'Rate:'
 
     assert thead.children[5].children[5].children[0].children == "ENSO State"
-    assert thead.children[0].children[5].children == 2
-    assert thead.children[1].children[5].children == 5
-    assert thead.children[2].children[5].children == 8
-    assert thead.children[3].children[5].children == 24
+    assert thead.children[0].children[5].children == "2"
+    assert thead.children[1].children[5].children == "5"
+    assert thead.children[2].children[5].children == "8"
+    assert thead.children[3].children[5].children == "24"
     assert thead.children[4].children[5].children == "66.67%"
 
     assert len(tbody.children) == 40 # will break when we add a new year
@@ -119,9 +119,9 @@ def test_augment_table_data():
 
     expected_summ = pd.DataFrame(dict(
         # [tp, fp, fn, tn, accuracy]
-        enso_state=[1, 1, 1, 1, "50.00%"],
-        pnep=[0, 1, 2, 2, "40.00%"],
-        rain=[1, 0, 1, 2, "75.00%"],
+        enso_state=[1, 1, 1, 1, .5],
+        pnep=[0, 1, 2, 2, .4],
+        rain=[1, 0, 1, 2, .75],
     ))
     pd.testing.assert_frame_equal(expected_summ, summ)
 
@@ -312,7 +312,7 @@ def test_hits_and_misses():
     assert false_pos == 1
     assert false_neg == 1
     assert true_neg == 1
-    assert pct == "50.00%"
+    assert pct == .5
 
 def test_format_timedelta_number():
     td = pd.Timedelta(days=3.14159)
@@ -320,3 +320,34 @@ def test_format_timedelta_number():
 
 def test_format_timedelta_nan():
     assert fbfmaproom.format_timedelta_days(pd.NaT) == ""
+
+def test_skill_endpoint():
+    with fbfmaproom.SERVER.test_client() as client:
+        resp = client.get(
+            '/fbfmaproom/skill?country=ethiopia'
+            '&mode=0'
+            '&season=season1'
+            '&issue_month0=0'
+            '&freq=30'
+            '&region=ET05'
+            '&predictor=pnep'
+            '&predictand=bad-years'
+        )
+    assert resp.status_code == 200
+    d = resp.json
+    assert d['act_in_vain'] == 5
+    assert d['fail_to_act'] == 3
+    assert d['worthy_action'] == 7
+    assert d['worthy_inaction'] == 24
+    assert np.isclose(d['accuracy'], .79487)
+
+
+def test_regions_endpoint():
+    with fbfmaproom.SERVER.test_client() as client:
+        resp = client.get('/fbfmaproom/regions?country=ethiopia&level=1')
+        assert resp.status_code == 200
+        d = resp.json
+        regions = d['regions']
+        assert len(regions) == 11
+        assert regions[0]['key'] == '(ET05,ET0508)'
+        assert regions[0]['label'] == 'Afder'

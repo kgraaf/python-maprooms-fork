@@ -531,25 +531,39 @@ def augment_table_data(main_df, freq, table_columns, trigger_key, bad_years_key)
 
 
 def format_summary_table(summary_df, table_columns):
-    summary_df = pd.DataFrame(summary_df)
-    summary_df["time"] = [
+    format_accuracy = lambda x: f"{x * 100:.2f}%"
+    format_count = lambda x: f"{x:.0f}"
+
+    formatted_df = pd.DataFrame()
+
+    formatted_df["time"] = [
         "Worthy-action:",
         "Act-in-vain:",
         "Fail-to-act:",
         "Worthy-Inaction:",
         "Rate:",
     ]
-    summary_df["tooltip"] = [
+    formatted_df["tooltip"] = [
         "Drought was forecasted and a ‘bad year’ occurred",
         "Drought was forecasted but a ‘bad year’ did not occur",
         "No drought was forecasted but a ‘bad year’ occurred",
         "No drought was forecasted, and no ‘bad year’ occurred",
         "Gives the percentage of worthy-action and worthy-inactions",
     ]
-    for c in set(table_columns) - set(summary_df.columns):
-        summary_df[c] = np.nan
 
-    return summary_df
+    for c in summary_df.columns:
+        if c == 'time':
+            continue
+
+        formatted_df[c] = (
+            list(map(format_count, summary_df[c][0:4])) +
+            [format_accuracy(summary_df[c][4])]
+        )
+
+    for c in set(table_columns) - set(formatted_df.columns):
+        formatted_df[c] = ''
+
+    return formatted_df
 
 
 def hits_and_misses(prediction, truth):
@@ -560,8 +574,7 @@ def hits_and_misses(prediction, truth):
     false_neg = (~prediction & truth).sum()
     true_neg = (~prediction & ~truth).sum()
     accuracy = (true_pos + true_neg) / (true_pos + true_neg + false_pos + false_neg)
-    return [true_pos, false_pos, false_neg, true_neg,
-            f"{accuracy * 100:.2f}%"]
+    return [true_pos, false_pos, false_neg, true_neg, accuracy]
 
 
 def calculate_bounds(pt, res, origin):
@@ -1156,6 +1169,82 @@ def retrieve_geometry2(country_key: str, mode: int, region_key: str):
     row = df.iloc[0]
     geom = wkb.loads(row["the_geom"].tobytes())
     return row["label"], geom
+
+
+@SERVER.route(f"{PFX}/export")
+def export_endpoint():
+    country_key = parse_arg("country")
+    mode = parse_arg("mode", int) # not supporting pixel mode for now
+    season = parse_arg("season")
+    issue_month0 = parse_arg("issue_month0", int)
+    freq = parse_arg("freq", float)
+    geom_key = parse_arg("region")
+    predictor_key = parse_arg("predictor")
+    predictand_key = parse_arg("predictand")
+
+    if predictor_key != "pnep":
+        raise InvalidRequestError("Unsupported value for predictor_key")
+
+    config = CONFIG["countries"][country_key]
+    season_config = config["seasons"][season]
+
+    target_month0 = season_config["target_month"]
+
+    mpoly = get_mpoly(mode, country_key, geom_key)
+
+    forecast_key = 'pnep'
+
+    cols = table_columns(
+        config["datasets"],
+        predictand_key,
+        [predictor_key],
+        obs_keys=[],
+        severity=0, # unimportant because we won't be formatting it
+        season_length=season_config["length"],
+    )
+    basic_ds = fundamental_table_data(
+        country_key, cols, season_config, issue_month0,
+        freq, mode, geom_key
+    )
+    basic_df = basic_ds.drop_vars("pct").to_dataframe()
+    main_df, summary_df, thresh = augment_table_data(
+        basic_df, freq, cols, predictor_key, predictand_key
+    )
+
+    (worthy_action, act_in_vain, fail_to_act, worthy_inaction, accuracy) = (
+        summary_df[predictor_key]
+    )
+    response = flask.jsonify({
+        'skill': {
+            'worthy_action': worthy_action,
+            'act_in_vain': act_in_vain,
+            'fail_to_act': fail_to_act,
+            'worthy_inaction': worthy_inaction,
+            'accuracy': accuracy,
+        },
+        'history': [],
+        'threshold': float(thresh),
+    })
+    return response
+
+
+@SERVER.route(f"{PFX}/regions")
+def regions_endpoint():
+    country_key = parse_arg("country")
+    level = parse_arg("level", int)
+
+    shapes_config = CONFIG["countries"][country_key]["shapes"][level]
+    query = sql.Composed([
+        sql.SQL("with a as ("),
+        sql.SQL(shapes_config["sql"]),
+        sql.SQL(") select key, label from a"),
+    ])
+    with DBPOOL.take() as cm:
+        conn = cm.resource
+        with conn:  # transaction
+            df = pd.read_sql(query, conn)
+    d = {'regions': df.to_dict(orient="records")}
+    return flask.jsonify(d)
 
 
 if __name__ == "__main__":
