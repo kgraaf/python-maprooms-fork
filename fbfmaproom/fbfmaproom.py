@@ -1171,9 +1171,8 @@ def retrieve_geometry2(country_key: str, mode: int, region_key: str):
     return row["label"], geom
 
 
-@SERVER.route(f"{PFX}/export")
-def export_endpoint():
-    country_key = parse_arg("country")
+@SERVER.route(f"{PFX}/<country_key>/export")
+def export_endpoint(country_key):
     mode = parse_arg("mode", int) # not supporting pixel mode for now
     season = parse_arg("season")
     issue_month0 = parse_arg("issue_month0", int)
@@ -1211,9 +1210,12 @@ def export_endpoint():
         basic_df, freq, cols, predictor_key, predictand_key
     )
 
+    main_df['year'] = main_df['time'].apply(lambda x: x.year)
+
     (worthy_action, act_in_vain, fail_to_act, worthy_inaction, accuracy) = (
         summary_df[predictor_key]
     )
+
     response = flask.jsonify({
         'skill': {
             'worthy_action': worthy_action,
@@ -1222,7 +1224,11 @@ def export_endpoint():
             'worthy_inaction': worthy_inaction,
             'accuracy': accuracy,
         },
-        'history': [],
+        'history': main_df[[
+            'year',
+            predictand_key, f"worst_{predictand_key}",
+            predictor_key, f"worst_{predictor_key}"
+        ]].to_dict('records'),
         'threshold': float(thresh),
     })
     return response

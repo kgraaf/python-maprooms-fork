@@ -324,8 +324,8 @@ def test_format_timedelta_nan():
 def test_export_endpoint():
     with fbfmaproom.SERVER.test_client() as client:
         resp = client.get(
-            '/fbfmaproom/export?country=ethiopia'
-            '&mode=0'
+            '/fbfmaproom/ethiopia/export'
+            '?mode=0'
             '&season=season1'
             '&issue_month0=0'
             '&freq=30'
@@ -344,6 +344,19 @@ def test_export_endpoint():
     assert np.isclose(s['accuracy'], .79487)
 
     assert np.isclose(d['threshold'], 40.96825)
+
+    h = d['history']
+    assert np.isnan(h[0]['bad-years'])
+    assert np.isnan(h[0]['worst_bad-years'])
+    assert np.isclose(h[0]['pnep'], 32.27964)
+    assert h[0]['worst_pnep'] == 0
+
+    assert h[1]['bad-years'] == 0
+    assert h[1]['worst_bad-years'] == 0
+
+    assert h[4]['worst_pnep'] == 1
+
+    assert h[5]['worst_bad-years'] == 1
 
 
 def test_regions_endpoint():
