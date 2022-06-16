@@ -623,6 +623,17 @@ countries:
                         time: T
                     colormap: *raincm
                     lower_is_worse: yes
+                enacts-spi-jj:
+                    label: ENACTS SPI Jun-Jul
+                    description: Average SPI in June-July, calculated from ENACTS
+                    path: niger/enacts-spi-jj.zarr
+                    var_names:
+                        obs: spi
+                        lat: Y
+                        lon: X
+                        time: T
+                    colormap: *raincm
+                    lower_is_worse: yes
                 chirps-dryspell:
                     label: Dry Spell
                     description: Longest dry spell, calculated from CHIRPS
