@@ -1181,17 +1181,25 @@ def export_endpoint(country_key):
     predictor_key = parse_arg("predictor")
     predictand_key = parse_arg("predictand")
 
-    if predictor_key != "pnep":
-        raise InvalidRequestError("Unsupported value for predictor_key")
-
     config = CONFIG["countries"][country_key]
-    season_config = config["seasons"][season]
+
+    ds_config = config["datasets"]
+
+    if predictor_key != "pnep":
+        raise InvalidRequestError("Unsupported value {predictor_key} for predictor_key. Valid values are: pnep")
+
+    all_obs_keys = set(ds_config["observations"].keys())
+    if predictand_key not in all_obs_keys:
+        raise InvalidRequestError(f"Unsupported value {predictand_key} for predictand_key. Valid values are: {' '.join(all_obs_keys)}")
+
+    season_config = config["seasons"].get(season)
+    if season_config is None:
+        seasons = ' '.join(config["seasons"].keys())
+        raise InvalidRequestError(f"Unknown season {season}. Valid values are: {seasons}")
 
     target_month0 = season_config["target_month"]
 
     mpoly = get_mpoly(mode, country_key, geom_key)
-
-    forecast_key = 'pnep'
 
     cols = table_columns(
         config["datasets"],
