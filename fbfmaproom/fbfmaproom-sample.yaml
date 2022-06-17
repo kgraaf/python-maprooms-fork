@@ -313,6 +313,7 @@ countries:
                         time: T
                     colormap: *raincm
                     lower_is_worse: yes
+                    format: number3
                 bad-years:
                     label: Drought humanitarian ranking
                     description: Drought ranking of expert committee humanitarian data review
@@ -415,6 +416,7 @@ countries:
                         time: T
                     colormap: *raincm
                     lower_is_worse: yes
+                    format: number3
                 bad-years:
                     label: Reported bad years
                     path: ethiopia/bad-years.zarr
@@ -623,6 +625,31 @@ countries:
                         time: T
                     colormap: *raincm
                     lower_is_worse: yes
+                    format: number3
+                enacts-spi-jj:
+                    label: ENACTS SPI Jun-Jul
+                    description: Average SPI in June-July, calculated from ENACTS
+                    path: niger/enacts-spi-jj.zarr
+                    var_names:
+                        obs: spi
+                        lat: Y
+                        lon: X
+                        time: T
+                    colormap: *raincm
+                    lower_is_worse: yes
+                    format: number3
+                chirp-spi-jj:
+                    label: CHIRP SPI Jun-Jul
+                    description: Average SPI in June-July, calculated from CHIRP
+                    path: niger/chirp-spi-jj.zarr
+                    var_names:
+                        obs: spi
+                        lat: Y
+                        lon: X
+                        time: T
+                    colormap: *raincm
+                    lower_is_worse: yes
+                    format: number3
                 chirps-dryspell:
                     label: Dry Spell
                     description: Longest dry spell, calculated from CHIRPS
