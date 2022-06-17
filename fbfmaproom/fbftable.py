@@ -5,11 +5,11 @@ import dash_bootstrap_components as dbc
 import uuid
 from collections import OrderedDict
 
-def gen_table(tcs, dfs, data):
+def gen_table(tcs, dfs, data, severity):
     return html.Table(
         [
             gen_head(tcs, dfs),
-            gen_body(tcs, data)
+            gen_body(tcs, data, severity)
         ], className="supertable"
     )
 
@@ -49,18 +49,13 @@ def gen_head(tcs, dfs):
     )
 
 
-def gen_body(tcs, data):
-    def class_name(col, row):
-        f = tcs[col]['class_name']
-        if f is not None:
-            assert callable(f), f"column {col} class_name field is not a function"
-            return f(col, row)
-        else:
-            return ""
+def gen_body(tcs, data, severity):
 
     def fmt(col, row):
         f = tcs[col].get('format', lambda x: x)
         return f(row[col])
+
+    class_name = lambda col_name, row: worst_class(col_name, row, severity)
 
     return html.Tbody([
         html.Tr([
@@ -68,3 +63,10 @@ def gen_body(tcs, data):
         ])
         for row in data.to_dict(orient="records")
     ])
+
+
+def worst_class(col_name, row, severity):
+    indicator_col_name = f'worst_{col_name}'
+    if indicator_col_name in row and row[indicator_col_name] == 1:
+        return f'cell-severity-{severity}'
+    return ''

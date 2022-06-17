@@ -115,6 +115,7 @@ def test_augment_table_data():
     expected_aug["worst_bad-years"] = [1, 0, 1, 0, 0, 1]
     expected_aug["worst_pnep"] = [np.nan, 0, 0, 1, 0, 0]
     expected_aug["worst_rain"] = [np.nan, np.nan, 0, 0, 0, 1]
+    expected_aug["worst_enso_state"] = [np.nan, np.nan, 1, 0, 1, 0]
     pd.testing.assert_frame_equal(expected_aug, aug, check_column_type=True)
 
     expected_summ = pd.DataFrame(dict(

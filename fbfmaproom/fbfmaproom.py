@@ -88,23 +88,16 @@ def table_columns(dataset_config, bad_years_key, forecast_keys, obs_keys,
         'enso': format_enso,
     }
 
-    class_funcs = {
-        'nino': lambda col_name, row: nino_class(col_name, row, severity),
-        'worst': lambda col_name, row: worst_class(col_name, row, severity),
-    }
-
     tcs = OrderedDict()
     tcs["time"] = dict(
         name="Year",
         format=format_funcs['year'],
-        class_name=None,
         tooltip="The year whose forecast is displayed on the map",
         type=ColType.SPECIAL,
     )
 
     def make_column(ds_config, col_type):
         format_func = format_funcs[ds_config.get('format', 'number1')]
-        class_func = class_funcs[ds_config.get('class', 'worst')]
         if 'units' in ds_config:
             units = ds_config['units']
         elif col_type is ColType.OBS:
@@ -117,7 +110,6 @@ def table_columns(dataset_config, bad_years_key, forecast_keys, obs_keys,
             name=ds_config['label'],
             units=units,
             format=format_func,
-            class_name=class_func,
             tooltip=ds_config.get('description'),
             lower_is_worse=ds_config['lower_is_worse'],
             type=col_type,
@@ -137,7 +129,6 @@ def table_columns(dataset_config, bad_years_key, forecast_keys, obs_keys,
             "Displays whether an El Niño, Neutral, "
             "or La Niña state occurred during the year"
         ),
-        class_name=class_funcs['nino'],
         type=ColType.SPECIAL,
         format=format_enso,
     )
@@ -187,12 +178,6 @@ def nino_class(col_name, row, severity):
     if row[col_name] == 3:
         return f'cell-severity-{severity}'
     return ""
-
-
-def worst_class(col_name, row, severity):
-    if row[f'worst_{col_name}'] == 1:
-        return f'cell-severity-{severity}'
-    return ''
 
 
 def data_path(relpath):
@@ -502,7 +487,6 @@ def augment_table_data(main_df, freq, table_columns, trigger_key, bad_years_key)
         key: main_df[key].dropna()
         for key in regular_keys
     }
-    el_nino = main_df["enso_state"].dropna() == "El Niño"
 
     def is_ascending(col_key):
         return table_columns[col_key]["lower_is_worse"]
@@ -522,8 +506,10 @@ def augment_table_data(main_df, freq, table_columns, trigger_key, bad_years_key)
 
     bad_year = worst_flags[bad_years_key].dropna().astype(bool)
 
+    worst_enso_state = main_df["enso_state"].dropna() == 3
+
     summary_df = pd.DataFrame.from_dict(dict(
-        enso_state=hits_and_misses(el_nino, bad_year),
+        enso_state=hits_and_misses(worst_enso_state, bad_year),
     ))
 
     for key in regular_keys:
@@ -531,6 +517,8 @@ def augment_table_data(main_df, freq, table_columns, trigger_key, bad_years_key)
             summary_df[key] = hits_and_misses(worst_flags[key], bad_year)
         main_df[key] = regular_data[key]
         main_df[f"worst_{key}"] = worst_flags[key].astype(int)
+
+    main_df["worst_enso_state"] = worst_enso_state.astype(int)
 
     thresh = regular_data[trigger_key][worst_flags[trigger_key]].min()
 
@@ -829,7 +817,7 @@ def table_cb(issue_month0, freq, mode, geom_key, pathname, severity, obs_keys, t
             geom_key,
             severity,
         )
-        return fbftable.gen_table(tcs, dfs, dft), trigger_thresh
+        return fbftable.gen_table(tcs, dfs, dft, severity), trigger_thresh
     except Exception as e:
         if isinstance(e, NotFoundError):
             # If it's the user just asked for a forecast that doesn't
