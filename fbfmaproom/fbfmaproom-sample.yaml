@@ -507,6 +507,29 @@ countries:
                         time: T
                     colormap: *raincm
                     lower_is_worse: yes
+                ndvi:
+                    label: NDVI
+                    path: ethiopia/ndvi-ond.zarr
+                    var_names:
+                        obs: NDVI
+                        lat: Y
+                        lon: X
+                        time: T
+                    colormap: *raincm
+                    lower_is_worse: yes
+                    format: number4
+                spi:
+                    label: SPI
+                    description: SPI calculated from CHIRPS
+                    path: ethiopia/spi-ond.zarr
+                    var_names:
+                        obs: spi
+                        lat: Y
+                        lon: X
+                        time: T
+                    colormap: *raincm
+                    lower_is_worse: yes
+                    format: number3
                 enso_state: *enso_ds
                 bad-years:
                     label: Reported bad years
