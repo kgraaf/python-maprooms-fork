@@ -87,7 +87,7 @@ def test_augment_table_data():
         index=time,
         data={
             "bad-years": [1, 0, 1, 0, 0, 1],
-            "enso_state": [np.nan, np.nan, "El Niño", "La Niña", "El Niño", "Neutral"],
+            "enso_state": [np.nan, np.nan, 3, 1, 3, 2],
             "pnep": [np.nan, 19.606438, 29.270180, 33.800949, 12.312943, 1.],
             "rain": [np.nan, np.nan, 200., 400., 300., 100.],
             "time": time,

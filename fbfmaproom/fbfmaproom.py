@@ -85,6 +85,7 @@ def table_columns(dataset_config, bad_years_key, forecast_keys, obs_keys,
         'number4': number_formatter(4),
         'timedelta_days': format_timedelta_days,
         'bad': format_bad,
+        'enso': format_enso,
     }
 
     class_funcs = {
@@ -138,6 +139,7 @@ def table_columns(dataset_config, bad_years_key, forecast_keys, obs_keys,
         ),
         class_name=class_funcs['nino'],
         type=ColType.SPECIAL,
+        format=format_enso,
     )
 
     return tcs
@@ -168,8 +170,21 @@ def format_timedelta_days(x):
     return number_formatter(2)(x.days + x.seconds / 60 / 60 / 24)
 
 
+ENSO_STATES = {
+    1.0: "La Niña",
+    2.0: "Neutral",
+    3.0: "El Niño"
+}
+
+
+def format_enso(x):
+    if np.isnan(x):
+        return ""
+    return ENSO_STATES[x]
+
+
 def nino_class(col_name, row, severity):
-    if row[col_name] == 'El Niño':
+    if row[col_name] == 3:
         return f'cell-severity-{severity}'
     return ""
 
@@ -249,13 +264,6 @@ def open_obs_from_config(ds_config):
     return open_data_array(ds_config, "obs", val_min=0.0, val_max=1000.0)
 
 
-ENSO_STATES = {
-    1.0: "La Niña",
-    2.0: "Neutral",
-    3.0: "El Niño"
-}
-
-
 def fetch_enso(month0):
     path = data_path(CONFIG["dataframes"]["enso"])
     ds = xr.open_zarr(path, consolidated=False).where(
@@ -263,8 +271,7 @@ def fetch_enso(month0):
         drop=True
     )
     df = ds.to_dataframe()
-    df["enso_state"] = df["dominant_class"].apply(lambda x: ENSO_STATES[x])
-    df = df.drop("dominant_class", axis="columns")
+    df = df.rename(columns={"dominant_class": "enso_state"})
     df = df.set_index(df.index.rename("time"))
     return df
 
