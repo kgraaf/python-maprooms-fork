@@ -216,6 +216,7 @@ for dataset in url_datasets:
 
     if name not in selected_url_datasets:
         continue
+    print(name)
     for i, args in enumerate(slices):
         ncfilepath = f'{opts.datadir}/{name}-{i}.nc'
         leafdir = os.path.dirname(ncfilepath)
