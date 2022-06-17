@@ -431,7 +431,7 @@ countries:
                     format: number3
                 bad-years:
                     label: Reported bad years
-                    path: ethiopia/bad-years.zarr
+                    path: ethiopia/bad-years-mam.zarr
                     var_names:
                         obs: bad
                         time: T
@@ -510,7 +510,7 @@ countries:
                 enso_state: *enso_ds
                 bad-years:
                     label: Reported bad years
-                    path: ethiopia-ond/bad-years.zarr
+                    path: ethiopia/bad-years-ond.zarr
                     var_names:
                         obs: bad
                         time: T

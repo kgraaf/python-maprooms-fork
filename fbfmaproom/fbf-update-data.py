@@ -263,8 +263,7 @@ dbconfig = CONFIG['dbpool']
 # Countries for which the zarr bad years data is a copy of the
 # db. These are legacy bad years datasets. New ones go directly to
 # zarr.
-DB_BAD_YEARS_COUNTRIES = ['malawi', 'madagascar', 'madagascar-ond', 'ethiopia', 'ethiopia-ond', 'niger', 'guatemala', 'djibouti']
-# lesotho is explictly not. The bad years data for lesotho in the db is outdated.
+DB_BAD_YEARS_COUNTRIES = ['malawi', 'madagascar', 'madagascar-ond', 'niger', 'guatemala', 'djibouti']
 for country in DB_BAD_YEARS_COUNTRIES:
     ds_key = f'{country}/bad-years'
     if ds_key in opts.datasets:
