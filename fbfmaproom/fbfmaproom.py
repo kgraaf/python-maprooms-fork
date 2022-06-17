@@ -779,7 +779,7 @@ def update_popup(pathname, position, mode, year):
 )
 def display_prob_thresh(val):
     if val is not None:
-        return f"{val:.2f}%"
+        return f"{val:.1f}%"
     else:
         return ""
 
