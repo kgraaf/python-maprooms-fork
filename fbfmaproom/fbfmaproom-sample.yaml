@@ -417,6 +417,29 @@ countries:
                     colormap: *raincm
                     lower_is_worse: yes
                     format: number4
+                rain-prev-seas:
+                    label: Rain prev OND
+                    description: CHIRPS average precipitation over the previous OND season
+                    path: ethiopia/rain-prev-seas-mam.zarr
+                    var_names:
+                        obs: prcp
+                        lat: Y
+                        lon: X
+                        time: T
+                    colormap: *raincm
+                    lower_is_worse: yes
+                ndvi-prev-seas:
+                    label: NDVI prev OND
+                    description: Average NDVI over the previous OND season
+                    path: ethiopia/ndvi-prev-seas-mam.zarr
+                    var_names:
+                        obs: NDVI
+                        lat: Y
+                        lon: X
+                        time: T
+                    colormap: *raincm
+                    lower_is_worse: yes
+                    format: number4
                 spi:
                     label: SPI
                     description: SPI calculated from CHIRPS
@@ -510,6 +533,29 @@ countries:
                 ndvi:
                     label: NDVI
                     path: ethiopia/ndvi-ond.zarr
+                    var_names:
+                        obs: NDVI
+                        lat: Y
+                        lon: X
+                        time: T
+                    colormap: *raincm
+                    lower_is_worse: yes
+                    format: number4
+                rain-prev-seas:
+                    label: Rain prev MAM
+                    description: CHIRPS average precipitation over the previous MAM season
+                    path: ethiopia/rain-prev-seas-ond.zarr
+                    var_names:
+                        obs: prcp
+                        lat: Y
+                        lon: X
+                        time: T
+                    colormap: *raincm
+                    lower_is_worse: yes
+                ndvi-prev-seas:
+                    label: NDVI prev MAM
+                    description: Average NDVI over the previous MAM season
+                    path: ethiopia/ndvi-prev-seas-ond.zarr
                     var_names:
                         obs: NDVI
                         lat: Y
