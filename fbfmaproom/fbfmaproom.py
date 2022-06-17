@@ -707,6 +707,8 @@ def country(pathname: str) -> str:
     Output("predictand", "value"),
     Output("predictors", "options"),
     Output("predictors", "value"),
+    Output("modal", "is_open"),
+    Output("modal-body", "children"),
     Input("location", "pathname"),
 )
 def _(pathname):
@@ -745,6 +747,7 @@ def _(pathname):
     ]
     predictors_value = datasets_config["defaults"]["predictors"]
     predictand_value = datasets_config["defaults"]["predictand"]
+    warning = c.get("onload_warning")
 
     return (
         f"{PFX}/custom/{c['logo']}",
@@ -760,6 +763,8 @@ def _(pathname):
         predictand_value,
         predictors_options,
         predictors_value,
+        warning is not None,
+        warning,
     )
 
 @SERVER.route(f"{PFX}/custom/<path:relpath>")
