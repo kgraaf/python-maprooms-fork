@@ -30,7 +30,7 @@ def test_table_cb():
         geom_key='ET05',
         pathname='/fbfmaproom/ethiopia',
         severity=0,
-        obs_keys=['rain', 'ndvi'],
+        obs_keys=['rain', 'ndvi', 'enso_state'],
         trigger_key="pnep",
         bad_years_key="bad-years",
         season='season1',
@@ -47,7 +47,7 @@ def test_table_cb():
     assert thead.children[3].children[0].children[0].children == 'Worthy-Inaction:'
     assert thead.children[4].children[0].children[0].children == 'Rate:'
 
-    assert thead.children[5].children[5].children[0].children == "ENSO State"
+    assert thead.children[5].children[5].children == "ENSO State"
     assert thead.children[0].children[5].children == "2"
     assert thead.children[1].children[5].children == "5"
     assert thead.children[2].children[5].children == "8"
@@ -107,6 +107,10 @@ def test_augment_table_data():
             "lower_is_worse": True,
             "type": fbfmaproom.ColType.OBS,
         },
+        "enso_state": {
+            "lower_is_worse": False,
+            "type": fbfmaproom.ColType.OBS,
+        },
     }
 
     aug, summ, prob = fbfmaproom.augment_table_data(main_df, freq, table_columns, "pnep", "bad-years")
@@ -120,9 +124,9 @@ def test_augment_table_data():
 
     expected_summ = pd.DataFrame(dict(
         # [tp, fp, fn, tn, accuracy]
-        enso_state=[1, 1, 1, 1, .5],
         pnep=[0, 1, 2, 2, .4],
         rain=[1, 0, 1, 2, .75],
+        enso_state=[1, 1, 1, 1, .5],
     ))
     pd.testing.assert_frame_equal(expected_summ, summ)
 

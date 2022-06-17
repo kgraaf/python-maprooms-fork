@@ -34,9 +34,17 @@ dbpool:
     max_usage_count: 1000
     recycle_interval: 60  # (seconds) set to null to disable recycler thread
 
-dataframes:
-    enso: enso.zarr
-
+enso_ds: &enso_ds
+    label: ENSO State
+    units:
+    path: enso.zarr
+    var_names:
+        time: T
+        obs: dominant_class
+    range: [1, 3]
+    colormap: []
+    lower_is_worse: no
+    format: enso
 
 data_root: /data/aaron/fbf
 
@@ -90,6 +98,7 @@ countries:
                         5285200 [5285200 23] 4625990 [4625990 22] 3966780 [3966780 23]
                         3307570 [3307570 23] 2648360 [2648360 23] 1989150]"
                     lower_is_worse: yes
+                enso_state: *enso_ds
                 bad-years:
                     label: Reported bad years
                     path: malawi/bad-years.zarr
@@ -176,6 +185,7 @@ countries:
                         time: T
                     colormap: *raincm
                     lower_is_worse: yes
+                enso_state: *enso_ds
                 bad-years:
                     label: Reported bad years
                     path: madagascar/bad-years.zarr
@@ -314,6 +324,7 @@ countries:
                     colormap: *raincm
                     lower_is_worse: yes
                     format: number3
+                enso_state: *enso_ds
                 bad-years:
                     label: Drought humanitarian ranking
                     description: Drought ranking of expert committee humanitarian data review
@@ -394,6 +405,7 @@ countries:
                         time: T
                     colormap: *raincm
                     lower_is_worse: yes
+                enso_state: *enso_ds
                 ndvi:
                     label: NDVI
                     path: ndvi-ethiopia.zarr
@@ -495,6 +507,7 @@ countries:
                         time: T
                     colormap: *raincm
                     lower_is_worse: yes
+                enso_state: *enso_ds
                 bad-years:
                     label: Reported bad years
                     path: ethiopia-ond/bad-years.zarr
@@ -676,6 +689,7 @@ countries:
                     colormap: *raincm
                     lower_is_worse: no
                     format: timedelta_days
+                enso_state: *enso_ds
                 bad-years:
                     label: Reported bad years
                     path: niger/bad-years.zarr
@@ -755,6 +769,7 @@ countries:
                         time: T
                     colormap: *raincm
                     lower_is_worse: yes
+                enso_state: *enso_ds
                 bad-years:
                     label: Reported bad years
                     path: guatemala/bad-years.zarr
@@ -845,6 +860,7 @@ countries:
                     colormap: *raincm
                     lower_is_worse: yes
                     format: number4
+                enso_state: *enso_ds
                 bad-years:
                     label: Reported bad years
                     path: djibouti/bad-years.zarr
@@ -924,6 +940,7 @@ countries:
                         time: T
                     colormap: *raincm
                     lower_is_worse: yes
+                enso_state: *enso_ds
                 bad-years-ag:
                     label: "Ag/food sec bad years"
                     description: Bad years for agriculture and food security sector
@@ -1059,6 +1076,7 @@ countries:
                         time: T
                     colormap: *raincm
                     lower_is_worse: yes
+                enso_state: *enso_ds
                 bad-years-ag:
                     label: "Ag/food sec bad years"
                     description: Bad years for agriculture and food security sector
