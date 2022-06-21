@@ -74,7 +74,7 @@ APP.title = "FBF--Maproom"
 APP.layout = fbflayout.app_layout()
 
 
-def table_columns(dataset_config, bad_years_key, forecast_keys, obs_keys,
+def table_columns(dataset_config, trigger_key, predictand_key, other_predictor_keys,
                   severity, season_length):
     format_funcs = {
         'year': lambda midpoint: year_label(midpoint, season_length),
@@ -101,7 +101,16 @@ def table_columns(dataset_config, bad_years_key, forecast_keys, obs_keys,
         type=ColType.SPECIAL,
     )
 
-    def make_column(ds_config, col_type):
+    def make_column(key):
+        if key in dataset_config['forecasts']:
+            col_type = ColType.FORECAST
+            ds_config = dataset_config['forecasts'][key]
+        elif key in dataset_config['observations']:
+            col_type = ColType.OBS
+            ds_config = dataset_config['observations'][key]
+        else:
+            assert False, f'Unknown dataset key {key}'
+
         format_func = format_funcs[ds_config.get('format', 'number1')]
         class_func = class_funcs[ds_config.get('class', 'worst')]
         if 'units' in ds_config:
@@ -122,13 +131,10 @@ def table_columns(dataset_config, bad_years_key, forecast_keys, obs_keys,
             type=col_type,
         )
 
-    for key in forecast_keys:
-        tcs[key] = make_column(dataset_config['forecasts'][key], ColType.FORECAST)
-
-    tcs[bad_years_key] = make_column(dataset_config['observations'][bad_years_key], ColType.OBS)
-
-    for key in obs_keys:
-        tcs[key] = make_column(dataset_config['observations'][key], ColType.OBS)
+    tcs[trigger_key] = make_column(trigger_key)
+    tcs[predictand_key] = make_column(predictand_key)
+    for key in other_predictor_keys:
+        tcs[key] = make_column(key)
 
     tcs["enso_state"] = dict(
         name="ENSO State",
@@ -797,14 +803,13 @@ def display_prob_thresh(val):
     Input("bad_years", "value"),
     State("season", "value"),
 )
-def table_cb(issue_month0, freq, mode, geom_key, pathname, severity, obs_keys, trigger_key, bad_years_key, season):
+def table_cb(issue_month0, freq, mode, geom_key, pathname, severity, obs_keys, trigger_key, predictand_key, season):
     country_key = country(pathname)
     config = CONFIG["countries"][country_key]
-    forecast_keys = [trigger_key]
     tcs = table_columns(
         config["datasets"],
-        bad_years_key,
-        forecast_keys,
+        trigger_key,
+        predictand_key,
         obs_keys,
         severity,
         config["seasons"][season]["length"],
@@ -815,7 +820,7 @@ def table_cb(issue_month0, freq, mode, geom_key, pathname, severity, obs_keys, t
             config["seasons"][season],
             tcs,
             trigger_key,
-            bad_years_key,
+            predictand_key,
             issue_month0,
             freq,
             mode,
@@ -1185,12 +1190,14 @@ def export_endpoint(country_key):
 
     ds_config = config["datasets"]
 
-    if predictor_key != "pnep":
-        raise InvalidRequestError(f"Unsupported value {predictor_key} for predictor_key. Valid values are: pnep")
+    forecast_keys = set(ds_config["forecasts"].keys())
+    obs_keys = set(ds_config["observations"].keys())
+    all_keys = forecast_keys | obs_keys
+    if predictor_key not in all_keys:
+        raise InvalidRequestError(f"Unsupported value {predictor_key} for predictor_key. Valid values are: {' '.join(all_keys)}")
 
-    all_obs_keys = set(ds_config["observations"].keys())
-    if predictand_key not in all_obs_keys:
-        raise InvalidRequestError(f"Unsupported value {predictand_key} for predictand_key. Valid values are: {' '.join(all_obs_keys)}")
+    if predictand_key not in all_keys:
+        raise InvalidRequestError(f"Unsupported value {predictand_key} for predictand_key. Valid values are: {' '.join(all_keys)}")
 
     season_config = config["seasons"].get(season)
     if season_config is None:
@@ -1203,9 +1210,9 @@ def export_endpoint(country_key):
 
     cols = table_columns(
         config["datasets"],
+        predictor_key,
         predictand_key,
-        [predictor_key],
-        obs_keys=[],
+        [],
         severity=0, # unimportant because we won't be formatting it
         season_length=season_config["length"],
     )
@@ -1213,7 +1220,9 @@ def export_endpoint(country_key):
         country_key, cols, season_config, issue_month0,
         freq, mode, geom_key
     )
-    basic_df = basic_ds.drop_vars("pct").to_dataframe()
+    if "pct" in basic_ds.coords:
+        basic_ds = basic_ds.drop_vars("pct")
+    basic_df = basic_ds.to_dataframe()
     main_df, summary_df, thresh = augment_table_data(
         basic_df, freq, cols, predictor_key, predictand_key
     )

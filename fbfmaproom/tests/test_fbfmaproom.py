@@ -32,7 +32,7 @@ def test_table_cb():
         severity=0,
         obs_keys=['rain', 'ndvi'],
         trigger_key="pnep",
-        bad_years_key="bad-years",
+        predictand_key="bad-years",
         season='season1',
     )
     assert np.isclose(prob_thresh, 36.930862)
