@@ -633,7 +633,7 @@ countries:
                 target_month: 10.5
                 length: 3.0
                 issue_months: [8, 7, 6]
-                year_range: [1982, 2020]
+                year_range: [1982, 2022]
     niger:
         logo: Niger_IRI_120x48.png
         resolution: [0.05, 0.05]
