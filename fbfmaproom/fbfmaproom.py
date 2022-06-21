@@ -1186,7 +1186,7 @@ def export_endpoint(country_key):
     ds_config = config["datasets"]
 
     if predictor_key != "pnep":
-        raise InvalidRequestError("Unsupported value {predictor_key} for predictor_key. Valid values are: pnep")
+        raise InvalidRequestError(f"Unsupported value {predictor_key} for predictor_key. Valid values are: pnep")
 
     all_obs_keys = set(ds_config["observations"].keys())
     if predictand_key not in all_obs_keys:
