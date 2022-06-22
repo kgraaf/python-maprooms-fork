@@ -154,8 +154,8 @@ url_datasets = [
         'http://iridl.ldeo.columbia.edu/SOURCES/.UCSB/.CHIRPS/.v2p0/.daily-improved/.global/.0p25/.prcp/X/41.625/43.375/RANGE/Y/10.875/12.875/RANGE/T/(Jul-Sep)/seasonalAverage/30/mul//units/(mm/month)/def/'
     ),
     (
-        'pnep-djibouti',
-        'http://iridl.ldeo.columbia.edu/home/.remic/.ICPAC/.Forecasts/.CPT/.Djibouti/.PRCPPRCP_CCAFCST/.NextGen/.FbF/.pne/',
+        'djibouti/pnep-jas',
+        'http://iridl.ldeo.columbia.edu/home/.aaron/.Djibouti/.PRCPPRCP_CCAFCST/.NextGen/.FbF/.pne/',
     ),
     (
         "ndvi-djibouti",
