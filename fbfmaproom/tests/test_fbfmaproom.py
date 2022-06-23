@@ -30,9 +30,8 @@ def test_table_cb():
         geom_key='ET05',
         pathname='/fbfmaproom/ethiopia',
         severity=0,
-        trigger_key="pnep",
         predictand_key="bad-years",
-        other_predictor_keys=['rain', 'ndvi', 'enso_state'],
+        predictor_keys=['pnep', 'rain', 'ndvi', 'enso_state'],
         season='season1',
     )
 
@@ -51,29 +50,29 @@ def test_table_cb():
     print(thead.children[5].children[1].children)
     assert thead.children[5].children[1].children == '31.0'
 
-    assert thead.children[6].children[5].children == "ENSO State"
-    assert thead.children[0].children[5].children == "3"
-    assert thead.children[1].children[5].children == "4"
-    assert thead.children[2].children[5].children == "12"
-    assert thead.children[3].children[5].children == "20"
-    assert thead.children[4].children[5].children == "58.97%"
-    assert thead.children[5].children[5].children == "El Niño" # threshold
+    assert thead.children[6].children[4].children == "ENSO State"
+    assert thead.children[0].children[4].children == "3"
+    assert thead.children[1].children[4].children == "4"
+    assert thead.children[2].children[4].children == "12"
+    assert thead.children[3].children[4].children == "20"
+    assert thead.children[4].children[4].children == "58.97%"
+    assert thead.children[5].children[4].children == "El Niño" # threshold
 
     assert len(tbody.children) == 40 # will break when we add a new year
 
     row = tbody.children[3]
     assert row.children[0].children == '2019'
     assert row.children[0].className == ''
-    assert row.children[5].children == 'El Niño'
-    assert row.children[5].className == 'cell-severity-0'
     assert row.children[1].children == '25.4'
     assert row.children[1].className == ''
-    assert row.children[3].children == '43.4'
-    assert row.children[3].className == ''
-    assert row.children[4].children == '0.2361'
-    assert row.children[4].className == 'cell-severity-0'
-    assert row.children[2].children == ''
+    assert row.children[2].children == '43.4'
     assert row.children[2].className == ''
+    assert row.children[3].children == '0.2361'
+    assert row.children[3].className == 'cell-severity-0'
+    assert row.children[4].children == 'El Niño'
+    assert row.children[4].className == 'cell-severity-0'
+    assert row.children[5].children == ''
+    assert row.children[5].className == ''
 
 
 # overlaps with test_generate_tables, but this one uses synthetic
@@ -118,7 +117,7 @@ def test_augment_table_data():
         },
     }
 
-    aug, summ, thresholds = fbfmaproom.augment_table_data(main_df, freq, table_columns, "pnep", "bad-years")
+    aug, summ, thresholds = fbfmaproom.augment_table_data(main_df, freq, table_columns, "bad-years")
 
     expected_aug = main_df.copy()
     expected_aug["worst_bad-years"] = [1, 0, 1, 0, 0, 1]

@@ -73,7 +73,7 @@ def map_layout():
                         checked=True,
                     ),
                     dlf.Overlay(
-                        dlf.TileLayer(opacity=0.8, id="trigger_layer"),
+                        dlf.TileLayer(opacity=0.8, id="raster_layer"),
                         name="Forecast",
                         checked=True,
                     ),
@@ -120,7 +120,7 @@ def map_layout():
                 opacity=0.8,
             ),
             dlf.Colorbar(
-                id="trigger_colorbar",
+                id="raster_colorbar",
                 position="bottomleft",
                 width=300,
                 height=10,
@@ -186,6 +186,7 @@ def command_layout():
     return html.Div(
         [
             dcc.Store(id="geom_key"),
+            dcc.Input(id="map_column", type="hidden", value="pnep"),
             html.Div(
                 [
                     label_with_tooltip(
@@ -289,8 +290,8 @@ def command_layout():
             html.Div(
                 [
                     label_with_tooltip(
-                        "Frequency of triggered forecasts",
-                        "The slider is used to set the frequency of forecast triggered",
+                        "Frequency of trigger events",
+                        "The slider is used to set the frequency of the trigger",
                     ),
                     dcc.Slider(
                         id="freq",
@@ -363,11 +364,11 @@ def table_layout():
             html.Div(
                 [
                     label_with_tooltip(
-                        "Other predictors:",
-                        "Other columns to display in the table"
+                        "Predictors:",
+                        "Other datasets to display in the table"
                     ),
                     dcc.Dropdown(
-                        id="other_predictors",
+                        id="predictors",
                         clearable=False,
                         multi=True,
                     ),

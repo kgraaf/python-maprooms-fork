@@ -26,6 +26,7 @@ from psycopg2 import sql
 import math
 import traceback
 import enum
+import itertools
 import warnings
 
 import __about__ as about
@@ -90,7 +91,7 @@ APP.title = "FBF--Maproom"
 APP.layout = fbflayout.app_layout()
 
 
-def table_columns(dataset_config, trigger_key, predictand_key, other_predictor_keys,
+def table_columns(dataset_config, predictor_keys, predictand_key,
                   severity, season_length):
     format_funcs = {
         'year': lambda midpoint: year_label(midpoint, season_length),
@@ -140,10 +141,9 @@ def table_columns(dataset_config, trigger_key, predictand_key, other_predictor_k
             type=col_type,
         )
 
-    tcs[trigger_key] = make_column(trigger_key)
-    tcs[predictand_key] = make_column(predictand_key)
-    for key in other_predictor_keys:
+    for key in predictor_keys:
         tcs[key] = make_column(key)
+    tcs[predictand_key] = make_column(predictand_key)
 
     return tcs
 
@@ -356,7 +356,6 @@ def generate_tables(
     country_key,
     season_config,
     table_columns,
-    trigger_key,
     predictand_key,
     issue_month0,
     freq,
@@ -371,7 +370,7 @@ def generate_tables(
         basic_ds = basic_ds.drop_vars("pct")
     basic_df = basic_ds.to_dataframe()
     main_df, summary_df, thresholds = augment_table_data(
-        basic_df, freq, table_columns, trigger_key, predictand_key
+        basic_df, freq, table_columns, predictand_key
     )
     summary_presentation_df = format_summary_table(summary_df, table_columns, thresholds)
     return main_df, summary_presentation_df
@@ -492,7 +491,7 @@ def fundamental_table_data(country_key, table_columns,
     return main_ds
 
 
-def augment_table_data(main_df, freq, table_columns, trigger_key, predictand_key):
+def augment_table_data(main_df, freq, table_columns, predictand_key):
     main_df = main_df.copy()
 
     main_df["time"] = main_df.index.to_series()
@@ -622,8 +621,8 @@ def country(pathname: str) -> str:
     Output("mode", "value"),
     Output("predictand", "options"),
     Output("predictand", "value"),
-    Output("other_predictors", "options"),
-    Output("other_predictors", "value"),
+    Output("predictors", "options"),
+    Output("predictors", "value"),
     Input("location", "pathname"),
 )
 def _(pathname):
@@ -650,15 +649,17 @@ def _(pathname):
     mode_value = "0"
 
     datasets_config = c["datasets"]
-    predictor_options = [
+    predictors_options = predictand_options = [
         dict(
             label=v["label"],
             value=k,
         )
-        for k, v in datasets_config["observations"].items()
+        for k, v in itertools.chain(
+            datasets_config["forecasts"].items(),
+            datasets_config["observations"].items()
+        )
     ]
-    predictor_value = [datasets_config["defaults"]["observations"]]
-    predictand_options = predictor_options
+    predictors_value = [datasets_config["defaults"]["observations"]]
     predictand_value = datasets_config["defaults"]["bad_years"]
 
     return (
@@ -673,8 +674,8 @@ def _(pathname):
         mode_value,
         predictand_options,
         predictand_value,
-        predictor_options,
-        predictor_value,
+        predictors_options,
+        predictors_value,
     )
 
 @SERVER.route(f"{PFX}/custom/<path:relpath>")
@@ -801,19 +802,17 @@ def update_popup(pathname, position, mode, year):
     Input("geom_key", "data"),
     Input("location", "pathname"),
     Input("severity", "value"),
-    Input("trigger", "value"),
     Input("predictand", "value"),
-    Input("other_predictors", "value"),
+    Input("predictors", "value"),
     State("season", "value"),
 )
-def table_cb(issue_month0, freq, mode, geom_key, pathname, severity, trigger_key, predictand_key, other_predictor_keys, season):
+def table_cb(issue_month0, freq, mode, geom_key, pathname, severity, predictand_key, predictor_keys, season):
     country_key = country(pathname)
     config = CONFIG["countries"][country_key]
     tcs = table_columns(
         config["datasets"],
-        trigger_key,
+        predictor_keys,
         predictand_key,
-        other_predictor_keys,
         severity,
         config["seasons"][season]["length"],
     )
@@ -822,7 +821,6 @@ def table_cb(issue_month0, freq, mode, geom_key, pathname, severity, trigger_key
             country_key,
             config["seasons"][season],
             tcs,
-            trigger_key,
             predictand_key,
             issue_month0,
             freq,
@@ -853,40 +851,40 @@ def update_severity_color(value):
 
 
 @APP.callback(
-    Output("trigger_layer", "url"),
+    Output("raster_layer", "url"),
     Output("forecast_warning", "is_open"),
-    Output("trigger_colorbar", "colorscale"),
+    Output("raster_colorbar", "colorscale"),
     Input("year", "value"),
     Input("issue_month", "value"),
     Input("freq", "value"),
     Input("location", "pathname"),
-    Input("trigger", "value"),
+    Input("map_column", "value"),
     State("season", "value"),
 )
-def tile_url_callback(target_year, issue_month0, freq, pathname, trigger_key, season_id):
+def tile_url_callback(target_year, issue_month0, freq, pathname, map_col_key, season_id):
     colorscale = None  # default value in case an exception is raised
     try:
         country_key = country(pathname)
         country_config = CONFIG["countries"][country_key]
         target_month0 = country_config["seasons"][season_id]["target_month"]
         ds_configs = country_config["datasets"]
-        ds_config = ds_configs["forecasts"].get(trigger_key)
+        ds_config = ds_configs["forecasts"].get(map_col_key)
         if ds_config is None:
-            trigger_is_forecast = False
-            ds_config = ds_configs["observations"][trigger_key]
+            map_is_forecast = False
+            ds_config = ds_configs["observations"][map_col_key]
         else:
-            trigger_is_forecast = True
+            map_is_forecast = True
         colorscale = pingrid.to_dash_colorscale(ds_config["colormap"])
 
-        if trigger_is_forecast:
+        if map_is_forecast:
             # Check if we have the requested data so that if we don't, we
             # can explain why the map is blank.
-            select_forecast(country_key, trigger_key, issue_month0, target_month0, target_year, freq)
-            tile_url = f"{TILE_PFX}/forecast/{trigger_key}/{{z}}/{{x}}/{{y}}/{country_key}/{season_id}/{target_year}/{issue_month0}/{freq}"
+            select_forecast(country_key, map_col_key, issue_month0, target_month0, target_year, freq)
+            tile_url = f"{TILE_PFX}/forecast/{map_col_key}/{{z}}/{{x}}/{{y}}/{country_key}/{season_id}/{target_year}/{issue_month0}/{freq}"
         else:
             # As for select_forecast above
-            select_obs(country_key, [trigger_key], target_month0, target_year)
-            tile_url = f"{TILE_PFX}/obs/{trigger_key}/{{z}}/{{x}}/{{y}}/{country_key}/{season_id}/{target_year}"
+            select_obs(country_key, [map_col_key], target_month0, target_year)
+            tile_url = f"{TILE_PFX}/obs/{map_col_key}/{{z}}/{{x}}/{{y}}/{country_key}/{season_id}/{target_year}"
         error = False
 
     except Exception as e:
@@ -1147,9 +1145,8 @@ def export_endpoint(country_key):
 
     cols = table_columns(
         config["datasets"],
-        predictor_key,
+        [predictor_key],
         predictand_key,
-        [],
         severity=0, # unimportant because we won't be formatting it
         season_length=season_config["length"],
     )
@@ -1161,7 +1158,7 @@ def export_endpoint(country_key):
         basic_ds = basic_ds.drop_vars("pct")
     basic_df = basic_ds.to_dataframe()
     main_df, summary_df, thresholds = augment_table_data(
-        basic_df, freq, cols, predictor_key, predictand_key
+        basic_df, freq, cols, predictand_key
     )
 
     main_df['year'] = main_df['time'].apply(lambda x: x.year)
