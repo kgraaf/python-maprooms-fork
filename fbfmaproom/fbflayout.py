@@ -354,7 +354,7 @@ def command_layout():
                 },
             ),
             dbc.Alert(
-                "No forecast available for this month",
+                "No data available for selected month and year",
                 color="danger",
                 dismissable=True,
                 is_open=False,

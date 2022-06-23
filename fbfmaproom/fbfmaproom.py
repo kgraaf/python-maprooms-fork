@@ -351,7 +351,9 @@ def generate_tables(
     basic_ds = fundamental_table_data(country_key, table_columns,
                                       season_config, issue_month0,
                                       freq, mode, geom_key)
-    basic_df = basic_ds.drop_vars("pct").to_dataframe()
+    if "pct" in basic_ds.coords:
+        basic_ds = basic_ds.drop_vars("pct")
+    basic_df = basic_ds.to_dataframe()
     main_df, summary_df, trigger_thresh = augment_table_data(
         basic_df, freq, table_columns, trigger_key, predictand_key
     )
@@ -501,7 +503,11 @@ def augment_table_data(main_df, freq, table_columns, trigger_key, predictand_key
         main_df[key] = regular_data[key]
         main_df[f"worst_{key}"] = worst_flags[key].astype(int)
 
-    thresh = regular_data[trigger_key][worst_flags[trigger_key]].min()
+    trigger_worst_vals = regular_data[trigger_key][worst_flags[trigger_key]]
+    if table_columns[trigger_key]["lower_is_worse"]:
+        thresh = trigger_worst_vals.max()
+    else:
+        thresh = trigger_worst_vals.min()
 
     return main_df, summary_df, thresh
 
