@@ -713,7 +713,7 @@ class NotFoundError(ClientSideError):
 
 
 def client_side_error(e):
-    return flask.json.jsonify(e.to_dict())
+    return (e.to_dict(), e.status)
 
 
 def parse_arg(name, conversion=str, required=True):
