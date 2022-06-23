@@ -177,7 +177,7 @@ def command_layout():
         [
             dcc.Input(id="geom_key", type="hidden"),
             dcc.Input(id="prob_thresh", type="hidden"),
-            dcc.Input(id="trigger_key", type="hidden", value="pnep"),
+            dcc.Input(id="trigger", type="hidden", value="pnep"),
             html.Div(
                 [
                     help_layout(
@@ -394,7 +394,7 @@ def table_layout():
                         "scored by how well they predict this one.",
                     ),
                     dcc.Dropdown(
-                        id="bad_years",
+                        id="predictand",
                         clearable=False,
                     ),
                 ],
@@ -408,12 +408,12 @@ def table_layout():
             html.Div(
                 [
                     help_layout(
-                        "Other observations:",
+                        "Other predictors:",
                         "obs_datasets_label",
                         "Other columns to display in the table"
                     ),
                     dcc.Dropdown(
-                        id="obs_datasets",
+                        id="other_predictors",
                         clearable=False,
                         multi=True,
                     ),

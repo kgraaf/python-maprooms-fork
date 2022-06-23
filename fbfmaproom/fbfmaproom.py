@@ -341,7 +341,7 @@ def generate_tables(
     season_config,
     table_columns,
     trigger_key,
-    bad_years_key,
+    predictand_key,
     issue_month0,
     freq,
     mode,
@@ -353,7 +353,7 @@ def generate_tables(
                                       freq, mode, geom_key)
     basic_df = basic_ds.drop_vars("pct").to_dataframe()
     main_df, summary_df, trigger_thresh = augment_table_data(
-        basic_df, freq, table_columns, trigger_key, bad_years_key
+        basic_df, freq, table_columns, trigger_key, predictand_key
     )
     summary_presentation_df = format_summary_table(summary_df, table_columns)
     return main_df, summary_presentation_df, trigger_thresh
@@ -457,7 +457,7 @@ def fundamental_table_data(country_key, table_columns,
     return main_ds
 
 
-def augment_table_data(main_df, freq, table_columns, trigger_key, bad_years_key):
+def augment_table_data(main_df, freq, table_columns, trigger_key, predictand_key):
     main_df = main_df.copy()
 
     main_df["time"] = main_df.index.to_series()
@@ -492,11 +492,11 @@ def augment_table_data(main_df, freq, table_columns, trigger_key, bad_years_key)
         else:
             worst_flags[key] = (rank_pct[key] <= freq / 100).astype(bool)
 
-    bad_year = worst_flags[bad_years_key].dropna().astype(bool)
+    bad_year = worst_flags[predictand_key].dropna().astype(bool)
 
     summary_df = pd.DataFrame()
     for key in regular_keys:
-        if key != bad_years_key:
+        if key != predictand_key:
             summary_df[key] = hits_and_misses(worst_flags[key], bad_year)
         main_df[key] = regular_data[key]
         main_df[f"worst_{key}"] = worst_flags[key].astype(int)
@@ -576,10 +576,10 @@ def country(pathname: str) -> str:
     Output("vuln_colorbar", "colorscale"),
     Output("mode", "options"),
     Output("mode", "value"),
-    Output("bad_years", "options"),
-    Output("bad_years", "value"),
-    Output("obs_datasets", "options"),
-    Output("obs_datasets", "value"),
+    Output("predictand", "options"),
+    Output("predictand", "value"),
+    Output("other_predictors", "options"),
+    Output("other_predictors", "value"),
     Input("location", "pathname"),
 )
 def _(pathname):
@@ -606,16 +606,16 @@ def _(pathname):
     mode_value = "0"
 
     datasets_config = c["datasets"]
-    obs_datasets_options = [
+    predictor_options = [
         dict(
             label=v["label"],
             value=k,
         )
         for k, v in datasets_config["observations"].items()
     ]
-    obs_datasets_value = [datasets_config["defaults"]["observations"]]
-    bad_years_options = obs_datasets_options
-    bad_years_value = datasets_config["defaults"]["bad_years"]
+    predictor_value = [datasets_config["defaults"]["observations"]]
+    predictand_options = predictor_options
+    predictand_value = datasets_config["defaults"]["bad_years"]
 
     return (
         f"{PFX}/custom/{c['logo']}",
@@ -627,10 +627,10 @@ def _(pathname):
         vuln_cs,
         mode_options,
         mode_value,
-        bad_years_options,
-        bad_years_value,
-        obs_datasets_options,
-        obs_datasets_value,
+        predictand_options,
+        predictand_value,
+        predictor_options,
+        predictor_value,
     )
 
 @SERVER.route(f"{PFX}/custom/<path:relpath>")
@@ -768,19 +768,19 @@ def display_prob_thresh(val):
     Input("geom_key", "value"),
     Input("location", "pathname"),
     Input("severity", "value"),
-    Input("obs_datasets", "value"),
-    Input("trigger_key", "value"),
-    Input("bad_years", "value"),
+    Input("trigger", "value"),
+    Input("predictand", "value"),
+    Input("other_predictors", "value"),
     State("season", "value"),
 )
-def table_cb(issue_month0, freq, mode, geom_key, pathname, severity, obs_keys, trigger_key, predictand_key, season):
+def table_cb(issue_month0, freq, mode, geom_key, pathname, severity, trigger_key, predictand_key, other_predictor_keys, season):
     country_key = country(pathname)
     config = CONFIG["countries"][country_key]
     tcs = table_columns(
         config["datasets"],
         trigger_key,
         predictand_key,
-        obs_keys,
+        other_predictor_keys,
         severity,
         config["seasons"][season]["length"],
     )
@@ -889,7 +889,7 @@ def _(
     Input("issue_month", "value"),
     Input("freq", "value"),
     Input("location", "pathname"),
-    Input("trigger_key", "value"),
+    Input("trigger", "value"),
     State("season", "value"),
 )
 def tile_url_callback(target_year, issue_month0, freq, pathname, trigger_key, season_id):
