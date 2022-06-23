@@ -22,13 +22,13 @@ def app_layout():
     )
 
 
-def help_layout(buttonname, message):
+def label_with_tooltip(label, tooltip):
     id_name = make_id()
     return html.Div(
         [
-            html.Label(f"{buttonname}:", id=id_name, style={"cursor": "pointer"}),
+            html.Label(f"{label}:", id=id_name, style={"cursor": "pointer"}),
             dbc.Tooltip(
-                f"{message}",
+                f"{tooltip}",
                 target=id_name,
                 className="tooltiptext",
             ),
@@ -186,7 +186,7 @@ def command_layout():
             dcc.Input(id="trigger", type="hidden", value="pnep"),
             html.Div(
                 [
-                    help_layout(
+                    label_with_tooltip(
                         "Mode",
                         "The spatial resolution such as National, Regional, District or Pixel level",
                     ),
@@ -205,7 +205,7 @@ def command_layout():
             ),
             html.Div(
                 [
-                    help_layout(
+                    label_with_tooltip(
                         "Issue",
                         "The month in which the forecast is issued",
                     ),
@@ -224,7 +224,7 @@ def command_layout():
             ),
             html.Div(
                 [
-                    help_layout(
+                    label_with_tooltip(
                         "Season", "The rainy season being forecasted"
                     ),
                     dcc.Dropdown(
@@ -242,7 +242,7 @@ def command_layout():
             ),
             html.Div(
                 [
-                    help_layout(
+                    label_with_tooltip(
                         "Year",
                         "The year whose forecast is displayed on the map",
                     ),
@@ -261,7 +261,7 @@ def command_layout():
             ),
             html.Div(
                 [
-                    help_layout(
+                    label_with_tooltip(
                         "Severity",
                         "The level of drought severity being targeted",
                     ),
@@ -286,7 +286,7 @@ def command_layout():
             ),
             html.Div(
                 [
-                    help_layout(
+                    label_with_tooltip(
                         "Frequency of triggered forecasts",
                         "The slider is used to set the frequency of forecast triggered",
                     ),
@@ -339,7 +339,7 @@ def command_layout():
             ),
             html.Div(
                 [
-                    help_layout(
+                    label_with_tooltip(
                         "Probability threshold",
                         "To trigger at the selected frequency, trigger when the forecast probability of drought is at least this high.",
                     ),
@@ -387,7 +387,7 @@ def table_layout():
             html.Div(id="log"),
             html.Div(
                 [
-                    help_layout(
+                    label_with_tooltip(
                         "Baseline observations:",
                         "Column that serves as the baseline. Other columns will be "
                         "scored by how well they predict this one.",
@@ -406,7 +406,7 @@ def table_layout():
             ),
             html.Div(
                 [
-                    help_layout(
+                    label_with_tooltip(
                         "Other predictors:",
                         "Other columns to display in the table"
                     ),
