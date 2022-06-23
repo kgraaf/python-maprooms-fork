@@ -4,6 +4,7 @@ from dash import dash_table as table
 import dash_leaflet as dlf
 import dash_leaflet.express as dlx
 import dash_bootstrap_components as dbc
+import uuid
 
 SEVERITY_COLORS = ["#fdfd96", "#ffb347", "#ff6961"]
 
@@ -21,7 +22,8 @@ def app_layout():
     )
 
 
-def help_layout(buttonname, id_name, message):
+def help_layout(buttonname, message):
+    id_name = make_id()
     return html.Div(
         [
             html.Label(f"{buttonname}:", id=id_name, style={"cursor": "pointer"}),
@@ -32,6 +34,10 @@ def help_layout(buttonname, id_name, message):
             ),
         ]
     )
+
+
+def make_id():
+    return str(uuid.uuid4())
 
 
 def map_layout():
@@ -182,7 +188,6 @@ def command_layout():
                 [
                     help_layout(
                         "Mode",
-                        "mode_label",
                         "The spatial resolution such as National, Regional, District or Pixel level",
                     ),
                     dcc.Dropdown(
@@ -202,7 +207,6 @@ def command_layout():
                 [
                     help_layout(
                         "Issue",
-                        "issue_label",
                         "The month in which the forecast is issued",
                     ),
                     dcc.Dropdown(
@@ -221,7 +225,7 @@ def command_layout():
             html.Div(
                 [
                     help_layout(
-                        "Season", "season_label", "The rainy season being forecasted"
+                        "Season", "The rainy season being forecasted"
                     ),
                     dcc.Dropdown(
                         id="season",
@@ -240,7 +244,6 @@ def command_layout():
                 [
                     help_layout(
                         "Year",
-                        "year_label",
                         "The year whose forecast is displayed on the map",
                     ),
                     dcc.Dropdown(
@@ -260,7 +263,6 @@ def command_layout():
                 [
                     help_layout(
                         "Severity",
-                        "severity_label",
                         "The level of drought severity being targeted",
                     ),
                     dcc.Dropdown(
@@ -286,7 +288,6 @@ def command_layout():
                 [
                     help_layout(
                         "Frequency of triggered forecasts",
-                        "frequency_label",
                         "The slider is used to set the frequency of forecast triggered",
                     ),
                     dcc.Slider(
@@ -340,7 +341,6 @@ def command_layout():
                 [
                     help_layout(
                         "Probability threshold",
-                        "prob_label",
                         "To trigger at the selected frequency, trigger when the forecast probability of drought is at least this high.",
                     ),
                     html.Div(id='prob_thresh_text'),
@@ -389,7 +389,6 @@ def table_layout():
                 [
                     help_layout(
                         "Baseline observations:",
-                        "bad_years_label",
                         "Column that serves as the baseline. Other columns will be "
                         "scored by how well they predict this one.",
                     ),
@@ -409,7 +408,6 @@ def table_layout():
                 [
                     help_layout(
                         "Other predictors:",
-                        "obs_datasets_label",
                         "Other columns to display in the table"
                     ),
                     dcc.Dropdown(
