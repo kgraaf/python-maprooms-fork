@@ -59,7 +59,22 @@ SERVER.register_error_handler(ClientSideError, pingrid.client_side_error)
 month_abbrev = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec']
 abbrev_to_month0 = dict((abbrev, month0) for month0, abbrev in enumerate(month_abbrev))
 
-APP = dash.Dash(
+
+class FbfDash(dash.Dash):
+    def index(self, *args, **kwargs):
+        path = kwargs['path']
+        if not is_valid_root(path):
+            raise NotFoundError(f"Unknown resource {path}")
+        return super().index(*args, **kwargs)
+
+
+def is_valid_root(path):
+    if path in CONFIG["countries"]:
+        return True
+    return False
+
+
+APP = FbfDash(
     __name__,
     external_stylesheets=[dbc.themes.SIMPLEX],
     server=SERVER,
