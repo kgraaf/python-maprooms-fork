@@ -26,6 +26,7 @@ from psycopg2 import sql
 import math
 import traceback
 import enum
+import warnings
 
 import __about__ as about
 import pyaconf
@@ -431,7 +432,14 @@ def select_obs(country_key, obs_keys, target_month0, mpolygon=None):
             for obs_key in obs_keys
         }
     )
-    ds = ds.where(lambda x: x["time"].dt.month == target_month0 + 0.5, drop=True)
+    with warnings.catch_warnings():
+        # ds.where in xarray 2022.3.0 uses deprecated numpy
+        # functionality. A recent change deletes the offending line;
+        # see if this catch_warnings can be removed once that's
+        # released.
+        # https://github.com/pydata/xarray/commit/3a320724100ab05531d8d18ca8cb279a8e4f5c7f
+        warnings.filterwarnings("ignore", category=DeprecationWarning, module='numpy.core.fromnumeric')
+        ds = ds.where(lambda x: x["time"].dt.month == target_month0 + 0.5, drop=True)
     if mpolygon is not None and 'lon' in ds.coords:
         ds = pingrid.average_over_trimmed(ds, mpolygon, all_touched=True)
     return ds
