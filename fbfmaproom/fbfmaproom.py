@@ -425,13 +425,23 @@ def select_forecast(country_key, forecast_key, issue_month0, target_month0,
 
 
 
-def select_obs(country_key, obs_keys, target_month0, mpolygon=None):
+def select_obs(country_key, obs_keys, target_month0, target_year=None, mpolygon=None):
     ds = xr.Dataset(
         data_vars={
             obs_key: open_obs(country_key, obs_key)
             for obs_key in obs_keys
         }
     )
+    if target_year is not None:
+        target_date = (
+            cftime.Datetime360Day(target_year, 1, 1) +
+            pd.Timedelta(target_month0 * 30, unit='days')
+        )
+        try:
+            ds = ds.sel(time=target_date)
+        except KeyError:
+            raise NotFoundError(f'No value for {" ".join(obs_keys)} on {target_date}') from None
+
     with warnings.catch_warnings():
         # ds.where in xarray 2022.3.0 uses deprecated numpy
         # functionality. A recent change deletes the offending line;
@@ -465,7 +475,7 @@ def fundamental_table_data(country_key, table_columns,
     )
 
     obs_keys = [key for key, col in table_columns.items() if col["type"] is ColType.OBS]
-    obs_ds = select_obs(country_key, obs_keys, target_month0, mpolygon)
+    obs_ds = select_obs(country_key, obs_keys, target_month0, mpolygon=mpolygon)
 
     main_ds = xr.merge(
         [
@@ -943,7 +953,7 @@ def tile_url_callback(target_year, issue_month0, freq, pathname, trigger_key, se
             tile_url = f"{TILE_PFX}/forecast/{trigger_key}/{{z}}/{{x}}/{{y}}/{country_key}/{season_id}/{target_year}/{issue_month0}/{freq}"
         else:
             # As for select_forecast above
-            select_obs(country_key, [trigger_key], target_month0)
+            select_obs(country_key, [trigger_key], target_month0, target_year)
             tile_url = f"{TILE_PFX}/obs/{trigger_key}/{{z}}/{{x}}/{{y}}/{country_key}/{season_id}/{target_year}"
         error = False
 
@@ -1017,9 +1027,7 @@ def forecast_tile(forecast_key, tz, tx, ty, country_key, season_id, target_year,
 def obs_tile(obs_key, tz, tx, ty, country_key, season_id, target_year):
     season_config = CONFIG["countries"][country_key]["seasons"][season_id]
     target_month0 = season_config["target_month"]
-    da = select_obs(country_key, [obs_key], target_month0)[obs_key]
-    target_date = cftime.Datetime360Day(target_year, int(target_month0) + 1, 16)
-    da = da.sel(time=target_date)
+    da = select_obs(country_key, [obs_key], target_month0, target_year)[obs_key]
     p = tuple(CONFIG["countries"][country_key]["marker"])
     clipping, _ = retrieve_geometry(country_key, p, "0", None)
     resp = pingrid.tile(da, tx, ty, tz, clipping)
