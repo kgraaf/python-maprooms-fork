@@ -30,7 +30,7 @@ def test_table_cb():
         geom_key='ET05',
         pathname='/fbfmaproom/ethiopia',
         severity=0,
-        obs_keys=['rain', 'ndvi'],
+        obs_keys=['rain', 'ndvi', 'enso_state'],
         trigger_key="pnep",
         predictand_key="bad-years",
         season='season1',
@@ -47,7 +47,7 @@ def test_table_cb():
     assert thead.children[3].children[0].children[0].children == 'Worthy-Inaction:'
     assert thead.children[4].children[0].children[0].children == 'Rate:'
 
-    assert thead.children[5].children[5].children[0].children == "ENSO State"
+    assert thead.children[5].children[5].children == "ENSO State"
     assert thead.children[0].children[5].children == "2"
     assert thead.children[1].children[5].children == "5"
     assert thead.children[2].children[5].children == "8"
@@ -87,7 +87,7 @@ def test_augment_table_data():
         index=time,
         data={
             "bad-years": [1, 0, 1, 0, 0, 1],
-            "enso_state": [np.nan, np.nan, "El Niño", "La Niña", "El Niño", "Neutral"],
+            "enso_state": [np.nan, np.nan, 3, 1, 3, 2],
             "pnep": [np.nan, 19.606438, 29.270180, 33.800949, 12.312943, 1.],
             "rain": [np.nan, np.nan, 200., 400., 300., 100.],
             "time": time,
@@ -107,6 +107,10 @@ def test_augment_table_data():
             "lower_is_worse": True,
             "type": fbfmaproom.ColType.OBS,
         },
+        "enso_state": {
+            "lower_is_worse": False,
+            "type": fbfmaproom.ColType.OBS,
+        },
     }
 
     aug, summ, prob = fbfmaproom.augment_table_data(main_df, freq, table_columns, "pnep", "bad-years")
@@ -115,13 +119,14 @@ def test_augment_table_data():
     expected_aug["worst_bad-years"] = [1, 0, 1, 0, 0, 1]
     expected_aug["worst_pnep"] = [np.nan, 0, 0, 1, 0, 0]
     expected_aug["worst_rain"] = [np.nan, np.nan, 0, 0, 0, 1]
+    expected_aug["worst_enso_state"] = [np.nan, np.nan, 1, 0, 1, 0]
     pd.testing.assert_frame_equal(expected_aug, aug, check_column_type=True)
 
     expected_summ = pd.DataFrame(dict(
         # [tp, fp, fn, tn, accuracy]
-        enso_state=[1, 1, 1, 1, .5],
         pnep=[0, 1, 2, 2, .4],
         rain=[1, 0, 1, 2, .75],
+        enso_state=[1, 1, 1, 1, .5],
     ))
     pd.testing.assert_frame_equal(expected_summ, summ)
 

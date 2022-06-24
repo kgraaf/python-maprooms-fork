@@ -85,18 +85,13 @@ def table_columns(dataset_config, trigger_key, predictand_key, other_predictor_k
         'number4': number_formatter(4),
         'timedelta_days': format_timedelta_days,
         'bad': format_bad,
-    }
-
-    class_funcs = {
-        'nino': lambda col_name, row: nino_class(col_name, row, severity),
-        'worst': lambda col_name, row: worst_class(col_name, row, severity),
+        'enso': format_enso,
     }
 
     tcs = OrderedDict()
     tcs["time"] = dict(
         name="Year",
         format=format_funcs['year'],
-        class_name=None,
         tooltip="The year whose forecast is displayed on the map",
         type=ColType.SPECIAL,
     )
@@ -112,7 +107,6 @@ def table_columns(dataset_config, trigger_key, predictand_key, other_predictor_k
             assert False, f'Unknown dataset key {key}'
 
         format_func = format_funcs[ds_config.get('format', 'number1')]
-        class_func = class_funcs[ds_config.get('class', 'worst')]
         if 'units' in ds_config:
             units = ds_config['units']
         elif col_type is ColType.OBS:
@@ -125,7 +119,6 @@ def table_columns(dataset_config, trigger_key, predictand_key, other_predictor_k
             name=ds_config['label'],
             units=units,
             format=format_func,
-            class_name=class_func,
             tooltip=ds_config.get('description'),
             lower_is_worse=ds_config['lower_is_worse'],
             type=col_type,
@@ -135,16 +128,6 @@ def table_columns(dataset_config, trigger_key, predictand_key, other_predictor_k
     tcs[predictand_key] = make_column(predictand_key)
     for key in other_predictor_keys:
         tcs[key] = make_column(key)
-
-    tcs["enso_state"] = dict(
-        name="ENSO State",
-        tooltip=(
-            "Displays whether an El Niño, Neutral, "
-            "or La Niña state occurred during the year"
-        ),
-        class_name=class_funcs['nino'],
-        type=ColType.SPECIAL,
-    )
 
     return tcs
 
@@ -174,16 +157,22 @@ def format_timedelta_days(x):
     return number_formatter(2)(x.days + x.seconds / 60 / 60 / 24)
 
 
+def format_enso(x):
+    if np.isnan(x):
+        return ""
+    if np.isclose(x, 1):
+        return "La Niña"
+    if np.isclose(x, 2):
+        return "Neutral"
+    if np.isclose(x, 3):
+        return "El Niño"
+    assert False, f"Unknown enso state {x}"
+
+
 def nino_class(col_name, row, severity):
-    if row[col_name] == 'El Niño':
+    if row[col_name] == 3:
         return f'cell-severity-{severity}'
     return ""
-
-
-def worst_class(col_name, row, severity):
-    if row[f'worst_{col_name}'] == 1:
-        return f'cell-severity-{severity}'
-    return ''
 
 
 def data_path(relpath):
@@ -243,8 +232,10 @@ def open_forecast(country_key, forecast_key):
     cfg = CONFIG["countries"][country_key]["datasets"]["forecasts"][forecast_key]
     return open_forecast_from_config(cfg)
 
+
 def open_forecast_from_config(ds_config):
     return open_data_array(ds_config, "pne", val_min=0.0, val_max=100.0)
+
 
 def open_obs(country_key, obs_key):
     cfg = CONFIG["countries"][country_key]["datasets"]["observations"][obs_key]
@@ -253,26 +244,6 @@ def open_obs(country_key, obs_key):
 
 def open_obs_from_config(ds_config):
     return open_data_array(ds_config, "obs", val_min=0.0, val_max=1000.0)
-
-
-ENSO_STATES = {
-    1.0: "La Niña",
-    2.0: "Neutral",
-    3.0: "El Niño"
-}
-
-
-def fetch_enso(month0):
-    path = data_path(CONFIG["dataframes"]["enso"])
-    ds = xr.open_zarr(path, consolidated=False).where(
-        lambda ds: ds["T"].dt.month == int(month0) + 1,
-        drop=True
-    )
-    df = ds.to_dataframe()
-    df["enso_state"] = df["dominant_class"].apply(lambda x: ENSO_STATES[x])
-    df = df.drop("dominant_class", axis="columns")
-    df = df.set_index(df.index.rename("time"))
-    return df
 
 
 def from_month_since_360Day(months):
@@ -436,13 +407,14 @@ def select_forecast(country_key, forecast_key, issue_month0, target_month0,
 
 
 
-def select_obs(country_key, obs_keys, mpolygon=None):
+def select_obs(country_key, obs_keys, target_month0, mpolygon=None):
     ds = xr.Dataset(
         data_vars={
             obs_key: open_obs(country_key, obs_key)
             for obs_key in obs_keys
         }
     )
+    ds = ds.where(lambda x: x["time"].dt.month == target_month0 + 0.5, drop=True)
     if mpolygon is not None and 'lon' in ds.coords:
         ds = pingrid.average_over_trimmed(ds, mpolygon, all_touched=True)
     return ds
@@ -453,15 +425,13 @@ def fundamental_table_data(country_key, table_columns,
                            geom_key):
     year_min, year_max = season_config["year_range"]
     season_length = season_config["length"]
-    target_month = season_config["target_month"]
+    target_month0 = season_config["target_month"]
     mpolygon = get_mpoly(mode, country_key, geom_key)
-
-    enso_df = fetch_enso(season_config["target_month"])
 
     forecast_ds = xr.Dataset(
         data_vars={
             forecast_key: select_forecast(
-                country_key, forecast_key, issue_month0, target_month,
+                country_key, forecast_key, issue_month0, target_month0,
                 freq=freq, mpolygon=mpolygon
             ).rename({'target_date':"time"})
             for forecast_key, col in table_columns.items()
@@ -470,12 +440,11 @@ def fundamental_table_data(country_key, table_columns,
     )
 
     obs_keys = [key for key, col in table_columns.items() if col["type"] is ColType.OBS]
-    obs_ds = select_obs(country_key, obs_keys, mpolygon)
+    obs_ds = select_obs(country_key, obs_keys, target_month0, mpolygon)
 
     main_ds = xr.merge(
         [
             forecast_ds,
-            enso_df["enso_state"].to_xarray(),
             obs_ds,
         ]
     )
@@ -501,7 +470,6 @@ def augment_table_data(main_df, freq, table_columns, trigger_key, bad_years_key)
         key: main_df[key].dropna()
         for key in regular_keys
     }
-    el_nino = main_df["enso_state"].dropna() == "El Niño"
 
     def is_ascending(col_key):
         return table_columns[col_key]["lower_is_worse"]
@@ -513,18 +481,20 @@ def augment_table_data(main_df, freq, table_columns, trigger_key, bad_years_key)
 
     worst_flags = {}
     for key in regular_keys:
-        if len(regular_data[key].unique()) == 2:
+        vals = regular_data[key]
+        if len(vals.unique()) <= 3:
             # special case for legacy boolean bad years
-            worst_flags[key] = regular_data[key].astype(bool)
+            if is_ascending(key):
+                bad_val = vals.min()
+            else:
+                bad_val = vals.max()
+            worst_flags[key] = vals == bad_val
         else:
             worst_flags[key] = (rank_pct[key] <= freq / 100).astype(bool)
 
     bad_year = worst_flags[bad_years_key].dropna().astype(bool)
 
-    summary_df = pd.DataFrame.from_dict(dict(
-        enso_state=hits_and_misses(el_nino, bad_year),
-    ))
-
+    summary_df = pd.DataFrame()
     for key in regular_keys:
         if key != bad_years_key:
             summary_df[key] = hits_and_misses(worst_flags[key], bad_year)
@@ -827,7 +797,7 @@ def table_cb(issue_month0, freq, mode, geom_key, pathname, severity, obs_keys, t
             geom_key,
             severity,
         )
-        return fbftable.gen_table(tcs, dfs, dft), trigger_thresh
+        return fbftable.gen_table(tcs, dfs, dft, severity), trigger_thresh
     except Exception as e:
         if isinstance(e, NotFoundError):
             # If it's the user just asked for a forecast that doesn't
@@ -944,7 +914,7 @@ def tile_url_callback(target_year, issue_month0, freq, pathname, trigger_key, se
             tile_url = f"{TILE_PFX}/forecast/{trigger_key}/{{z}}/{{x}}/{{y}}/{country_key}/{season_id}/{target_year}/{issue_month0}/{freq}"
         else:
             # As for select_forecast above
-            select_obs(country_key, [trigger_key])
+            select_obs(country_key, [trigger_key], target_month0)
             tile_url = f"{TILE_PFX}/obs/{trigger_key}/{{z}}/{{x}}/{{y}}/{country_key}/{season_id}/{target_year}"
         error = False
 
@@ -1018,7 +988,7 @@ def forecast_tile(forecast_key, tz, tx, ty, country_key, season_id, target_year,
 def obs_tile(obs_key, tz, tx, ty, country_key, season_id, target_year):
     season_config = CONFIG["countries"][country_key]["seasons"][season_id]
     target_month0 = season_config["target_month"]
-    da = select_obs(country_key, [obs_key])[obs_key]
+    da = select_obs(country_key, [obs_key], target_month0)[obs_key]
     target_date = cftime.Datetime360Day(target_year, int(target_month0) + 1, 16)
     da = da.sel(time=target_date)
     p = tuple(CONFIG["countries"][country_key]["marker"])
