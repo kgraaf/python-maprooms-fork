@@ -477,7 +477,7 @@ countries:
                 pnep:
                     label: Forecast prob non-exc
                     description: NextGen forecast probability of non-exceedance of selected percentile
-                    path: pnep-ethiopia.zarr
+                    path: ethiopia/pnep-mam.zarr
                     var_names:
                         pne: pne
                         lat: Y

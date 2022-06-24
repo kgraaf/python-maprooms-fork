@@ -116,8 +116,8 @@ url_datasets = [
         "http://iridl.ldeo.columbia.edu/SOURCES/.USGS/.LandDAAC/.MODIS/.version_006/.EAF/.NDVI/X/39.875/.25/47.875/GRID/Y/3.625/.25/10.875/GRID/T/(Oct-Dec)/seasonalAverage/T/5/shiftGRID/",
     ),
     (
-        "pnep-ethiopia",
-        "http://iridl.ldeo.columbia.edu/home/.aaron/.Ethiopia/.CPT/.NextGen/.MAM_PRCP/.Somali/.NextGen/.FbF/.pne/P//P//percentile/0/5/5/95/NewEvenGRID/replaceGRID/",
+        "ethiopia/pnep-mam",
+        "http://iridl.ldeo.columbia.edu/home/.remic/.NMA/.NextGen/.MAM_PRCP/.Ethiopia/.NextGen/.FbF/.pne/P//P//percentile/0/5/5/95/NewEvenGRID/replaceGRID/",
     ),
     (
         "rain-ethiopia-ond",
