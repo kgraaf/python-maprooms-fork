@@ -858,7 +858,7 @@ countries:
                 pnep:
                     label: Forecast prob non-exc
                     description: NextGen forecast probability of non-exceedance of selected percentile
-                    path: pnep-djibouti.zarr
+                    path: djibouti/pnep-jas.zarr
                     var_names:
                         pne: pne
                         lat: Y
