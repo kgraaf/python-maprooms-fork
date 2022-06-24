@@ -35,7 +35,7 @@ def test_table_cb():
         predictand_key="bad-years",
         season='season1',
     )
-    assert np.isclose(prob_thresh, 36.930862)
+    assert np.isclose(prob_thresh, 31.033705)
 
     thead, tbody = table.children
     assert len(thead.children) == 6
@@ -48,11 +48,11 @@ def test_table_cb():
     assert thead.children[4].children[0].children[0].children == 'Rate:'
 
     assert thead.children[5].children[5].children == "ENSO State"
-    assert thead.children[0].children[5].children == "2"
-    assert thead.children[1].children[5].children == "5"
-    assert thead.children[2].children[5].children == "8"
-    assert thead.children[3].children[5].children == "24"
-    assert thead.children[4].children[5].children == "66.67%"
+    assert thead.children[0].children[5].children == "3"
+    assert thead.children[1].children[5].children == "4"
+    assert thead.children[2].children[5].children == "12"
+    assert thead.children[3].children[5].children == "20"
+    assert thead.children[4].children[5].children == "58.97%"
 
     assert len(tbody.children) == 40 # will break when we add a new year
 
@@ -61,7 +61,7 @@ def test_table_cb():
     assert row.children[0].className == ''
     assert row.children[5].children == 'El Niño'
     assert row.children[5].className == 'cell-severity-0'
-    assert row.children[1].children == '34.3'
+    assert row.children[1].children == '25.4'
     assert row.children[1].className == ''
     assert row.children[3].children == '43.4'
     assert row.children[3].className == ''
@@ -180,7 +180,7 @@ def test_pnep_percentile_pixel_trigger():
         )
     assert r.status_code == 200
     d = r.json
-    assert np.isclose(d["probability"], 13.415)
+    assert np.isclose(d["probability"], 10.6954)
     assert d["triggered"] is True
 
 def test_pnep_percentile_pixel_notrigger():
@@ -197,7 +197,7 @@ def test_pnep_percentile_pixel_notrigger():
         )
     assert r.status_code == 200
     d = r.json
-    assert np.isclose(d["probability"], 13.415)
+    assert np.isclose(d["probability"], 10.6954)
     assert d["triggered"] is False
 
 def test_pnep_percentile_region():
@@ -215,7 +215,7 @@ def test_pnep_percentile_region():
     print(r.data)
     assert r.status_code == 200
     d = r.json
-    assert np.isclose(d["probability"], 14.6804)
+    assert np.isclose(d["probability"], 9.333)
     assert d["triggered"] is False
 
 def test_pnep_percentile_straddle():
@@ -342,26 +342,26 @@ def test_export_endpoint():
     d = resp.json
 
     s = d['skill']
-    assert s['act_in_vain'] == 5
-    assert s['fail_to_act'] == 3
-    assert s['worthy_action'] == 7
-    assert s['worthy_inaction'] == 24
-    assert np.isclose(s['accuracy'], .79487)
+    assert s['act_in_vain'] == 3
+    assert s['fail_to_act'] == 6
+    assert s['worthy_action'] == 6
+    assert s['worthy_inaction'] == 16
+    assert np.isclose(s['accuracy'], .70968)
 
-    assert np.isclose(d['threshold'], 40.96825)
+    assert np.isclose(d['threshold'], 29.987)
 
     h = d['history']
     assert np.isnan(h[0]['bad-years'])
     assert np.isnan(h[0]['worst_bad-years'])
-    assert np.isclose(h[0]['pnep'], 32.27964)
+    assert np.isclose(h[0]['pnep'], 22.9959)
     assert h[0]['worst_pnep'] == 0
+    assert h[5]['worst_pnep'] == 1
 
-    assert h[1]['bad-years'] == 0
-    assert h[1]['worst_bad-years'] == 0
-
-    assert h[4]['worst_pnep'] == 1
-
-    assert h[5]['worst_bad-years'] == 1
+    print([h[i]['bad-years'] for i in range(len(h))])
+    assert h[1]['bad-years'] == 1
+    assert h[1]['worst_bad-years'] == 1
+    assert h[2]['bad-years'] == 0
+    assert h[2]['worst_bad-years'] == 0
 
 
 def test_regions_endpoint():
