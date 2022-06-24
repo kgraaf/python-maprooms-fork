@@ -32,7 +32,7 @@ def test_table_cb():
         severity=0,
         obs_keys=['rain', 'ndvi'],
         trigger_key="pnep",
-        bad_years_key="bad-years",
+        predictand_key="bad-years",
         season='season1',
     )
     assert np.isclose(prob_thresh, 36.930862)
@@ -321,11 +321,11 @@ def test_format_timedelta_number():
 def test_format_timedelta_nan():
     assert fbfmaproom.format_timedelta_days(pd.NaT) == ""
 
-def test_skill_endpoint():
+def test_export_endpoint():
     with fbfmaproom.SERVER.test_client() as client:
         resp = client.get(
-            '/fbfmaproom/skill?country=ethiopia'
-            '&mode=0'
+            '/fbfmaproom/ethiopia/export'
+            '?mode=0'
             '&season=season1'
             '&issue_month0=0'
             '&freq=30'
@@ -335,11 +335,28 @@ def test_skill_endpoint():
         )
     assert resp.status_code == 200
     d = resp.json
-    assert d['act_in_vain'] == 5
-    assert d['fail_to_act'] == 3
-    assert d['worthy_action'] == 7
-    assert d['worthy_inaction'] == 24
-    assert np.isclose(d['accuracy'], .79487)
+
+    s = d['skill']
+    assert s['act_in_vain'] == 5
+    assert s['fail_to_act'] == 3
+    assert s['worthy_action'] == 7
+    assert s['worthy_inaction'] == 24
+    assert np.isclose(s['accuracy'], .79487)
+
+    assert np.isclose(d['threshold'], 40.96825)
+
+    h = d['history']
+    assert np.isnan(h[0]['bad-years'])
+    assert np.isnan(h[0]['worst_bad-years'])
+    assert np.isclose(h[0]['pnep'], 32.27964)
+    assert h[0]['worst_pnep'] == 0
+
+    assert h[1]['bad-years'] == 0
+    assert h[1]['worst_bad-years'] == 0
+
+    assert h[4]['worst_pnep'] == 1
+
+    assert h[5]['worst_bad-years'] == 1
 
 
 def test_regions_endpoint():
