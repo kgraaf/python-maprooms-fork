@@ -370,11 +370,11 @@ def generate_tables(
     if "pct" in basic_ds.coords:
         basic_ds = basic_ds.drop_vars("pct")
     basic_df = basic_ds.to_dataframe()
-    main_df, summary_df, trigger_thresh = augment_table_data(
+    main_df, summary_df, thresholds = augment_table_data(
         basic_df, freq, table_columns, trigger_key, predictand_key
     )
-    summary_presentation_df = format_summary_table(summary_df, table_columns)
-    return main_df, summary_presentation_df, trigger_thresh
+    summary_presentation_df = format_summary_table(summary_df, table_columns, thresholds)
+    return main_df, summary_presentation_df
 
 
 def get_mpoly(mode, country_key, geom_key):
@@ -515,6 +515,7 @@ def augment_table_data(main_df, freq, table_columns, trigger_key, predictand_key
     }
 
     worst_flags = {}
+    thresholds = {}
     for key in regular_keys:
         vals = regular_data[key]
         if len(vals.unique()) <= 3:
@@ -526,6 +527,11 @@ def augment_table_data(main_df, freq, table_columns, trigger_key, predictand_key
             worst_flags[key] = vals == bad_val
         else:
             worst_flags[key] = (rank_pct[key] <= freq / 100).astype(bool)
+        worst_vals = regular_data[key][worst_flags[key]]
+        if is_ascending(key):
+            thresholds[key] = worst_vals.max()
+        else:
+            thresholds[key] = worst_vals.min()
 
     bad_year = worst_flags[predictand_key].dropna().astype(bool)
 
@@ -536,16 +542,10 @@ def augment_table_data(main_df, freq, table_columns, trigger_key, predictand_key
         main_df[key] = regular_data[key]
         main_df[f"worst_{key}"] = worst_flags[key].astype(int)
 
-    trigger_worst_vals = regular_data[trigger_key][worst_flags[trigger_key]]
-    if table_columns[trigger_key]["lower_is_worse"]:
-        thresh = trigger_worst_vals.max()
-    else:
-        thresh = trigger_worst_vals.min()
-
-    return main_df, summary_df, thresh
+    return main_df, summary_df, thresholds
 
 
-def format_summary_table(summary_df, table_columns):
+def format_summary_table(summary_df, table_columns, thresholds):
     format_accuracy = lambda x: f"{x * 100:.2f}%"
     format_count = lambda x: f"{x:.0f}"
 
@@ -557,13 +557,15 @@ def format_summary_table(summary_df, table_columns):
         "Fail-to-act:",
         "Worthy-Inaction:",
         "Rate:",
+        "Threshold:",
     ]
     formatted_df["tooltip"] = [
         "Drought was forecasted and a ‘bad year’ occurred",
         "Drought was forecasted but a ‘bad year’ did not occur",
         "No drought was forecasted but a ‘bad year’ occurred",
         "No drought was forecasted, and no ‘bad year’ occurred",
-        "Gives the percentage of worthy-action and worthy-inactions",
+        "Percentage of worthy-action and worthy-inactions",
+        "Threshold for a forecast of drought",
     ]
 
     for c in summary_df.columns:
@@ -572,7 +574,10 @@ def format_summary_table(summary_df, table_columns):
 
         formatted_df[c] = (
             list(map(format_count, summary_df[c][0:4])) +
-            [format_accuracy(summary_df[c][4])]
+            [
+                format_accuracy(summary_df[c][4]),
+                table_columns[c]['format'](thresholds[c]),
+            ]
         )
 
     for c in set(table_columns) - set(formatted_df.columns):
@@ -789,18 +794,7 @@ def update_popup(pathname, position, mode, year):
 
 
 @APP.callback(
-    Output("prob_thresh_text", "children"),
-    Input("prob_thresh", "data"),
-)
-def display_prob_thresh(val):
-    if val is not None:
-        return f"{val:.1f}%"
-    else:
-        return ""
-
-@APP.callback(
     Output("table_container", "children"),
-    Output("prob_thresh", "data"),
     Input("issue_month", "value"),
     Input("freq", "value"),
     Input("mode", "value"),
@@ -824,7 +818,7 @@ def table_cb(issue_month0, freq, mode, geom_key, pathname, severity, trigger_key
         config["seasons"][season]["length"],
     )
     try:
-        dft, dfs, trigger_thresh = generate_tables(
+        dft, dfs = generate_tables(
             country_key,
             config["seasons"][season],
             tcs,
@@ -836,7 +830,7 @@ def table_cb(issue_month0, freq, mode, geom_key, pathname, severity, trigger_key
             geom_key,
             severity,
         )
-        return fbftable.gen_table(tcs, dfs, dft, severity), trigger_thresh
+        return fbftable.gen_table(tcs, dfs, dft, severity)
     except Exception as e:
         if isinstance(e, NotFoundError):
             # If it's the user just asked for a forecast that doesn't
@@ -856,68 +850,6 @@ def table_cb(issue_month0, freq, mode, geom_key, pathname, severity, trigger_key
 )
 def update_severity_color(value):
     return f"severity{value}"
-
-
-@APP.callback(
-    Output("gantt", "href"),
-    Input("issue_month", "value"),
-    Input("freq", "value"),
-    Input("geom_key", "data"),
-    Input("mode", "value"),
-    Input("year", "value"),
-    Input("location", "pathname"),
-    Input("severity", "value"),
-    Input("prob_thresh", "data"),
-    State("season", "value"),
-)
-def _(
-    issue_month0,
-    freq,
-    geom_key,
-    mode,
-    year,
-    pathname,
-    severity,
-    prob_thresh,
-    season,
-):
-    country_key = country(pathname)
-    config = CONFIG["countries"][country_key]
-    season_config = config["seasons"][season]
-    if mode == "pixel":
-        region = None
-        bounds = json.loads(geom_key)
-    else:
-        label = None
-        try:
-            label, _ = retrieve_geometry2(country_key, int(mode), geom_key)
-        except:
-            label = ""
-        region = {
-            "id": geom_key,
-            "label": label,
-        }
-        bounds = None
-    res = dict(
-        country=country_key,
-        mode=mode,
-        season_year=year,
-        freq=freq,
-        prob_thresh=prob_thresh,
-        season={
-            "id": season,
-            "label": season_config["label"],
-            "target_month": season_config["target_month"],
-            "length": season_config["length"],
-        },
-        issue_month=issue_month0,
-        bounds=bounds,
-        region=region,
-        severity=severity,
-    )
-    # print("***:", res)
-    url = CONFIG["gantt_url"] + urllib.parse.urlencode(dict(data=json.dumps(res)))
-    return url
 
 
 @APP.callback(
@@ -1228,7 +1160,7 @@ def export_endpoint(country_key):
     if "pct" in basic_ds.coords:
         basic_ds = basic_ds.drop_vars("pct")
     basic_df = basic_ds.to_dataframe()
-    main_df, summary_df, thresh = augment_table_data(
+    main_df, summary_df, thresholds = augment_table_data(
         basic_df, freq, cols, predictor_key, predictand_key
     )
 
@@ -1251,7 +1183,7 @@ def export_endpoint(country_key):
             predictand_key, f"worst_{predictand_key}",
             predictor_key, f"worst_{predictor_key}"
         ]].to_dict('records'),
-        'threshold': float(thresh),
+        'threshold': float(thresholds[predictor_key]),
     })
     return response
 

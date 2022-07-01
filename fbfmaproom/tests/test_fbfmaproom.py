@@ -23,7 +23,7 @@ def test_from_month_since_360Day():
     assert fbfmaproom.from_month_since_360Day(735.5) == DT360(2021, 4, 16)
 
 def test_table_cb():
-    table, prob_thresh = fbfmaproom.table_cb.__wrapped__(
+    table = fbfmaproom.table_cb.__wrapped__(
         issue_month0 = 1,
         freq=30,
         mode='0',
@@ -35,10 +35,9 @@ def test_table_cb():
         other_predictor_keys=['rain', 'ndvi', 'enso_state'],
         season='season1',
     )
-    assert np.isclose(prob_thresh, 31.033705)
 
     thead, tbody = table.children
-    assert len(thead.children) == 6
+    assert len(thead.children) == 7
     assert len(thead.children[0].children) == 6
 
     assert thead.children[0].children[0].children[0].children == 'Worthy-action:'
@@ -46,13 +45,19 @@ def test_table_cb():
     assert thead.children[2].children[0].children[0].children == 'Fail-to-act:'
     assert thead.children[3].children[0].children[0].children == 'Worthy-Inaction:'
     assert thead.children[4].children[0].children[0].children == 'Rate:'
+    assert thead.children[5].children[0].children[0].children == 'Threshold:'
 
-    assert thead.children[5].children[5].children == "ENSO State"
+    assert thead.children[6].children[1].children[0].children == 'Forecast prob non-exc (percent)'
+    print(thead.children[5].children[1].children)
+    assert thead.children[5].children[1].children == '31.0'
+
+    assert thead.children[6].children[5].children == "ENSO State"
     assert thead.children[0].children[5].children == "3"
     assert thead.children[1].children[5].children == "4"
     assert thead.children[2].children[5].children == "12"
     assert thead.children[3].children[5].children == "20"
     assert thead.children[4].children[5].children == "58.97%"
+    assert thead.children[5].children[5].children == "El Niño" # threshold
 
     assert len(tbody.children) == 40 # will break when we add a new year
 
@@ -113,7 +118,7 @@ def test_augment_table_data():
         },
     }
 
-    aug, summ, prob = fbfmaproom.augment_table_data(main_df, freq, table_columns, "pnep", "bad-years")
+    aug, summ, thresholds = fbfmaproom.augment_table_data(main_df, freq, table_columns, "pnep", "bad-years")
 
     expected_aug = main_df.copy()
     expected_aug["worst_bad-years"] = [1, 0, 1, 0, 0, 1]
@@ -130,7 +135,9 @@ def test_augment_table_data():
     ))
     pd.testing.assert_frame_equal(expected_summ, summ)
 
-    assert np.isclose(prob, 33.800949)
+    assert np.isclose(thresholds["pnep"], 33.8009)
+    assert np.isclose(thresholds["rain"], 100)
+    assert np.isclose(thresholds["enso_state"], 3)
 
 def test_forecast_tile_url_callback_yesdata():
     url, is_alert, colormap = fbfmaproom.tile_url_callback.__wrapped__(
