@@ -26,6 +26,7 @@ from psycopg2 import sql
 import math
 import traceback
 import enum
+import warnings
 
 import __about__ as about
 import pyaconf
@@ -59,7 +60,22 @@ SERVER.register_error_handler(ClientSideError, pingrid.client_side_error)
 month_abbrev = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec']
 abbrev_to_month0 = dict((abbrev, month0) for month0, abbrev in enumerate(month_abbrev))
 
-APP = dash.Dash(
+
+class FbfDash(dash.Dash):
+    def index(self, *args, **kwargs):
+        path = kwargs['path']
+        if not is_valid_root(path):
+            raise NotFoundError(f"Unknown resource {path}")
+        return super().index(*args, **kwargs)
+
+
+def is_valid_root(path):
+    if path in CONFIG["countries"]:
+        return True
+    return False
+
+
+APP = FbfDash(
     __name__,
     external_stylesheets=[dbc.themes.SIMPLEX],
     server=SERVER,
@@ -341,7 +357,7 @@ def generate_tables(
     season_config,
     table_columns,
     trigger_key,
-    bad_years_key,
+    predictand_key,
     issue_month0,
     freq,
     mode,
@@ -351,9 +367,11 @@ def generate_tables(
     basic_ds = fundamental_table_data(country_key, table_columns,
                                       season_config, issue_month0,
                                       freq, mode, geom_key)
-    basic_df = basic_ds.drop_vars("pct").to_dataframe()
+    if "pct" in basic_ds.coords:
+        basic_ds = basic_ds.drop_vars("pct")
+    basic_df = basic_ds.to_dataframe()
     main_df, summary_df, trigger_thresh = augment_table_data(
-        basic_df, freq, table_columns, trigger_key, bad_years_key
+        basic_df, freq, table_columns, trigger_key, predictand_key
     )
     summary_presentation_df = format_summary_table(summary_df, table_columns)
     return main_df, summary_presentation_df, trigger_thresh
@@ -407,14 +425,31 @@ def select_forecast(country_key, forecast_key, issue_month0, target_month0,
 
 
 
-def select_obs(country_key, obs_keys, target_month0, mpolygon=None):
+def select_obs(country_key, obs_keys, target_month0, target_year=None, mpolygon=None):
     ds = xr.Dataset(
         data_vars={
             obs_key: open_obs(country_key, obs_key)
             for obs_key in obs_keys
         }
     )
-    ds = ds.where(lambda x: x["time"].dt.month == target_month0 + 0.5, drop=True)
+    if target_year is not None:
+        target_date = (
+            cftime.Datetime360Day(target_year, 1, 1) +
+            pd.Timedelta(target_month0 * 30, unit='days')
+        )
+        try:
+            ds = ds.sel(time=target_date)
+        except KeyError:
+            raise NotFoundError(f'No value for {" ".join(obs_keys)} on {target_date}') from None
+
+    with warnings.catch_warnings():
+        # ds.where in xarray 2022.3.0 uses deprecated numpy
+        # functionality. A recent change deletes the offending line;
+        # see if this catch_warnings can be removed once that's
+        # released.
+        # https://github.com/pydata/xarray/commit/3a320724100ab05531d8d18ca8cb279a8e4f5c7f
+        warnings.filterwarnings("ignore", category=DeprecationWarning, module='numpy.core.fromnumeric')
+        ds = ds.where(lambda x: x["time"].dt.month == target_month0 + 0.5, drop=True)
     if mpolygon is not None and 'lon' in ds.coords:
         ds = pingrid.average_over_trimmed(ds, mpolygon, all_touched=True)
     return ds
@@ -440,7 +475,7 @@ def fundamental_table_data(country_key, table_columns,
     )
 
     obs_keys = [key for key, col in table_columns.items() if col["type"] is ColType.OBS]
-    obs_ds = select_obs(country_key, obs_keys, target_month0, mpolygon)
+    obs_ds = select_obs(country_key, obs_keys, target_month0, mpolygon=mpolygon)
 
     main_ds = xr.merge(
         [
@@ -457,7 +492,7 @@ def fundamental_table_data(country_key, table_columns,
     return main_ds
 
 
-def augment_table_data(main_df, freq, table_columns, trigger_key, bad_years_key):
+def augment_table_data(main_df, freq, table_columns, trigger_key, predictand_key):
     main_df = main_df.copy()
 
     main_df["time"] = main_df.index.to_series()
@@ -492,16 +527,20 @@ def augment_table_data(main_df, freq, table_columns, trigger_key, bad_years_key)
         else:
             worst_flags[key] = (rank_pct[key] <= freq / 100).astype(bool)
 
-    bad_year = worst_flags[bad_years_key].dropna().astype(bool)
+    bad_year = worst_flags[predictand_key].dropna().astype(bool)
 
     summary_df = pd.DataFrame()
     for key in regular_keys:
-        if key != bad_years_key:
+        if key != predictand_key:
             summary_df[key] = hits_and_misses(worst_flags[key], bad_year)
         main_df[key] = regular_data[key]
         main_df[f"worst_{key}"] = worst_flags[key].astype(int)
 
-    thresh = regular_data[trigger_key][worst_flags[trigger_key]].min()
+    trigger_worst_vals = regular_data[trigger_key][worst_flags[trigger_key]]
+    if table_columns[trigger_key]["lower_is_worse"]:
+        thresh = trigger_worst_vals.max()
+    else:
+        thresh = trigger_worst_vals.min()
 
     return main_df, summary_df, thresh
 
@@ -576,10 +615,10 @@ def country(pathname: str) -> str:
     Output("vuln_colorbar", "colorscale"),
     Output("mode", "options"),
     Output("mode", "value"),
-    Output("bad_years", "options"),
-    Output("bad_years", "value"),
-    Output("obs_datasets", "options"),
-    Output("obs_datasets", "value"),
+    Output("predictand", "options"),
+    Output("predictand", "value"),
+    Output("other_predictors", "options"),
+    Output("other_predictors", "value"),
     Input("location", "pathname"),
 )
 def _(pathname):
@@ -606,16 +645,16 @@ def _(pathname):
     mode_value = "0"
 
     datasets_config = c["datasets"]
-    obs_datasets_options = [
+    predictor_options = [
         dict(
             label=v["label"],
             value=k,
         )
         for k, v in datasets_config["observations"].items()
     ]
-    obs_datasets_value = [datasets_config["defaults"]["observations"]]
-    bad_years_options = obs_datasets_options
-    bad_years_value = datasets_config["defaults"]["bad_years"]
+    predictor_value = [datasets_config["defaults"]["observations"]]
+    predictand_options = predictor_options
+    predictand_value = datasets_config["defaults"]["bad_years"]
 
     return (
         f"{PFX}/custom/{c['logo']}",
@@ -627,10 +666,10 @@ def _(pathname):
         vuln_cs,
         mode_options,
         mode_value,
-        bad_years_options,
-        bad_years_value,
-        obs_datasets_options,
-        obs_datasets_value,
+        predictand_options,
+        predictand_value,
+        predictor_options,
+        predictor_value,
     )
 
 @SERVER.route(f"{PFX}/custom/<path:relpath>")
@@ -768,19 +807,19 @@ def display_prob_thresh(val):
     Input("geom_key", "value"),
     Input("location", "pathname"),
     Input("severity", "value"),
-    Input("obs_datasets", "value"),
-    Input("trigger_key", "value"),
-    Input("bad_years", "value"),
+    Input("trigger", "value"),
+    Input("predictand", "value"),
+    Input("other_predictors", "value"),
     State("season", "value"),
 )
-def table_cb(issue_month0, freq, mode, geom_key, pathname, severity, obs_keys, trigger_key, predictand_key, season):
+def table_cb(issue_month0, freq, mode, geom_key, pathname, severity, trigger_key, predictand_key, other_predictor_keys, season):
     country_key = country(pathname)
     config = CONFIG["countries"][country_key]
     tcs = table_columns(
         config["datasets"],
         trigger_key,
         predictand_key,
-        obs_keys,
+        other_predictor_keys,
         severity,
         config["seasons"][season]["length"],
     )
@@ -889,7 +928,7 @@ def _(
     Input("issue_month", "value"),
     Input("freq", "value"),
     Input("location", "pathname"),
-    Input("trigger_key", "value"),
+    Input("trigger", "value"),
     State("season", "value"),
 )
 def tile_url_callback(target_year, issue_month0, freq, pathname, trigger_key, season_id):
@@ -914,7 +953,7 @@ def tile_url_callback(target_year, issue_month0, freq, pathname, trigger_key, se
             tile_url = f"{TILE_PFX}/forecast/{trigger_key}/{{z}}/{{x}}/{{y}}/{country_key}/{season_id}/{target_year}/{issue_month0}/{freq}"
         else:
             # As for select_forecast above
-            select_obs(country_key, [trigger_key], target_month0)
+            select_obs(country_key, [trigger_key], target_month0, target_year)
             tile_url = f"{TILE_PFX}/obs/{trigger_key}/{{z}}/{{x}}/{{y}}/{country_key}/{season_id}/{target_year}"
         error = False
 
@@ -988,9 +1027,7 @@ def forecast_tile(forecast_key, tz, tx, ty, country_key, season_id, target_year,
 def obs_tile(obs_key, tz, tx, ty, country_key, season_id, target_year):
     season_config = CONFIG["countries"][country_key]["seasons"][season_id]
     target_month0 = season_config["target_month"]
-    da = select_obs(country_key, [obs_key], target_month0)[obs_key]
-    target_date = cftime.Datetime360Day(target_year, int(target_month0) + 1, 16)
-    da = da.sel(time=target_date)
+    da = select_obs(country_key, [obs_key], target_month0, target_year)[obs_key]
     p = tuple(CONFIG["countries"][country_key]["marker"])
     clipping, _ = retrieve_geometry(country_key, p, "0", None)
     resp = pingrid.tile(da, tx, ty, tz, clipping)

@@ -4,6 +4,7 @@ from dash import dash_table as table
 import dash_leaflet as dlf
 import dash_leaflet.express as dlx
 import dash_bootstrap_components as dbc
+import uuid
 
 SEVERITY_COLORS = ["#fdfd96", "#ffb347", "#ff6961"]
 
@@ -21,17 +22,22 @@ def app_layout():
     )
 
 
-def help_layout(buttonname, id_name, message):
+def label_with_tooltip(label, tooltip):
+    id_name = make_id()
     return html.Div(
         [
-            html.Label(f"{buttonname}:", id=id_name, style={"cursor": "pointer"}),
+            html.Label(f"{label}:", id=id_name, style={"cursor": "pointer"}),
             dbc.Tooltip(
-                f"{message}",
+                f"{tooltip}",
                 target=id_name,
                 className="tooltiptext",
             ),
         ]
     )
+
+
+def make_id():
+    return str(uuid.uuid4())
 
 
 def map_layout():
@@ -177,12 +183,11 @@ def command_layout():
         [
             dcc.Input(id="geom_key", type="hidden"),
             dcc.Input(id="prob_thresh", type="hidden"),
-            dcc.Input(id="trigger_key", type="hidden", value="pnep"),
+            dcc.Input(id="trigger", type="hidden", value="pnep"),
             html.Div(
                 [
-                    help_layout(
+                    label_with_tooltip(
                         "Mode",
-                        "mode_label",
                         "The spatial resolution such as National, Regional, District or Pixel level",
                     ),
                     dcc.Dropdown(
@@ -200,9 +205,8 @@ def command_layout():
             ),
             html.Div(
                 [
-                    help_layout(
+                    label_with_tooltip(
                         "Issue",
-                        "issue_label",
                         "The month in which the forecast is issued",
                     ),
                     dcc.Dropdown(
@@ -220,8 +224,8 @@ def command_layout():
             ),
             html.Div(
                 [
-                    help_layout(
-                        "Season", "season_label", "The rainy season being forecasted"
+                    label_with_tooltip(
+                        "Season", "The rainy season being forecasted"
                     ),
                     dcc.Dropdown(
                         id="season",
@@ -238,9 +242,8 @@ def command_layout():
             ),
             html.Div(
                 [
-                    help_layout(
+                    label_with_tooltip(
                         "Year",
-                        "year_label",
                         "The year whose forecast is displayed on the map",
                     ),
                     dcc.Dropdown(
@@ -258,9 +261,8 @@ def command_layout():
             ),
             html.Div(
                 [
-                    help_layout(
+                    label_with_tooltip(
                         "Severity",
-                        "severity_label",
                         "The level of drought severity being targeted",
                     ),
                     dcc.Dropdown(
@@ -284,9 +286,8 @@ def command_layout():
             ),
             html.Div(
                 [
-                    help_layout(
+                    label_with_tooltip(
                         "Frequency of triggered forecasts",
-                        "frequency_label",
                         "The slider is used to set the frequency of forecast triggered",
                     ),
                     dcc.Slider(
@@ -338,9 +339,8 @@ def command_layout():
             ),
             html.Div(
                 [
-                    help_layout(
+                    label_with_tooltip(
                         "Probability threshold",
-                        "prob_label",
                         "To trigger at the selected frequency, trigger when the forecast probability of drought is at least this high.",
                     ),
                     html.Div(id='prob_thresh_text'),
@@ -354,7 +354,7 @@ def command_layout():
                 },
             ),
             dbc.Alert(
-                "No forecast available for this month",
+                "No data available for selected month and year",
                 color="danger",
                 dismissable=True,
                 is_open=False,
@@ -387,14 +387,13 @@ def table_layout():
             html.Div(id="log"),
             html.Div(
                 [
-                    help_layout(
+                    label_with_tooltip(
                         "Baseline observations:",
-                        "bad_years_label",
                         "Column that serves as the baseline. Other columns will be "
                         "scored by how well they predict this one.",
                     ),
                     dcc.Dropdown(
-                        id="bad_years",
+                        id="predictand",
                         clearable=False,
                     ),
                 ],
@@ -407,13 +406,12 @@ def table_layout():
             ),
             html.Div(
                 [
-                    help_layout(
-                        "Other observations:",
-                        "obs_datasets_label",
+                    label_with_tooltip(
+                        "Other predictors:",
                         "Other columns to display in the table"
                     ),
                     dcc.Dropdown(
-                        id="obs_datasets",
+                        id="other_predictors",
                         clearable=False,
                         multi=True,
                     ),
