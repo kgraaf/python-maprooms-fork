@@ -27,6 +27,7 @@ import math
 import traceback
 import enum
 import itertools
+import uuid
 import warnings
 
 import __about__ as about
@@ -354,7 +355,7 @@ def retrieve_vulnerability(
 
 def generate_tables(
     country_key,
-    season_config,
+    season_id,
     table_columns,
     predictand_key,
     issue_month0,
@@ -362,9 +363,10 @@ def generate_tables(
     mode,
     geom_key,
     severity,
+    season_year
 ):
     basic_ds = fundamental_table_data(country_key, table_columns,
-                                      season_config, issue_month0,
+                                      season_id, issue_month0,
                                       freq, mode, geom_key)
     if "pct" in basic_ds.coords:
         basic_ds = basic_ds.drop_vars("pct")
@@ -372,7 +374,17 @@ def generate_tables(
     main_df, summary_df, thresholds = augment_table_data(
         basic_df, freq, table_columns, predictand_key
     )
-    summary_presentation_df = format_summary_table(summary_df, table_columns, thresholds)
+    if mode == 'pixel':
+        bounds = geom_key
+        region = ''
+    else:
+        bounds = ''
+        region = geom_key
+    summary_presentation_df = format_summary_table(
+        summary_df, table_columns, thresholds,
+        country_key, mode, season_year, freq, season_id, issue_month0,
+        bounds, region, severity,
+    )
     return main_df, summary_presentation_df
 
 
@@ -455,8 +467,9 @@ def select_obs(country_key, obs_keys, target_month0, target_year=None, mpolygon=
 
 
 def fundamental_table_data(country_key, table_columns,
-                           season_config, issue_month0, freq, mode,
+                           season_id, issue_month0, freq, mode,
                            geom_key):
+    season_config = CONFIG["countries"][country_key]["seasons"][season_id]
     year_min, year_max = season_config["year_range"]
     season_length = season_config["length"]
     target_month0 = season_config["target_month"]
@@ -544,27 +557,74 @@ def augment_table_data(main_df, freq, table_columns, predictand_key):
     return main_df, summary_df, thresholds
 
 
-def format_summary_table(summary_df, table_columns, thresholds):
+def format_ganttit(
+        format_thresh,
+        thresh,
+        country,
+        mode,
+        season_year,
+        freq,
+        season_id,
+        issue_month0,
+        bounds,
+        region,
+        severity,
+):
+    id_ = str(uuid.uuid4())
+    season_config = CONFIG['countries'][country]['seasons'][season_id]
+    args = {
+        'country': country,
+        'mode': mode,
+        'season_year': season_year,
+        'freq': freq,
+        'prob_thresh': float(thresh),
+        'season': {
+            'id': season_id,
+            'label': season_config['label'],
+            'target_month': season_config['target_month'],
+            'length': season_config['length'],
+        },
+        'issue_month': issue_month0,
+        'bounds': bounds,
+        'region': region,
+        'severity': severity,
+    }
+    url = CONFIG["gantt_url"] + urllib.parse.urlencode(dict(data=json.dumps(args)))
+    component = html.A(
+        [
+            dbc.Button(
+                format_thresh(thresh), color="info", id=id_
+            ),
+            dbc.Tooltip(
+                "Gantt it!- Early action activities planning tool in a format of a Gantt chart",
+                target=id_,
+                className="tooltiptext",
+            ),
+        ],
+        href=url,
+        target="_blank",
+    )
+    return component
+
+
+def format_summary_table(summary_df, table_columns, thresholds,
+                         country, mode, season_year, freq, season_id, issue_month0, bounds, region, severity
+):
     format_accuracy = lambda x: f"{x * 100:.2f}%"
     format_count = lambda x: f"{x:.0f}"
 
     formatted_df = pd.DataFrame()
 
     formatted_df["time"] = [
-        "Worthy-action:",
-        "Act-in-vain:",
-        "Fail-to-act:",
-        "Worthy-Inaction:",
-        "Rate:",
-        "Threshold:",
-    ]
-    formatted_df["tooltip"] = [
-        "Drought was forecasted and a ‘bad year’ occurred",
-        "Drought was forecasted but a ‘bad year’ did not occur",
-        "No drought was forecasted but a ‘bad year’ occurred",
-        "No drought was forecasted, and no ‘bad year’ occurred",
-        "Percentage of worthy-action and worthy-inactions",
-        "Threshold for a forecast of drought",
+        fbftable.head_cell(text, tooltip)
+        for text, tooltip in (
+                ("Worthy-action:", "Drought was forecasted and a ‘bad year’ occurred"),
+                ("Act-in-vain:", "Drought was forecasted but a ‘bad year’ did not occur"),
+                ("Fail-to-act:", "No drought was forecasted but a ‘bad year’ occurred"),
+                ("Worthy-Inaction:", "No drought was forecasted, and no ‘bad year’ occurred"),
+                ("Rate:", "Percentage of worthy-action and worthy-inactions"),
+                ("Threshold:", "Threshold for a forecast of drought"),
+        )
     ]
 
     for c in summary_df.columns:
@@ -575,7 +635,19 @@ def format_summary_table(summary_df, table_columns, thresholds):
             list(map(format_count, summary_df[c][0:4])) +
             [
                 format_accuracy(summary_df[c][4]),
-                table_columns[c]['format'](thresholds[c]),
+                format_ganttit(
+                    table_columns[c]['format'],
+                    thresholds[c],
+                    country,
+                    mode,
+                    season_year,
+                    freq,
+                    season_id,
+                    issue_month0,
+                    bounds,
+                    region,
+                    severity,
+                )
             ]
         )
 
@@ -804,9 +876,10 @@ def update_popup(pathname, position, mode, year):
     Input("severity", "value"),
     Input("predictand", "value"),
     Input("predictors", "value"),
+    Input("year", "value"),
     State("season", "value"),
 )
-def table_cb(issue_month0, freq, mode, geom_key, pathname, severity, predictand_key, predictor_keys, season):
+def table_cb(issue_month0, freq, mode, geom_key, pathname, severity, predictand_key, predictor_keys, season_year, season_id):
     country_key = country(pathname)
     config = CONFIG["countries"][country_key]
     tcs = table_columns(
@@ -814,12 +887,12 @@ def table_cb(issue_month0, freq, mode, geom_key, pathname, severity, predictand_
         predictor_keys,
         predictand_key,
         severity,
-        config["seasons"][season]["length"],
+        config["seasons"][season_id]["length"],
     )
     try:
         dft, dfs = generate_tables(
             country_key,
-            config["seasons"][season],
+            season_id,
             tcs,
             predictand_key,
             issue_month0,
@@ -827,6 +900,7 @@ def table_cb(issue_month0, freq, mode, geom_key, pathname, severity, predictand_
             mode,
             geom_key,
             severity,
+            season_year,
         )
         return fbftable.gen_table(tcs, dfs, dft, severity)
     except Exception as e:
@@ -1114,7 +1188,7 @@ def retrieve_geometry2(country_key: str, mode: int, region_key: str):
 @SERVER.route(f"{PFX}/<country_key>/export")
 def export_endpoint(country_key):
     mode = parse_arg("mode", int) # not supporting pixel mode for now
-    season = parse_arg("season")
+    season_id = parse_arg("season")
     issue_month0 = parse_arg("issue_month0", int)
     freq = parse_arg("freq", float)
     geom_key = parse_arg("region")
@@ -1134,7 +1208,7 @@ def export_endpoint(country_key):
     if predictand_key not in all_keys:
         raise InvalidRequestError(f"Unsupported value {predictand_key} for predictand_key. Valid values are: {' '.join(all_keys)}")
 
-    season_config = config["seasons"].get(season)
+    season_config = config["seasons"].get(season_id)
     if season_config is None:
         seasons = ' '.join(config["seasons"].keys())
         raise InvalidRequestError(f"Unknown season {season}. Valid values are: {seasons}")
@@ -1151,7 +1225,7 @@ def export_endpoint(country_key):
         season_length=season_config["length"],
     )
     basic_ds = fundamental_table_data(
-        country_key, cols, season_config, issue_month0,
+        country_key, cols, season_id, issue_month0,
         freq, mode, geom_key
     )
     if "pct" in basic_ds.coords:

@@ -32,7 +32,8 @@ def test_table_cb():
         severity=0,
         predictand_key="bad-years",
         predictor_keys=['pnep', 'rain', 'ndvi', 'enso_state'],
-        season='season1',
+        season_year=2022,
+        season_id='season1',
     )
 
     thead, tbody = table.children
@@ -47,8 +48,9 @@ def test_table_cb():
     assert thead.children[5].children[0].children[0].children == 'Threshold:'
 
     assert thead.children[6].children[1].children[0].children == 'Forecast prob non-exc (percent)'
-    print(thead.children[5].children[1].children)
-    assert thead.children[5].children[1].children == '31.0'
+    a = thead.children[5].children[1].children
+    assert isinstance(a, html.A)
+    assert a.children[0].children ==  '31.0'
 
     assert thead.children[6].children[4].children == "ENSO State"
     assert thead.children[0].children[4].children == "3"
@@ -56,7 +58,7 @@ def test_table_cb():
     assert thead.children[2].children[4].children == "12"
     assert thead.children[3].children[4].children == "20"
     assert thead.children[4].children[4].children == "58.97%"
-    assert thead.children[5].children[4].children == "El Niño" # threshold
+    assert thead.children[5].children[4].children.children[0].children == "El Niño" # threshold
 
     assert len(tbody.children) == 40 # will break when we add a new year
 

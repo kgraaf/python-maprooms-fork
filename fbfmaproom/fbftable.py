@@ -34,8 +34,7 @@ def gen_head(tcs, dfs):
     return html.Thead(
         [
             html.Tr([
-                html.Th(head_cell(row[col], row['tooltip']) if i == 0 else row[col])
-                for i, col in enumerate(tcs.keys())
+                html.Th(row[col]) for col in tcs.keys()
             ])
             for row in dfs.to_dict(orient="records")
         ] + [
