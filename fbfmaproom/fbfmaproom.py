@@ -628,9 +628,6 @@ def format_summary_table(summary_df, table_columns, thresholds,
     ]
 
     for c in summary_df.columns:
-        if c == 'time':
-            continue
-
         formatted_df[c] = (
             list(map(format_count, summary_df[c][0:4])) +
             [
