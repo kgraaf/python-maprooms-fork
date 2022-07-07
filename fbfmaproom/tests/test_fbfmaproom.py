@@ -246,6 +246,137 @@ def test_pnep_percentile_straddle():
     assert d["triggered"] is True
 
 
+def test_trigger_check_pixel_trigger():
+    with fbfmaproom.SERVER.test_client() as client:
+        r = client.get(
+            "/fbfmaproom/trigger_check?country_key=ethiopia"
+            "&variable=pnep"
+            "&mode=pixel"
+            "&season=season1"
+            "&issue_month=1"
+            "&season_year=2021"
+            "&freq=15"
+            "&thresh=10"
+            "&bounds=[[6.75, 43.75], [7, 44]]"
+        )
+    assert r.status_code == 200
+    d = r.json
+    assert np.isclose(d["value"], 10.6954)
+    assert d["triggered"] is True
+
+def test_trigger_check_pixel_notrigger():
+    with fbfmaproom.SERVER.test_client() as client:
+        r = client.get(
+            "/fbfmaproom/trigger_check?country_key=ethiopia"
+            "&variable=pnep"
+            "&mode=pixel"
+            "&season=season1"
+            "&issue_month=1"
+            "&season_year=2021"
+            "&freq=15"
+            "&thresh=20"
+            "&bounds=[[6.75, 43.75], [7, 44]]"
+        )
+    assert r.status_code == 200
+    d = r.json
+    assert np.isclose(d["value"], 10.6954)
+    assert d["triggered"] is False
+
+def test_trigger_check_region():
+    with fbfmaproom.SERVER.test_client() as client:
+        r = client.get(
+            "/fbfmaproom/trigger_check?country_key=ethiopia"
+            "&variable=pnep"
+            "&mode=2"
+            "&season=season1"
+            "&issue_month=1"
+            "&season_year=2021"
+            "&freq=15"
+            "&thresh=20"
+            "&region=(ET05,ET0505,ET050501)"
+        )
+    print(r.data)
+    assert r.status_code == 200
+    d = r.json
+    assert np.isclose(d["value"], 9.333)
+    assert d["triggered"] is False
+
+def test_trigger_check_straddle():
+    "Lead time spans Jan 1"
+    with fbfmaproom.SERVER.test_client() as client:
+        r = client.get(
+            "/fbfmaproom/trigger_check?country_key=malawi"
+            "&variable=pnep"
+            "&mode=0"
+            "&season=season1"
+            "&issue_month=10"
+            "&season_year=2021"
+            "&freq=30.0"
+            "&thresh=30.31437"
+            "&region=152"
+        )
+    print(r.data)
+    assert r.status_code == 200
+    d = r.json
+    assert np.isclose(d["value"], 33.10532)
+    assert d["triggered"] is True
+
+
+def test_trigger_check_obs_pixel_trigger():
+    with fbfmaproom.SERVER.test_client() as client:
+        r = client.get(
+            "/fbfmaproom/trigger_check?country_key=ethiopia"
+            "&variable=rain"
+            "&mode=pixel"
+            "&season=season1"
+            "&issue_month=1"
+            "&season_year=2021"
+            "&freq=15"
+            "&thresh=90"
+            "&bounds=[[6.75, 43.75], [7, 44]]"
+        )
+    assert r.status_code == 200
+    d = r.json
+    assert np.isclose(d["value"], 87.529)
+    assert d["triggered"] is True
+
+def test_trigger_check_obs_pixel_notrigger():
+    with fbfmaproom.SERVER.test_client() as client:
+        r = client.get(
+            "/fbfmaproom/trigger_check?country_key=ethiopia"
+            "&variable=rain"
+            "&mode=pixel"
+            "&season=season1"
+            "&issue_month=1"
+            "&season_year=2021"
+            "&freq=15"
+            "&thresh=20"
+            "&bounds=[[6.75, 43.75], [7, 44]]"
+        )
+    assert r.status_code == 200
+    d = r.json
+    assert np.isclose(d["value"], 87.5290)
+    assert d["triggered"] is False
+
+def test_trigger_check_obs_region():
+    with fbfmaproom.SERVER.test_client() as client:
+        r = client.get(
+            "/fbfmaproom/trigger_check?country_key=ethiopia"
+            "&variable=pnep"
+            "&mode=2"
+            "&season=season1"
+            "&issue_month=1"
+            "&season_year=2021"
+            "&freq=15"
+            "&thresh=20"
+            "&region=(ET05,ET0505,ET050501)"
+        )
+    print(r.data)
+    assert r.status_code == 200
+    d = r.json
+    assert np.isclose(d["value"], 9.333)
+    assert d["triggered"] is False
+
 def test_stats():
     with fbfmaproom.SERVER.test_client() as client:
         resp = client.get('/fbfmaproom-admin/stats')

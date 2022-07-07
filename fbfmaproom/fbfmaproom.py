@@ -558,6 +558,7 @@ def augment_table_data(main_df, freq, table_columns, predictand_key):
 
 
 def format_ganttit(
+        variable,
         format_thresh,
         thresh,
         country,
@@ -573,11 +574,12 @@ def format_ganttit(
     id_ = str(uuid.uuid4())
     season_config = CONFIG['countries'][country]['seasons'][season_id]
     args = {
+        'variable': variable,
         'country': country,
         'mode': mode,
         'season_year': season_year,
         'freq': freq,
-        'prob_thresh': float(thresh),
+        'thresh': float(thresh),
         'season': {
             'id': season_id,
             'label': season_config['label'],
@@ -633,6 +635,7 @@ def format_summary_table(summary_df, table_columns, thresholds,
             [
                 format_accuracy(summary_df[c][4]),
                 format_ganttit(
+                    c,
                     table_columns[c]['format'],
                     thresholds[c],
                     country,
@@ -1153,6 +1156,78 @@ def pnep_percentile():
             "found": True,
             "probability": forecast_prob,
             "triggered": bool(forecast_prob >= prob_thresh),
+        }
+
+    return response
+
+
+@SERVER.route(f"{PFX}/trigger_check")
+def trigger_check():
+    var = parse_arg("variable")
+    country_key = parse_arg("country_key")
+    mode = parse_arg("mode")
+    season = parse_arg("season")
+    issue_month0 = parse_arg("issue_month", int)
+    season_year = parse_arg("season_year", int)
+    freq = parse_arg("freq", float)
+    thresh = parse_arg("thresh", float)
+    bounds = parse_arg("bounds", required=False)
+    region = parse_arg("region", required=False)
+
+    config = CONFIG["countries"][country_key]
+    if var in config["datasets"]["forecasts"]:
+        var_is_forecast = True
+        lower_is_worse = config["datasets"]["forecasts"][var]["lower_is_worse"]
+    elif var in config["datasets"]["observations"]:
+        var_is_forecast = False
+        lower_is_worse = config["datasets"]["observations"][var]["lower_is_worse"]
+    else:
+        raise InvalidRequestError(f"Unknown variable {var}")
+
+    if mode == "pixel":
+        if bounds is None:
+            raise InvalidRequestError("If mode is pixel then bounds must be provided")
+        if region is not None:
+            raise InvalidRequestError("If mode is pixel then region must not be provided")
+    else:
+        if bounds is not None:
+            raise InvalidRequestError("If mode is {mode} then bounds must not be provided")
+        if region is None:
+            raise InvalidRequestError("If mode is {mode} then region must be provided")
+
+    target_month0 = config["seasons"][season]["target_month"]
+
+    if mode == "pixel":
+        geom_key = bounds
+    else:
+        geom_key = region
+    mpoly = get_mpoly(mode, country_key, geom_key)
+
+    try:
+        if var_is_forecast:
+            data = select_forecast(country_key, var, issue_month0,
+                                   target_month0, season_year, freq,
+                                   mpolygon=mpoly)
+        else:
+            data = select_obs(country_key, [var], target_month0, season_year,
+                              mpolygon=mpoly)[var]
+    except KeyError:
+        data = None
+
+    if data is None:
+        response = {
+            "found": False,
+        }
+    else:
+        value = data.item()
+        if lower_is_worse:
+            triggered = bool(value <= thresh)
+        else:
+            triggered = bool(value >= thresh)
+        response = {
+            "found": True,
+            "value": value,
+            "triggered": triggered,
         }
 
     return response
