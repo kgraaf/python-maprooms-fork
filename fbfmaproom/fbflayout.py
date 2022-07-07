@@ -345,7 +345,7 @@ def table_layout():
             html.Div(
                 [
                     label_with_tooltip(
-                        "Baseline observations:",
+                        "Baseline observations",
                         "Column that serves as the baseline. Other columns will be "
                         "scored by how well they predict this one.",
                     ),
@@ -364,7 +364,7 @@ def table_layout():
             html.Div(
                 [
                     label_with_tooltip(
-                        "Predictors:",
+                        "Predictors",
                         "Other datasets to display in the table"
                     ),
                     dcc.Dropdown(
