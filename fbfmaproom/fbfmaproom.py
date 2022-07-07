@@ -731,8 +731,8 @@ def _(pathname):
             datasets_config["observations"].items()
         )
     ]
-    predictors_value = [datasets_config["defaults"]["observations"]]
-    predictand_value = datasets_config["defaults"]["bad_years"]
+    predictors_value = datasets_config["defaults"]["predictors"]
+    predictand_value = datasets_config["defaults"]["predictand"]
 
     return (
         f"{PFX}/custom/{c['logo']}",
