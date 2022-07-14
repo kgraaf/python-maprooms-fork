@@ -620,12 +620,12 @@ def format_summary_table(summary_df, table_columns, thresholds,
     formatted_df["time"] = [
         fbftable.head_cell(text, tooltip)
         for text, tooltip in (
-                ("Worthy-action:", "Drought was forecasted and a ‘bad year’ occurred"),
-                ("Act-in-vain:", "Drought was forecasted but a ‘bad year’ did not occur"),
-                ("Fail-to-act:", "No drought was forecasted but a ‘bad year’ occurred"),
-                ("Worthy-Inaction:", "No drought was forecasted, and no ‘bad year’ occurred"),
-                ("Rate:", "Percentage of worthy-action and worthy-inactions"),
-                ("Threshold:", "Threshold for a forecast of drought"),
+            ("Worthy-action:", "Drought was forecasted and a ‘bad year’ occurred"),
+            ("Act-in-vain:", "Drought was forecasted but a ‘bad year’ did not occur"),
+            ("Fail-to-act:", "No drought was forecasted but a ‘bad year’ occurred"),
+            ("Worthy-Inaction:", "No drought was forecasted, and no ‘bad year’ occurred"),
+            ("Rate:", "Percentage of worthy-action and worthy-inactions"),
+            ("Threshold:", "Threshold for a forecast of drought"),
         )
     ]
 
