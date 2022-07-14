@@ -92,6 +92,15 @@ table.supertable tr th:first-child {
     color: rgb(67, 104, 176);
 }
 
+table.supertable thead tr:first-child th {
+    background-color: rgb(241, 241, 241);
+    border-right-style: none;
+}
+
+table.supertable thead tr:first-child th:last-child {
+    border-right-style: solid;
+}
+
 table.supertable thead tr:last-child th {
     background-color: rgb(241, 241, 241);
     color: black;

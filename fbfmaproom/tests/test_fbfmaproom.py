@@ -1,5 +1,6 @@
 from cftime import Datetime360Day as DT360
 from dash import html
+import dash_bootstrap_components as dbc
 import io
 import numpy as np
 import pandas as pd
@@ -37,28 +38,31 @@ def test_table_cb():
     )
 
     thead, tbody = table.children
-    assert len(thead.children) == 7
+    assert len(thead.children) == 8
     assert len(thead.children[0].children) == 6
 
-    assert thead.children[0].children[0].children[0].children == 'Worthy-action:'
-    assert thead.children[1].children[0].children[0].children == 'Act-in-vain:'
-    assert thead.children[2].children[0].children[0].children == 'Fail-to-act:'
-    assert thead.children[3].children[0].children[0].children == 'Worthy-Inaction:'
-    assert thead.children[4].children[0].children[0].children == 'Rate:'
-    assert thead.children[5].children[0].children[0].children == 'Threshold:'
+    assert thead.children[0].children[0].children == ''
+    trigger_a = thead.children[0].children[1].children
+    assert  isinstance(trigger_a, html.A)
+    assert isinstance(trigger_a.children[0], dbc.Button)
 
-    assert thead.children[6].children[1].children[0].children == 'Forecast prob non-exc (percent)'
-    a = thead.children[5].children[1].children
-    assert isinstance(a, html.A)
-    assert a.children[0].children ==  '31.0'
+    assert thead.children[1].children[0].children[0].children == 'Worthy-action:'
+    assert thead.children[2].children[0].children[0].children == 'Act-in-vain:'
+    assert thead.children[3].children[0].children[0].children == 'Fail-to-act:'
+    assert thead.children[4].children[0].children[0].children == 'Worthy-Inaction:'
+    assert thead.children[5].children[0].children[0].children == 'Rate:'
+    assert thead.children[6].children[0].children[0].children == 'Threshold:'
 
-    assert thead.children[6].children[4].children == "ENSO State"
-    assert thead.children[0].children[4].children == "3"
-    assert thead.children[1].children[4].children == "4"
-    assert thead.children[2].children[4].children == "12"
-    assert thead.children[3].children[4].children == "20"
-    assert thead.children[4].children[4].children == "58.97%"
-    assert thead.children[5].children[4].children.children[0].children == "El Niño" # threshold
+    assert thead.children[7].children[1].children[0].children == 'Forecast prob non-exc (percent)'
+    assert thead.children[6].children[1].children == '31.0'
+
+    assert thead.children[1].children[4].children == "3"
+    assert thead.children[2].children[4].children == "4"
+    assert thead.children[3].children[4].children == "12"
+    assert thead.children[4].children[4].children == "20"
+    assert thead.children[5].children[4].children == "58.97%"
+    assert thead.children[6].children[4].children == "El Niño" # threshold
+    assert thead.children[7].children[4].children == "ENSO State"
 
     assert len(tbody.children) == 40 # will break when we add a new year
 

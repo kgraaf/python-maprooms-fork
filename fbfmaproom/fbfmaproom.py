@@ -559,7 +559,9 @@ def augment_table_data(main_df, freq, table_columns, predictand_key):
 
 def format_ganttit(
         variable,
+        var_name,
         format_thresh,
+        lower_is_worse,
         thresh,
         country,
         mode,
@@ -592,13 +594,14 @@ def format_ganttit(
         'severity': severity,
     }
     url = CONFIG["gantt_url"] + urllib.parse.urlencode(dict(data=json.dumps(args)))
+    more_less = "less" if lower_is_worse else "greater"
     component = html.A(
         [
             dbc.Button(
-                format_thresh(thresh), color="info", id=id_
+                "Set trigger", color="info", id=id_, size='sm'
             ),
             dbc.Tooltip(
-                "Gantt it!- Early action activities planning tool in a format of a Gantt chart",
+                f"Click to trigger if {var_name} is {format_thresh(thresh)} or {more_less}",
                 target=id_,
                 className="tooltiptext",
             ),
@@ -620,6 +623,7 @@ def format_summary_table(summary_df, table_columns, thresholds,
     formatted_df["time"] = [
         fbftable.head_cell(text, tooltip)
         for text, tooltip in (
+            ("", None),
             ("Worthy-action:", "Drought was forecasted and a ‘bad year’ occurred"),
             ("Act-in-vain:", "Drought was forecasted but a ‘bad year’ did not occur"),
             ("Fail-to-act:", "No drought was forecasted but a ‘bad year’ occurred"),
@@ -631,23 +635,26 @@ def format_summary_table(summary_df, table_columns, thresholds,
 
     for c in summary_df.columns:
         formatted_df[c] = (
+            [format_ganttit(
+                c,
+                table_columns[c]['name'],
+                table_columns[c]['format'],
+                table_columns[c]['lower_is_worse'],
+                thresholds[c],
+                country,
+                mode,
+                season_year,
+                freq,
+                season_id,
+                issue_month0,
+                bounds,
+                region,
+                severity,
+            )] +
             list(map(format_count, summary_df[c][0:4])) +
             [
                 format_accuracy(summary_df[c][4]),
-                format_ganttit(
-                    c,
-                    table_columns[c]['format'],
-                    thresholds[c],
-                    country,
-                    mode,
-                    season_year,
-                    freq,
-                    season_id,
-                    issue_month0,
-                    bounds,
-                    region,
-                    severity,
-                )
+                table_columns[c]['format'](thresholds[c])
             ]
         )
 
