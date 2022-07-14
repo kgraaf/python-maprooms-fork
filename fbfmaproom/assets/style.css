@@ -101,21 +101,6 @@ table.supertable tbody {
     background-color: rgb(248, 248, 248);
 }
 
-.cell-el-nino {
-    background-color: rgb(172, 23, 25);
-    color: white;
-}
-
-.cell-la-nina {
-    background-color: rgb(24, 101, 152);
-    color: white;
-}
-
-.cell-neutral {
-    background-color: rgb(98, 98, 98);
-    color: white;
-}
-
 .cell-severity-0 {
     background-color: #fdfd96;
 }
