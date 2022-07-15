@@ -426,10 +426,16 @@ def table_layout():
 
             dcc.Loading(
                 [
-                    html.Div(id="table_container")
+                    html.Div(id="table_container", style={"height": "100%"})
                 ],
                 type="dot",
-                parent_style={"height": "100%"},
+                parent_style={
+                    "position": "absolute",
+                    "top": "80px",
+                    "bottom": "10px",
+                    "left": "10px",
+                    "right": "10px",
+                },
             ),
         ],
         className="info",
@@ -438,7 +444,7 @@ def table_layout():
             "top": "110px",
             "right": "10px",
             "z-index": "1000",
-            "height": "fit-content",
+            "bottom": "50px",
             "width": "600px",
             "pointer-events": "auto",
             "padding-left": "10px",
