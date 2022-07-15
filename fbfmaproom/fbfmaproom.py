@@ -363,7 +363,6 @@ def generate_tables(
     mode,
     geom_key,
     severity,
-    season_year
 ):
     basic_ds = fundamental_table_data(country_key, table_columns,
                                       season_id, issue_month0,
@@ -382,7 +381,7 @@ def generate_tables(
         region = geom_key
     summary_presentation_df = format_summary_table(
         summary_df, table_columns, thresholds,
-        country_key, mode, season_year, freq, season_id, issue_month0,
+        country_key, mode, freq, season_id, issue_month0,
         bounds, region, severity,
     )
     return main_df, summary_presentation_df
@@ -565,7 +564,6 @@ def format_ganttit(
         thresh,
         country,
         mode,
-        season_year,
         freq,
         season_id,
         issue_month0,
@@ -579,7 +577,6 @@ def format_ganttit(
         'variable': variable,
         'country': country,
         'mode': mode,
-        'season_year': season_year,
         'freq': freq,
         'thresh': float(thresh),
         'season': {
@@ -613,7 +610,7 @@ def format_ganttit(
 
 
 def format_summary_table(summary_df, table_columns, thresholds,
-                         country, mode, season_year, freq, season_id, issue_month0, bounds, region, severity
+                         country, mode, freq, season_id, issue_month0, bounds, region, severity
 ):
     format_accuracy = lambda x: f"{x * 100:.2f}%"
     format_count = lambda x: f"{x:.0f}"
@@ -643,7 +640,6 @@ def format_summary_table(summary_df, table_columns, thresholds,
                 thresholds[c],
                 country,
                 mode,
-                season_year,
                 freq,
                 season_id,
                 issue_month0,
@@ -883,10 +879,9 @@ def update_popup(pathname, position, mode, year):
     Input("severity", "value"),
     Input("predictand", "value"),
     Input("predictors", "value"),
-    Input("year", "value"),
     State("season", "value"),
 )
-def table_cb(issue_month0, freq, mode, geom_key, pathname, severity, predictand_key, predictor_keys, season_year, season_id):
+def table_cb(issue_month0, freq, mode, geom_key, pathname, severity, predictand_key, predictor_keys, season_id):
     country_key = country(pathname)
     config = CONFIG["countries"][country_key]
     tcs = table_columns(
@@ -907,7 +902,6 @@ def table_cb(issue_month0, freq, mode, geom_key, pathname, severity, predictand_
             mode,
             geom_key,
             severity,
-            season_year,
         )
         return fbftable.gen_table(tcs, dfs, dft, severity)
     except Exception as e:

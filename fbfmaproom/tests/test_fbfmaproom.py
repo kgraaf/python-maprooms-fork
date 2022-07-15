@@ -33,7 +33,6 @@ def test_table_cb():
         severity=0,
         predictand_key="bad-years",
         predictor_keys=['pnep', 'rain', 'ndvi', 'enso_state'],
-        season_year=2022,
         season_id='season1',
     )
 
