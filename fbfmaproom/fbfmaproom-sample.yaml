@@ -397,7 +397,7 @@ countries:
                 rain:
                     label: Rain
                     description: CHIRPS average precipitation over the season
-                    path: rain-ethiopia.zarr
+                    path: ethiopia/rain-mam.zarr
                     var_names:
                         obs: prcp
                         lat: Y
@@ -534,7 +534,7 @@ countries:
                 rain:
                     label: Rain
                     description: CHIRPS average precipitation
-                    path: rain-ethiopia-ond.zarr
+                    path: ethiopia/rain-ond.zarr
                     var_names:
                         obs: prcp
                         lat: Y
