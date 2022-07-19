@@ -50,8 +50,6 @@ table.supertable {
     border-spacing: 0;
     width: 100%;
     table-layout: fixed;
-    overflow-y: auto;
-    overflow-x: hidden;
 
     border-style: solid;
     border-width: 1px;
@@ -63,7 +61,7 @@ table.supertable {
     font-family: monospace;
 
     overflow: auto;
-    height: 700px;
+    height: 100%;
     display: block;
 }
 
