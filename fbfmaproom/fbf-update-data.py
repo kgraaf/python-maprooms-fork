@@ -72,8 +72,8 @@ url_datasets = [
         "http://iridl.ldeo.columbia.edu/home/.aaron/.DGM/.Forecast/.Seasonal/.NextGen/.Madagascar_South/.OND/.NextGen/.FbF/.pne/S/(1%20Jul)/(1%20Aug)/(1%20Sep)/VALUES/",
     ),
     (
-        "rain-ethiopia",
-        "http://iridl.ldeo.columbia.edu/SOURCES/.UCSB/.CHIRPS/.v2p0/.daily-improved/.global/.0p25/.prcp/X/39.875/47.875/RANGE/Y/3.625/10.875/RANGE/T/(Mar-May)/seasonalAverage/30/mul//units/(mm/month)/def/",
+        "ethiopia/rain-mam",
+        "http://iridl.ldeo.columbia.edu/SOURCES/.UCSB/.CHIRPS/.v2p0/.daily-improved/.global/.0p25/.prcp/X/32.625/48.375/RANGE/Y/2.625/15.375/RANGE/T/(Mar-May)/seasonalAverage/30/mul//units/(mm/month)/def/",
     ),
     (
         "ethiopia/rain-prev-seas-mam",
@@ -120,8 +120,8 @@ url_datasets = [
         "http://iridl.ldeo.columbia.edu/home/.remic/.NMA/.NextGen/.MAM_PRCP/.Ethiopia/.NextGen/.FbF/.pne/P//P//percentile/0/5/5/95/NewEvenGRID/replaceGRID/",
     ),
     (
-        "rain-ethiopia-ond",
-        "http://iridl.ldeo.columbia.edu/SOURCES/.UCSB/.CHIRPS/.v2p0/.daily-improved/.global/.0p25/.prcp/30/mul/X/39.875/47.875/RANGE/Y/3.625/10.875/RANGE/T/(Oct-Dec)/seasonalAverage//units/(mm/month)/def/",
+        "ethiopia/rain-ond",
+        "http://iridl.ldeo.columbia.edu/SOURCES/.UCSB/.CHIRPS/.v2p0/.daily-improved/.global/.0p25/.prcp/30/mul/X/32.625/48.375/RANGE/Y/2.625/15.375/RANGE/T/(Oct-Dec)/seasonalAverage//units/(mm/month)/def/",
     ),
     (
         "ethiopia/pnep-ond",
