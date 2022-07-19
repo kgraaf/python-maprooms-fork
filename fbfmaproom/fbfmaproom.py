@@ -1204,32 +1204,23 @@ def trigger_check():
         geom_key = region
     mpoly = get_mpoly(mode, country_key, geom_key)
 
-    try:
-        if var_is_forecast:
-            data = select_forecast(country_key, var, issue_month0,
-                                   target_month0, season_year, freq,
-                                   mpolygon=mpoly)
-        else:
-            data = select_obs(country_key, [var], target_month0, season_year,
-                              mpolygon=mpoly)[var]
-    except KeyError:
-        data = None
-
-    if data is None:
-        response = {
-            "found": False,
-        }
+    if var_is_forecast:
+        data = select_forecast(country_key, var, issue_month0,
+                               target_month0, season_year, freq,
+                               mpolygon=mpoly)
     else:
-        value = data.item()
-        if lower_is_worse:
-            triggered = bool(value <= thresh)
-        else:
-            triggered = bool(value >= thresh)
-        response = {
-            "found": True,
-            "value": value,
-            "triggered": triggered,
-        }
+        data = select_obs(country_key, [var], target_month0, season_year,
+                          mpolygon=mpoly)[var]
+
+    value = data.item()
+    if lower_is_worse:
+        triggered = bool(value <= thresh)
+    else:
+        triggered = bool(value >= thresh)
+    response = {
+        "value": value,
+        "triggered": triggered,
+    }
 
     return response
 

@@ -1,6 +1,7 @@
 from cftime import Datetime360Day as DT360
 from dash import html
 import dash_bootstrap_components as dbc
+import datetime
 import io
 import numpy as np
 import pandas as pd
@@ -379,6 +380,40 @@ def test_trigger_check_obs_region():
     d = r.json
     assert np.isclose(d["value"], 9.333)
     assert d["triggered"] is False
+
+def test_trigger_check_forecast_future():
+    year = datetime.datetime.now().year + 2
+    with fbfmaproom.SERVER.test_client() as client:
+        r = client.get(
+            "/fbfmaproom/trigger_check?country_key=ethiopia"
+            "&variable=pnep"
+            "&mode=pixel"
+            "&season=season1"
+            "&issue_month=1"
+            f"&season_year={year}"
+            "&freq=15"
+            "&thresh=20"
+            "&bounds=[[6.75, 43.75], [7, 44]]"
+        )
+    print(r.data)
+    assert r.status_code == 404
+
+def test_trigger_check_obs_future():
+    year = datetime.datetime.now().year + 2
+    with fbfmaproom.SERVER.test_client() as client:
+        r = client.get(
+            "/fbfmaproom/trigger_check?country_key=ethiopia"
+            "&variable=pnep"
+            "&mode=2"
+            "&season=season1"
+            "&issue_month=1"
+            f"&season_year={year}"
+            "&freq=15"
+            "&thresh=20"
+            "&region=(ET05,ET0505,ET050501)"
+        )
+    print(r.data)
+    assert r.status_code == 404
 
 def test_stats():
     with fbfmaproom.SERVER.test_client() as client:
