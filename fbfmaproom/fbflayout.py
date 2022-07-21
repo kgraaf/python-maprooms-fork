@@ -150,11 +150,11 @@ def logo_layout():
             "top": "10px",
             "width": "120px",
             "left": "90px",
-            "z-index": "1000",
+            "zIndex": "1000",
             "height": "fit-content",
-            "pointer-events": "auto",
-            "padding-left": "10px",
-            "padding-right": "10px",
+            "pointerEvents": "auto",
+            "paddingLeft": "10px",
+            "paddingRight": "10px",
         },
     )
 
@@ -167,13 +167,13 @@ def disclaimer_layout():
         style={
             "position": "absolute",
             "width": "fit-content",
-            "z-index": "1000",
+            "zIndex": "1000",
             "height": "fit-content",
             "bottom": "0",
             "right": "0",
-            "pointer-events": "auto",
-            "padding-left": "10px",
-            "padding-right": "10px",
+            "pointerEvents": "auto",
+            "paddingLeft": "10px",
+            "paddingRight": "10px",
         },
     )
 
@@ -200,7 +200,7 @@ def command_layout():
                     "width": "105px",
                     "display": "inline-block",
                     "padding": "10px",
-                    "vertical-align": "top",
+                    "verticalAlign": "top",
                 },
             ),
             html.Div(
@@ -219,7 +219,7 @@ def command_layout():
                     "width": "85px",
                     "display": "inline-block",
                     "padding": "10px",
-                    "vertical-align": "top",
+                    "verticalAlign": "top",
                 },
             ),
             html.Div(
@@ -237,7 +237,7 @@ def command_layout():
                     "width": "85px",
                     "display": "inline-block",
                     "padding": "10px",
-                    "vertical-align": "top",
+                    "verticalAlign": "top",
                 },
             ),
             html.Div(
@@ -256,7 +256,7 @@ def command_layout():
                     "width": "85px",
                     "display": "inline-block",
                     "padding": "10px",
-                    "vertical-align": "top",
+                    "verticalAlign": "top",
                 },
             ),
             html.Div(
@@ -281,7 +281,7 @@ def command_layout():
                     "width": "95px",
                     "display": "inline-block",
                     "padding": "10px",
-                    "vertical-align": "top",
+                    "verticalAlign": "top",
                 },
             ),
             html.Div(
@@ -304,7 +304,7 @@ def command_layout():
                     "width": "340px",
                     "display": "inline-block",
                     "padding": "10px",
-                    "vertical-align": "top",
+                    "verticalAlign": "top",
                 },
             ),
             html.Div(
@@ -334,7 +334,7 @@ def command_layout():
                     "width": "110px",
                     "display": "inline-block",
                     "padding": "10px",
-                    "vertical-align": "top",
+                    "verticalAlign": "top",
                 },
             ),
             html.Div(
@@ -350,7 +350,7 @@ def command_layout():
                     "width": "1px", # force it to wrap
                     "display": "inline-block",
                     "padding": "10px",
-                    "vertical-align": "top",
+                    "verticalAlign": "top",
                 },
             ),
             dbc.Alert(
@@ -360,7 +360,7 @@ def command_layout():
                 is_open=False,
                 id="forecast_warning",
                 style={
-                    "margin-bottom": "8px",
+                    "marginBottom": "8px",
                 },
             ),
 
@@ -372,11 +372,11 @@ def command_layout():
             "top": "10px",
             "right": "10px",
             "left": "230px",
-            "z-index": "1000",
+            "zIndex": "1000",
             "height": "fit-content",
-            "pointer-events": "auto",
-            "padding-left": "10px",
-            "padding-right": "10px",
+            "pointerEvents": "auto",
+            "paddingLeft": "10px",
+            "paddingRight": "10px",
         },
     )
 
@@ -400,7 +400,7 @@ def table_layout():
                 style={
                     "display": "inline-block",
                     "padding": "10px",
-                    "vertical-align": "top",
+                    "verticalAlign": "top",
                     "width": "30%",
                 },
             ),
@@ -419,7 +419,7 @@ def table_layout():
                 style={
                     "display": "inline-block",
                     "padding": "10px",
-                    "vertical-align": "top",
+                    "verticalAlign": "top",
                     "width": "70%",
                 },
             ),
@@ -443,11 +443,11 @@ def table_layout():
             "position": "absolute",
             "top": "110px",
             "right": "10px",
-            "z-index": "1000",
+            "zIndex": "1000",
             "bottom": "50px",
             "width": "600px",
-            "pointer-events": "auto",
-            "padding-left": "10px",
-            "padding-right": "10px",
+            "pointerEvents": "auto",
+            "paddingLeft": "10px",
+            "paddingRight": "10px",
         },
     )
