@@ -719,7 +719,7 @@ def _(season, pathname):
 
 @APP.callback(
     Output("feature", "positions"),
-    Output("geom_key", "value"),
+    Output("geom_key", "data"),
     Input("location", "pathname"),
     Input("marker", "position"),
     Input("mode", "value"),
@@ -790,7 +790,7 @@ def update_popup(pathname, position, mode, year):
 
 @APP.callback(
     Output("prob_thresh_text", "children"),
-    Input("prob_thresh", "value"),
+    Input("prob_thresh", "data"),
 )
 def display_prob_thresh(val):
     if val is not None:
@@ -800,11 +800,11 @@ def display_prob_thresh(val):
 
 @APP.callback(
     Output("table_container", "children"),
-    Output("prob_thresh", "value"),
+    Output("prob_thresh", "data"),
     Input("issue_month", "value"),
     Input("freq", "value"),
     Input("mode", "value"),
-    Input("geom_key", "value"),
+    Input("geom_key", "data"),
     Input("location", "pathname"),
     Input("severity", "value"),
     Input("trigger", "value"),
@@ -862,12 +862,12 @@ def update_severity_color(value):
     Output("gantt", "href"),
     Input("issue_month", "value"),
     Input("freq", "value"),
-    Input("geom_key", "value"),
+    Input("geom_key", "data"),
     Input("mode", "value"),
     Input("year", "value"),
     Input("location", "pathname"),
     Input("severity", "value"),
-    Input("prob_thresh", "value"),
+    Input("prob_thresh", "data"),
     State("season", "value"),
 )
 def _(

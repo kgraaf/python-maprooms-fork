@@ -181,8 +181,8 @@ def disclaimer_layout():
 def command_layout():
     return html.Div(
         [
-            dcc.Input(id="geom_key", type="hidden"),
-            dcc.Input(id="prob_thresh", type="hidden"),
+            dcc.Store(id="geom_key"),
+            dcc.Store(id="prob_thresh"),
             dcc.Input(id="trigger", type="hidden", value="pnep"),
             html.Div(
                 [
