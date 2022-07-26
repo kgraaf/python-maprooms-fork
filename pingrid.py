@@ -171,9 +171,9 @@ def tile_left(tx: int, tz: int) -> float:
 #     return ty * 180 / 2 ** tz - 90
 
 
-def tile_bottom_mercator(ty: int, tz: int) -> float:
+def tile_top_mercator(ty: int, tz: int) -> float:
     """"Maps a row number in the spherical Mercator tile grid at scale z
-    to the latitude of the bottom edge of that row in degrees.
+    to the latitude of the top edge of that row in degrees.
     """
     a = math.pi - 2 * math.pi * ty / 2 ** tz
     return np.rad2deg(mercator_to_rad(a))
@@ -181,9 +181,9 @@ def tile_bottom_mercator(ty: int, tz: int) -> float:
 
 def pixel_extents(g: Callable[[int, int], float], tx: int, tz: int, n: int = 1):
     """Given a function that maps a tile coordinate (row or column number)
-    to the minimum of that tile (bottom or left edge) in degrees, returns
-    the lower and upper bound of each pixel within the tile along that
-    dimension.
+    to the start of that tile (top or left edge) in degrees, returns
+    the bounds of each pixel within the tile along that dimension.
+
     """
     assert n >= 1 and tz >= 0 and 0 <= tx < 2 ** tz
     a = g(tx, tz)
@@ -242,7 +242,7 @@ def produce_data_tile(
         np.double,
     )
     y = np.fromiter(
-        (a + (b - a) / 2.0 for a, b in pixel_extents(tile_bottom_mercator, ty, tz, tile_height)),
+        (a + (b - a) / 2.0 for a, b in pixel_extents(tile_top_mercator, ty, tz, tile_height)),
         np.double,
     )
     interp = create_interp(da)
@@ -353,7 +353,7 @@ def produce_shape_tile(
     tile_width = im.shape[1]
 
     x0, x1 = list(pixel_extents(tile_left, tx, tz, 1))[0]
-    y0, y1 = list(pixel_extents(tile_bottom_mercator, ty, tz, 1))[0]
+    y0, y1 = list(pixel_extents(tile_top_mercator, ty, tz, 1))[0]
 
     x_ratio = tile_width / (x1 - x0)
     y0_mercator = deg_to_mercator(y0)
