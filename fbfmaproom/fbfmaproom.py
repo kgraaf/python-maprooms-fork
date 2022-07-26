@@ -297,7 +297,7 @@ def retrieve_geometry(
 
 
 def retrieve_vulnerability(
-    country_key: str, mode: str, year: Optional[int]
+    country_key: str, mode: str, year: int
 ) -> pd.DataFrame:
     config = CONFIG["countries"][country_key]
     sc = config["shapes"][int(mode)]
