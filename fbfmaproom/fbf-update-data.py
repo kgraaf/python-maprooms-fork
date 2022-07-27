@@ -262,6 +262,8 @@ for dataset in url_datasets:
         # TODO do this in Ingrid
         if 'Y' in ds and ds['Y'][0] > ds['Y'][1]:
             ds = ds.reindex(Y=ds['Y'][::-1])
+        if 'P' in ds:
+            ds = ds.chunk({'P': 1})
         if os.path.exists(zarrpath):
             shutil.rmtree(zarrpath)
         ds.to_zarr(zarrpath)

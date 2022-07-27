@@ -297,7 +297,7 @@ def retrieve_geometry(
 
 
 def retrieve_vulnerability(
-    country_key: str, mode: str, year: Optional[int]
+    country_key: str, mode: str, year: int
 ) -> pd.DataFrame:
     config = CONFIG["countries"][country_key]
     sc = config["shapes"][int(mode)]
@@ -978,8 +978,6 @@ def tile_url_callback(target_year, issue_month0, freq, pathname, trigger_key, se
 )
 def _(year, pathname, mode):
     country_key = country(pathname)
-    if mode != "pixel":
-        retrieve_vulnerability(country_key, mode, year)
     return f"{TILE_PFX}/vuln/{{z}}/{{x}}/{{y}}/{country_key}/{mode}/{year}"
 
 
