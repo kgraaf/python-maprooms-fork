@@ -14,6 +14,7 @@ from queuepool.psycopg2cm import ConnectionManagerExtended
 from queuepool.pool import Pool
 import rasterio.features
 import rasterio.transform
+import shapely.geometry
 from shapely.geometry.multipolygon import MultiPolygon
 from shapely.geometry.polygon import Polygon
 from shapely.geometry.multipoint import MultiPoint
@@ -195,9 +196,14 @@ def pixel_extents(g: Callable[[int, int], float], tx: int, tz: int, n: int = 1):
 
 def tile(da, tx, ty, tz, clipping=None, test_tile=False):
     z = produce_data_tile(da, tx, ty, tz)
+    if z is None:
+        return empty_tile()
+
     im = (z - da.attrs["scale_min"]) * 255 / (da.attrs["scale_max"] - da.attrs["scale_min"])
     im = apply_colormap(im, parse_colormap(da.attrs["colormap"]))
     if clipping is not None:
+        if callable(clipping):
+            clipping = clipping()
         draw_attrs = DrawAttrs(
             BGRA(0, 0, 255, 255), BGRA(0, 0, 0, 0), 1, cv2.LINE_AA
         )
@@ -205,6 +211,7 @@ def tile(da, tx, ty, tz, clipping=None, test_tile=False):
         im = produce_shape_tile(im, shapes, tx, ty, tz, oper="difference")
     if test_tile:
         im = produce_test_tile(im, f"{tz}x{tx},{ty}")
+
     return image_resp(im)
 
 
@@ -245,8 +252,15 @@ def produce_data_tile(
         (a + (b - a) / 2.0 for a, b in pixel_extents(tile_top_mercator, ty, tz, tile_height)),
         np.double,
     )
-    interp = create_interp(da)
-    z = interp([y, x])
+    tile_bbox = shapely.geometry.box(x[0], y[0], x[-1], y[-1])
+    lon = da['lon']
+    lat = da['lat']
+    da_bbox = shapely.geometry.box(lon[0], lat[0], lon[-1], lat[-1])
+    if tile_bbox.intersects(da_bbox):
+        interp = create_interp(da)
+        z = interp([y, x])
+    else:
+        z = None
     return z
 
 
