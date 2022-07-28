@@ -132,6 +132,10 @@ def map_layout():
             ),
         ],
         id="map",
+        # Override dash-leaflet's silly default that causes it to
+        # waste time loading the basemap for western Europe when the
+        # page first loads.
+        center=None,
         style={
             "width": "100%",
             "height": "100%",
