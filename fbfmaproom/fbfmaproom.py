@@ -364,9 +364,10 @@ def generate_tables(
     geom_key,
     severity,
 ):
-    basic_ds = fundamental_table_data(country_key, table_columns,
-                                      season_id, issue_month0,
-                                      freq, mode, geom_key)
+    basic_ds, region_label = fundamental_table_data(
+        country_key, table_columns, season_id, issue_month0,
+        freq, mode, geom_key
+    )
     if "pct" in basic_ds.coords:
         basic_ds = basic_ds.drop_vars("pct")
     basic_df = basic_ds.to_dataframe()
@@ -375,14 +376,14 @@ def generate_tables(
     )
     if mode == 'pixel':
         bounds = geom_key
-        region = ''
+        region_id = ''
     else:
         bounds = ''
-        region = geom_key
+        region_id = geom_key
     summary_presentation_df = format_summary_table(
         summary_df, table_columns, thresholds,
         country_key, mode, freq, season_id, issue_month0,
-        bounds, region, severity,
+        bounds, region_id, region_label, severity,
     )
     return main_df, summary_presentation_df
 
@@ -390,10 +391,11 @@ def generate_tables(
 def get_mpoly(mode, country_key, geom_key):
     if mode == "pixel":
         [[y0, x0], [y1, x1]] = json.loads(geom_key)
+        label = ''
         mpolygon = MultiPolygon([Polygon([(x0, y0), (x0, y1), (x1, y1), (x1, y0)])])
     else:
-        _, mpolygon = retrieve_geometry2(country_key, int(mode), geom_key)
-    return mpolygon
+        label, mpolygon = retrieve_geometry2(country_key, int(mode), geom_key)
+    return mpolygon, label
 
 
 def select_forecast(country_key, forecast_key, issue_month0, target_month0,
@@ -472,7 +474,7 @@ def fundamental_table_data(country_key, table_columns,
     year_min, year_max = season_config["year_range"]
     season_length = season_config["length"]
     target_month0 = season_config["target_month"]
-    mpolygon = get_mpoly(mode, country_key, geom_key)
+    mpolygon, region_label = get_mpoly(mode, country_key, geom_key)
 
     forecast_ds = xr.Dataset(
         data_vars={
@@ -500,7 +502,7 @@ def fundamental_table_data(country_key, table_columns,
 
     main_ds = main_ds.sortby("time", ascending=False)
 
-    return main_ds
+    return main_ds, region_label
 
 
 def augment_table_data(main_df, freq, table_columns, predictand_key):
@@ -568,7 +570,8 @@ def format_ganttit(
         season_id,
         issue_month0,
         bounds,
-        region,
+        region_id,
+        region_label,
         severity,
 ):
     id_ = str(uuid.uuid4())
@@ -587,7 +590,10 @@ def format_ganttit(
         },
         'issue_month': issue_month0,
         'bounds': bounds,
-        'region': region,
+        'region': {
+            'id': region_id,
+            'label': region_label,
+        },
         'severity': severity,
     }
     url = CONFIG["gantt_url"] + urllib.parse.urlencode(dict(data=json.dumps(args)))
@@ -610,7 +616,8 @@ def format_ganttit(
 
 
 def format_summary_table(summary_df, table_columns, thresholds,
-                         country, mode, freq, season_id, issue_month0, bounds, region, severity
+                         country, mode, freq, season_id, issue_month0, bounds,
+                         region_id, region_label, severity
 ):
     format_accuracy = lambda x: f"{x * 100:.2f}%"
     format_count = lambda x: f"{x:.0f}"
@@ -644,7 +651,8 @@ def format_summary_table(summary_df, table_columns, thresholds,
                 season_id,
                 issue_month0,
                 bounds,
-                region,
+                region_id,
+                region_label,
                 severity,
             )] +
             list(map(format_count, summary_df[c][0:4])) +
@@ -1138,7 +1146,7 @@ def pnep_percentile():
         geom_key = bounds
     else:
         geom_key = region
-    mpoly = get_mpoly(mode, country_key, geom_key)
+    mpoly, _ = get_mpoly(mode, country_key, geom_key)
 
     try:
         pnep = select_forecast(country_key, forecast_key,issue_month0,
@@ -1202,7 +1210,7 @@ def trigger_check():
         geom_key = bounds
     else:
         geom_key = region
-    mpoly = get_mpoly(mode, country_key, geom_key)
+    mpoly, _ = get_mpoly(mode, country_key, geom_key)
 
     if var_is_forecast:
         data = select_forecast(country_key, var, issue_month0,
@@ -1279,7 +1287,7 @@ def export_endpoint(country_key):
 
     target_month0 = season_config["target_month"]
 
-    mpoly = get_mpoly(mode, country_key, geom_key)
+    mpoly, _ = get_mpoly(mode, country_key, geom_key)
 
     cols = table_columns(
         config["datasets"],
@@ -1288,7 +1296,7 @@ def export_endpoint(country_key):
         severity=0, # unimportant because we won't be formatting it
         season_length=season_config["length"],
     )
-    basic_ds = fundamental_table_data(
+    basic_ds, _ = fundamental_table_data(
         country_key, cols, season_id, issue_month0,
         freq, mode, geom_key
     )
