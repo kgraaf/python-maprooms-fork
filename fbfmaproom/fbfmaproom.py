@@ -374,16 +374,10 @@ def generate_tables(
     main_df, summary_df, thresholds = augment_table_data(
         basic_df, freq, table_columns, predictand_key
     )
-    if mode == 'pixel':
-        bounds = geom_key
-        region_id = ''
-    else:
-        bounds = ''
-        region_id = geom_key
     summary_presentation_df = format_summary_table(
         summary_df, table_columns, thresholds,
         country_key, mode, freq, season_id, issue_month0,
-        bounds, region_id, region_label, severity,
+        geom_key, region_label, severity,
     )
     return main_df, summary_presentation_df
 
@@ -391,7 +385,7 @@ def generate_tables(
 def get_mpoly(mode, country_key, geom_key):
     if mode == "pixel":
         [[y0, x0], [y1, x1]] = json.loads(geom_key)
-        label = ''
+        label = None
         mpolygon = MultiPolygon([Polygon([(x0, y0), (x0, y1), (x1, y1), (x1, y0)])])
     else:
         label, mpolygon = retrieve_geometry2(country_key, int(mode), geom_key)
@@ -569,11 +563,19 @@ def format_ganttit(
         freq,
         season_id,
         issue_month0,
-        bounds,
-        region_id,
+        geom_key,
         region_label,
         severity,
 ):
+    if mode == 'pixel':
+        bounds = geom_key
+        region_id = ''
+        assert region_label is None
+        region_label = ''
+    else:
+        bounds = ''
+        region_id = geom_key
+
     id_ = str(uuid.uuid4())
     season_config = CONFIG['countries'][country]['seasons'][season_id]
     args = {
@@ -616,8 +618,8 @@ def format_ganttit(
 
 
 def format_summary_table(summary_df, table_columns, thresholds,
-                         country, mode, freq, season_id, issue_month0, bounds,
-                         region_id, region_label, severity
+                         country, mode, freq, season_id, issue_month0,
+                         geom_id, region_label, severity
 ):
     format_accuracy = lambda x: f"{x * 100:.2f}%"
     format_count = lambda x: f"{x:.0f}"
@@ -650,8 +652,7 @@ def format_summary_table(summary_df, table_columns, thresholds,
                 freq,
                 season_id,
                 issue_month0,
-                bounds,
-                region_id,
+                geom_id,
                 region_label,
                 severity,
             )] +
