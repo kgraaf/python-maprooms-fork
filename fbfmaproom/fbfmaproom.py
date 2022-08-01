@@ -1023,12 +1023,16 @@ def borders(pathname, mode):
     f"{TILE_PFX}/forecast/<forecast_key>/<int:tz>/<int:tx>/<int:ty>/<country_key>/<season_id>/<int:target_year>/<int:issue_month0>/<int:freq>"
 )
 def forecast_tile(forecast_key, tz, tx, ty, country_key, season_id, target_year, issue_month0, freq):
-    season_config = CONFIG["countries"][country_key]["seasons"][season_id]
+    config = CONFIG["countries"][country_key]
+    season_config = config["seasons"][season_id]
     target_month0 = season_config["target_month"]
 
     da = select_forecast(country_key, forecast_key, issue_month0, target_month0, target_year, freq)
     p = tuple(CONFIG["countries"][country_key]["marker"])
-    clipping = lambda: retrieve_geometry(country_key, p, "0", None)[0]
+    if config.get("clip", True):
+        clipping = lambda: retrieve_geometry(country_key, p, "0", None)[0]
+    else:
+        clipping = None
     resp = pingrid.tile(da, tx, ty, tz, clipping)
     return resp
 
