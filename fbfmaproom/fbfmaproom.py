@@ -516,8 +516,14 @@ def augment_table_data(main_df, freq, table_columns, predictand_key):
     def is_ascending(col_key):
         return table_columns[col_key]["lower_is_worse"]
 
+    now = datetime.datetime.now()
+    now = cftime.Datetime360Day(now.year, now.month, now.day)
     rank_pct = {
-        key: regular_data[key].rank(method="min", ascending=is_ascending(key), pct=True)
+        key: (
+            regular_data[key]
+            .where(lambda x: x.index < now, np.nan)
+            .rank(method="min", ascending=is_ascending(key), pct=True)
+        )
         for key in regular_keys
     }
 
