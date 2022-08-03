@@ -1,7 +1,9 @@
+import cftime
 from dash import Dash, dcc, html
 from dash.dependencies import Output, Input, State, ALL
 from dash.exceptions import PreventUpdate
 import dash_bootstrap_components as dbc
+import datetime
 import uuid
 from collections import OrderedDict
 
@@ -69,4 +71,7 @@ def worst_class(col_name, row, severity):
     indicator_col_name = f'worst_{col_name}'
     if indicator_col_name in row and row[indicator_col_name] == 1:
         return f'cell-severity-{severity}'
+    now = datetime.datetime.now()
+    if row['time'] >= cftime.Datetime360Day(now.year, now.month, now.day):
+        return 'cell-excluded'
     return ''
