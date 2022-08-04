@@ -923,7 +923,7 @@ def table_cb(issue_month0, freq, mode, geom_key, pathname, severity, predictand_
         # Return values that will blank out the table, so there's
         # nothing left over from the previous location that could be
         # mistaken for data for the current location.
-        return None, None
+        return None
 
 
 @APP.callback(
