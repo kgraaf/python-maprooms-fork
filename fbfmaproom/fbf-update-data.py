@@ -69,7 +69,7 @@ url_datasets = [
     ),
     (
         "madagascar/pnep-ond",
-        "http://iridl.ldeo.columbia.edu/home/.aaron/.DGM/.Forecast/.Seasonal/.NextGen/.Madagascar_Full/.OND/.NextGen/.FbF/.pne/X/42.525/48.975/RANGE/Y/-25.9875/-20.025/RANGE/S/(1%20Jul)/(1%20Aug)/(1%20Sep)/VALUES/",
+        "http://iridl.ldeo.columbia.edu/home/.aaron/.DGM/.Forecast/.Seasonal/.NextGen/.Madagascar_Full/.OND/.NextGen/.FbF/.pne/S/(1%20Jul)/(1%20Aug)/(1%20Sep)/VALUES/",
     ),
     (
         "ethiopia/rain-mam",
