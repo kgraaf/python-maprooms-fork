@@ -186,12 +186,6 @@ def format_enso(x):
     assert False, f"Unknown enso state {x}"
 
 
-def nino_class(col_name, row, severity):
-    if row[col_name] == 3:
-        return f'cell-severity-{severity}'
-    return ""
-
-
 def data_path(relpath):
     return Path(CONFIG["data_root"], relpath)
 
