@@ -186,12 +186,6 @@ def format_enso(x):
     assert False, f"Unknown enso state {x}"
 
 
-def nino_class(col_name, row, severity):
-    if row[col_name] == 3:
-        return f'cell-severity-{severity}'
-    return ""
-
-
 def data_path(relpath):
     return Path(CONFIG["data_root"], relpath)
 
@@ -379,7 +373,7 @@ def generate_tables(
         country_key, mode, freq, season_id, issue_month0,
         geom_key, region_label, severity,
     )
-    return main_df, summary_presentation_df
+    return main_df, summary_presentation_df, thresholds
 
 
 def get_mpoly(mode, country_key, geom_key):
@@ -516,8 +510,14 @@ def augment_table_data(main_df, freq, table_columns, predictand_key):
     def is_ascending(col_key):
         return table_columns[col_key]["lower_is_worse"]
 
+    now = datetime.datetime.now()
+    now = cftime.Datetime360Day(now.year, now.month, now.day)
     rank_pct = {
-        key: regular_data[key].rank(method="min", ascending=is_ascending(key), pct=True)
+        key: (
+            regular_data[key]
+            .where(lambda x: x.index < now, np.nan)
+            .rank(method="min", ascending=is_ascending(key), pct=True)
+        )
         for key in regular_keys
     }
 
@@ -707,6 +707,8 @@ def country(pathname: str) -> str:
     Output("predictand", "value"),
     Output("predictors", "options"),
     Output("predictors", "value"),
+    Output("modal", "is_open"),
+    Output("modal-body", "children"),
     Input("location", "pathname"),
 )
 def _(pathname):
@@ -745,6 +747,7 @@ def _(pathname):
     ]
     predictors_value = datasets_config["defaults"]["predictors"]
     predictand_value = datasets_config["defaults"]["predictand"]
+    warning = c.get("onload_warning")
 
     return (
         f"{PFX}/custom/{c['logo']}",
@@ -760,6 +763,8 @@ def _(pathname):
         predictand_value,
         predictors_options,
         predictors_value,
+        warning is not None,
+        warning,
     )
 
 @SERVER.route(f"{PFX}/custom/<path:relpath>")
@@ -901,7 +906,7 @@ def table_cb(issue_month0, freq, mode, geom_key, pathname, severity, predictand_
         config["seasons"][season_id]["length"],
     )
     try:
-        dft, dfs = generate_tables(
+        dft, dfs, thresholds = generate_tables(
             country_key,
             season_id,
             tcs,
@@ -912,7 +917,7 @@ def table_cb(issue_month0, freq, mode, geom_key, pathname, severity, predictand_
             geom_key,
             severity,
         )
-        return fbftable.gen_table(tcs, dfs, dft, severity)
+        return fbftable.gen_table(tcs, dfs, dft, thresholds, severity)
     except Exception as e:
         if isinstance(e, NotFoundError):
             # If it's the user just asked for a forecast that doesn't
@@ -923,7 +928,7 @@ def table_cb(issue_month0, freq, mode, geom_key, pathname, severity, predictand_
         # Return values that will blank out the table, so there's
         # nothing left over from the previous location that could be
         # mistaken for data for the current location.
-        return None, None
+        return None
 
 
 @APP.callback(

@@ -122,3 +122,7 @@ table.supertable tbody {
     background-color: #ff6961;
     color: white;
 }
+
+.cell-excluded {
+    background-color: rgb(150, 150, 150);
+}

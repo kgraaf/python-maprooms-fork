@@ -1,15 +1,17 @@
+import cftime
 from dash import Dash, dcc, html
 from dash.dependencies import Output, Input, State, ALL
 from dash.exceptions import PreventUpdate
 import dash_bootstrap_components as dbc
+import datetime
 import uuid
 from collections import OrderedDict
 
-def gen_table(tcs, dfs, data, severity):
+def gen_table(tcs, dfs, data, thresholds, severity):
     return html.Table(
         [
             gen_head(tcs, dfs),
-            gen_body(tcs, data, severity)
+            gen_body(tcs, data, thresholds, severity)
         ], className="supertable"
     )
 
@@ -49,13 +51,17 @@ def gen_head(tcs, dfs):
     )
 
 
-def gen_body(tcs, data, severity):
+def gen_body(tcs, data, thresholds, severity):
 
     def fmt(col, row):
         f = tcs[col].get('format', lambda x: x)
         return f(row[col])
 
-    class_name = lambda col_name, row: worst_class(col_name, row, severity)
+    def class_name(col_name, row):
+        return worst_class(
+            col_name, row, severity, thresholds.get(col_name),
+            tcs[col_name].get('lower_is_worse')
+        )
 
     return html.Tbody([
         html.Tr([
@@ -65,8 +71,13 @@ def gen_body(tcs, data, severity):
     ])
 
 
-def worst_class(col_name, row, severity):
-    indicator_col_name = f'worst_{col_name}'
-    if indicator_col_name in row and row[indicator_col_name] == 1:
+def worst_class(col_name, row, severity, thresh, lower_is_worse):
+    if (thresh is not None and (
+        (lower_is_worse and row[col_name] <= thresh) or
+        (not lower_is_worse and row[col_name] >= thresh)
+    )):
         return f'cell-severity-{severity}'
+    now = datetime.datetime.now()
+    if row['time'] >= cftime.Datetime360Day(now.year, now.month, now.day):
+        return 'cell-excluded'
     return ''
