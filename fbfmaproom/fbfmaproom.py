@@ -373,7 +373,7 @@ def generate_tables(
         country_key, mode, freq, season_id, issue_month0,
         geom_key, region_label, severity,
     )
-    return main_df, summary_presentation_df
+    return main_df, summary_presentation_df, thresholds
 
 
 def get_mpoly(mode, country_key, geom_key):
@@ -901,7 +901,7 @@ def table_cb(issue_month0, freq, mode, geom_key, pathname, severity, predictand_
         config["seasons"][season_id]["length"],
     )
     try:
-        dft, dfs = generate_tables(
+        dft, dfs, thresholds = generate_tables(
             country_key,
             season_id,
             tcs,
@@ -912,7 +912,7 @@ def table_cb(issue_month0, freq, mode, geom_key, pathname, severity, predictand_
             geom_key,
             severity,
         )
-        return fbftable.gen_table(tcs, dfs, dft, severity)
+        return fbftable.gen_table(tcs, dfs, dft, thresholds, severity)
     except Exception as e:
         if isinstance(e, NotFoundError):
             # If it's the user just asked for a forecast that doesn't
