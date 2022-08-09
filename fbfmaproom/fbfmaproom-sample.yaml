@@ -855,7 +855,7 @@ countries:
                         obs: Average
                         time: T
                     colormap: *raincm
-                    lower_is_worse: no
+                    lower_is_worse: yes
                     format: number3
             forecasts:
                 pnep:
