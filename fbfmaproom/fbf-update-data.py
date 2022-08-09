@@ -273,6 +273,24 @@ for dataset in url_datasets:
         ds.to_zarr(zarrpath)
 
 
+# Convert rain gauge data:
+# this is one-off thing (for now) so I am merely preserving my code
+# here for posterity/future reference (in a comment)
+# NB: the pandas read_excel function depends on openpyxl. I figure the cost of adding a new dependency is probably worth it
+# on balance compared to introducing another point to introduce error, i.e. manually converting xls(x) to csv
+# (which is fraught and necessarily lossy)
+
+# import pandas as pd
+# import xarray as xr
+# import cftime
+# data = pd.read_excel("/data/kgraaf/original-data/Cumul_juine_juiy_monthly_rainfall_1991_2022.xlsx", sheet_name="array and analysis", usecols="AQ", skiprows=42, nrows=32)
+# data_fixed = pd.read_excel("/data/kgraaf/original-data/Cumul_juine_juiy_monthly_rainfall_1991_2022.xlsx", sheet_name="array and analysis", usecols="AS", skiprows=42, nrows=32)
+# data['Average'][data.index[-1]] = data_fixed['Unnamed: 44'][data_fixed.index[-1]]
+# t = pd.read_excel("/data/kgraaf/original-data/Cumul_juine_juiy_monthly_rainfall_1991_2022.xlsx", sheet_name="array and analysis", usecols="AR", skiprows=42, nrows=32)
+# T = t.apply(lambda y: cftime.datetime(y, 8, 16, calendar='360_day'), axis=1)
+# xr.Dataset(data.rename(T)).rename_dims({'dim_0': 'T'}).rename_vars({'dim_0': 'T'}).to_zarr("/data/<<DATADIR>>/niger/station-spi-jj.zarr")
+
+
 def fetch_bad_years(country_key):
     config = CONFIG
     conn = psycopg2.connect(

@@ -847,6 +847,16 @@ countries:
                     colormap: *raincm
                     lower_is_worse: no
                     format: bad
+                station-spi-jj:
+                    label: Station SPI Jun-Jul
+                    description: Average SPI in June-July, calculated from DMN weather station data.
+                    path: niger/station-spi-jj.zarr
+                    var_names:
+                        obs: Average
+                        time: T
+                    colormap: *raincm
+                    lower_is_worse: no
+                    format: number3
             forecasts:
                 pnep:
                     label: Forecast prob non-exc
