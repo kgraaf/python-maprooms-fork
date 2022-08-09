@@ -847,10 +847,10 @@ countries:
                     colormap: *raincm
                     lower_is_worse: no
                     format: bad
-                rain-gauge:
+                station-spi-jj:
                     label: Station SPI Jun-Jul
                     description: Average SPI in June-July, calculated from DMN weather station data.
-                    path: niger/rain-gauge.zarr
+                    path: niger/station-spi-jj.zarr
                     var_names:
                         obs: Average
                         time: T
