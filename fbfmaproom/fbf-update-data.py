@@ -276,6 +276,9 @@ for dataset in url_datasets:
 # Convert rain gauge data:
 # this is one-off thing (for now) so I am merely preserving my code
 # here for posterity/future reference (in a comment)
+# NB: the pandas read_excel function depends on openpyxl. I figure the cost of adding a new dependency is probably worth it
+# on balance compared to introducing another point to introduce error, i.e. manually converting xls(x) to csv
+# (which is fraught and necessarily lossy)
 
 # import pandas as pd
 # import xarray as xr
