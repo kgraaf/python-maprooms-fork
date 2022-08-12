@@ -1314,15 +1314,15 @@ def export_endpoint(country_key):
         predictand_key,
         season_length=season_config["length"],
     )
-    basic_ds = fundamental_table_data(
-        country_key, cols, season_id, issue_month0,
-        freq, mode, mpoly
-    )
-    if "pct" in basic_ds.coords:
-        basic_ds = basic_ds.drop_vars("pct")
-    basic_df = basic_ds.to_dataframe()
-    main_df, summary_df, thresholds = augment_table_data(
-        basic_df, freq, cols, predictand_key
+    main_df, summary_df, thresholds = generate_tables(
+        country_key,
+        season_id,
+        cols,
+        predictand_key,
+        issue_month0,
+        freq,
+        mode,
+        mpoly,
     )
 
     main_df['year'] = main_df['time'].apply(lambda x: x.year)
