@@ -355,9 +355,10 @@ def generate_tables(
     geom_key,
     severity,
 ):
-    basic_ds, region_label = fundamental_table_data(
+    mpolygon, region_label = get_mpoly(mode, country_key, geom_key)
+    basic_ds = fundamental_table_data(
         country_key, table_columns, season_id, issue_month0,
-        freq, mode, geom_key
+        freq, mode, mpolygon
     )
     if "pct" in basic_ds.coords:
         basic_ds = basic_ds.drop_vars("pct")
@@ -454,12 +455,11 @@ def select_obs(country_key, obs_keys, target_month0, target_year=None, mpolygon=
 
 def fundamental_table_data(country_key, table_columns,
                            season_id, issue_month0, freq, mode,
-                           geom_key):
+                           mpolygon):
     season_config = CONFIG["countries"][country_key]["seasons"][season_id]
     year_min = season_config["start_year"]
     season_length = season_config["length"]
     target_month0 = season_config["target_month"]
-    mpolygon, region_label = get_mpoly(mode, country_key, geom_key)
 
     forecast_ds = xr.Dataset(
         data_vars={
@@ -487,7 +487,7 @@ def fundamental_table_data(country_key, table_columns,
 
     main_ds = main_ds.sortby("time", ascending=False)
 
-    return main_ds, region_label
+    return main_ds
 
 
 def augment_table_data(main_df, freq, table_columns, predictand_key):
@@ -1316,9 +1316,9 @@ def export_endpoint(country_key):
         severity=0, # unimportant because we won't be formatting it
         season_length=season_config["length"],
     )
-    basic_ds, _ = fundamental_table_data(
+    basic_ds = fundamental_table_data(
         country_key, cols, season_id, issue_month0,
-        freq, mode, geom_key
+        freq, mode, mpoly
     )
     if "pct" in basic_ds.coords:
         basic_ds = basic_ds.drop_vars("pct")
