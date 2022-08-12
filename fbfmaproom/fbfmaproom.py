@@ -93,7 +93,7 @@ APP.layout = fbflayout.app_layout()
 
 
 def table_columns(dataset_config, predictor_keys, predictand_key,
-                  severity, season_length):
+                  season_length):
     format_funcs = {
         'year': lambda midpoint: year_label(midpoint, season_length),
         'number0': number_formatter(0),
@@ -353,7 +353,6 @@ def generate_tables(
     freq,
     mode,
     mpolygon,
-    severity,
 ):
     basic_ds = fundamental_table_data(
         country_key, table_columns, season_id, issue_month0,
@@ -908,7 +907,6 @@ def table_cb(issue_month0, freq, mode, geom_key, pathname, severity, predictand_
         config["datasets"],
         predictor_keys,
         predictand_key,
-        severity,
         config["seasons"][season_id]["length"],
     )
     mpolygon, region_label = get_mpoly(mode, country_key, geom_key)
@@ -922,7 +920,6 @@ def table_cb(issue_month0, freq, mode, geom_key, pathname, severity, predictand_
             freq,
             mode,
             mpolygon,
-            severity,
         )
         summary_presentation_df = format_summary_table(
             summary_df, tcs, thresholds,
@@ -1315,7 +1312,6 @@ def export_endpoint(country_key):
         config["datasets"],
         [predictor_key],
         predictand_key,
-        severity=0, # unimportant because we won't be formatting it
         season_length=season_config["length"],
     )
     basic_ds = fundamental_table_data(
