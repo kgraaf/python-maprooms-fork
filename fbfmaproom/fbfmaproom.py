@@ -352,10 +352,9 @@ def generate_tables(
     issue_month0,
     freq,
     mode,
-    geom_key,
+    mpolygon,
     severity,
 ):
-    mpolygon, region_label = get_mpoly(mode, country_key, geom_key)
     basic_ds = fundamental_table_data(
         country_key, table_columns, season_id, issue_month0,
         freq, mode, mpolygon
@@ -366,12 +365,7 @@ def generate_tables(
     main_df, summary_df, thresholds = augment_table_data(
         basic_df, freq, table_columns, predictand_key
     )
-    summary_presentation_df = format_summary_table(
-        summary_df, table_columns, thresholds,
-        country_key, mode, freq, season_id, issue_month0,
-        geom_key, region_label, severity,
-    )
-    return main_df, summary_presentation_df, thresholds
+    return main_df, summary_df, thresholds
 
 
 def get_mpoly(mode, country_key, geom_key):
@@ -917,8 +911,9 @@ def table_cb(issue_month0, freq, mode, geom_key, pathname, severity, predictand_
         severity,
         config["seasons"][season_id]["length"],
     )
+    mpolygon, region_label = get_mpoly(mode, country_key, geom_key)
     try:
-        dft, dfs, thresholds = generate_tables(
+        main_df, summary_df, thresholds = generate_tables(
             country_key,
             season_id,
             tcs,
@@ -926,10 +921,17 @@ def table_cb(issue_month0, freq, mode, geom_key, pathname, severity, predictand_
             issue_month0,
             freq,
             mode,
-            geom_key,
+            mpolygon,
             severity,
         )
-        return fbftable.gen_table(tcs, dfs, dft, thresholds, severity)
+        summary_presentation_df = format_summary_table(
+            summary_df, tcs, thresholds,
+            country_key, mode, freq, season_id, issue_month0,
+            geom_key, region_label, severity,
+        )
+        return fbftable.gen_table(
+            tcs, summary_presentation_df, main_df, thresholds, severity
+        )
     except Exception as e:
         if isinstance(e, NotFoundError):
             # If it's the user just asked for a forecast that doesn't
