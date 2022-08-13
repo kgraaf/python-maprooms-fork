@@ -79,7 +79,7 @@ def is_valid_root(path):
 
 APP = FbfDash(
     __name__,
-    external_stylesheets=[dbc.themes.SIMPLEX],
+    external_stylesheets=[dbc.themes.BOOTSTRAP],
     server=SERVER,
     url_base_pathname=f"{PFX}/",
     meta_tags=[
@@ -594,7 +594,7 @@ def format_ganttit(
     component = html.A(
         [
             dbc.Button(
-                "Set trigger", color="info", id=id_, size='sm'
+                "Set trigger", id=id_, size='sm'
             ),
             dbc.Tooltip(
                 f"Click to trigger if {var_name} is {format_thresh(thresh)} or {more_less}",
