@@ -36,6 +36,7 @@ def test_table_cb():
         predictand_key="bad-years",
         predictor_keys=['pnep', 'rain', 'ndvi', 'enso_state'],
         season_id='season1',
+        include_upcoming='true',
     )
 
     thead, tbody = table.children
@@ -124,7 +125,7 @@ def test_augment_table_data():
         },
     }
 
-    aug, summ, thresholds = fbfmaproom.augment_table_data(main_df, freq, table_columns, "bad-years")
+    aug, summ, thresholds = fbfmaproom.augment_table_data(main_df, freq, table_columns, "bad-years", final_season=None)
 
     expected_aug = main_df.copy()
     expected_aug["worst_bad-years"] = [1, 0, 1, 0, 0, 1]

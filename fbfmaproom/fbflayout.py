@@ -388,7 +388,26 @@ def table_layout():
                     "display": "inline-block",
                     "padding": "10px",
                     "verticalAlign": "top",
-                    "width": "70%",
+                    "width": "58%",
+                },
+            ),
+            html.Div(
+                [
+                    label_with_tooltip(
+                        "Include upcoming",
+                        "If this is checked, data for the upcoming season "
+                        "will be included in the threshold calculation.",
+                    ),
+                    dbc.Checkbox(
+                        id="include_upcoming",
+                        value=False,
+                    ),
+                ],
+                style={
+                    "display": "inline-block",
+                    "padding": "10px",
+                    "verticalAlign": "top",
+                    "width": "12%",
                 },
             ),
 

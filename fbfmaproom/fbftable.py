@@ -7,11 +7,11 @@ import datetime
 import uuid
 from collections import OrderedDict
 
-def gen_table(tcs, dfs, data, thresholds, severity):
+def gen_table(tcs, dfs, data, thresholds, severity, final_season):
     return html.Table(
         [
             gen_head(tcs, dfs),
-            gen_body(tcs, data, thresholds, severity)
+            gen_body(tcs, data, thresholds, severity, final_season)
         ], className="supertable"
     )
 
@@ -51,16 +51,16 @@ def gen_head(tcs, dfs):
     )
 
 
-def gen_body(tcs, data, thresholds, severity):
+def gen_body(tcs, data, thresholds, severity, final_season):
 
     def fmt(col, row):
         f = tcs[col].get('format', lambda x: x)
         return f(row[col])
 
     def class_name(col_name, row):
-        return worst_class(
+        return cell_class(
             col_name, row, severity, thresholds.get(col_name),
-            tcs[col_name].get('lower_is_worse')
+            tcs[col_name].get('lower_is_worse'), final_season
         )
 
     return html.Tbody([
@@ -71,13 +71,18 @@ def gen_body(tcs, data, thresholds, severity):
     ])
 
 
-def worst_class(col_name, row, severity, thresh, lower_is_worse):
-    if (thresh is not None and (
-        (lower_is_worse and row[col_name] <= thresh) or
-        (not lower_is_worse and row[col_name] >= thresh)
-    )):
+def cell_class(col_name, row, severity, thresh, lower_is_worse, final_season):
+    val = row[col_name]
+    highlight = (
+        (thresh is not None) and
+        (
+            (lower_is_worse and val <= thresh) or
+            (not lower_is_worse and val >= thresh)
+        )
+    )
+    if highlight:
         return f'cell-severity-{severity}'
     now = datetime.datetime.now()
-    if row['time'] >= cftime.Datetime360Day(now.year, now.month, min(30, now.day)):
+    if final_season is not None and row['time'] > final_season:
         return 'cell-excluded'
     return ''

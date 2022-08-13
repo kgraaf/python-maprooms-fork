@@ -353,6 +353,7 @@ def generate_tables(
     freq,
     mode,
     mpolygon,
+    final_season,
 ):
     basic_ds = fundamental_table_data(
         country_key, table_columns, season_id, issue_month0,
@@ -362,7 +363,7 @@ def generate_tables(
         basic_ds = basic_ds.drop_vars("pct")
     basic_df = basic_ds.to_dataframe()
     main_df, summary_df, thresholds = augment_table_data(
-        basic_df, freq, table_columns, predictand_key
+        basic_df, freq, table_columns, predictand_key, final_season
     )
     return main_df, summary_df, thresholds
 
@@ -483,7 +484,7 @@ def fundamental_table_data(country_key, table_columns,
     return main_ds
 
 
-def augment_table_data(main_df, freq, table_columns, predictand_key):
+def augment_table_data(main_df, freq, table_columns, predictand_key, final_season):
     main_df = main_df.copy()
 
     main_df["time"] = main_df.index.to_series()
@@ -500,14 +501,14 @@ def augment_table_data(main_df, freq, table_columns, predictand_key):
     def is_ascending(col_key):
         return table_columns[col_key]["lower_is_worse"]
 
-    now = datetime.datetime.now()
-    now = cftime.Datetime360Day(now.year, now.month, min(30, now.day))
+    def percentiles(df, is_ascending):
+        if final_season is not None:
+            df = df.where(lambda x: x.index <= final_season, np.nan)
+        df = df.rank(method="min", ascending=is_ascending, pct=True)
+        return df
+
     rank_pct = {
-        key: (
-            regular_data[key]
-            .where(lambda x: x.index < now, np.nan)
-            .rank(method="min", ascending=is_ascending(key), pct=True)
-        )
+        key: percentiles(regular_data[key], is_ascending(key))
         for key in regular_keys
     }
 
@@ -898,16 +899,33 @@ def update_popup(pathname, position, mode):
     Input("severity", "value"),
     Input("predictand", "value"),
     Input("predictors", "value"),
+    Input("include_upcoming", "value"),
     State("season", "value"),
 )
-def table_cb(issue_month0, freq, mode, geom_key, pathname, severity, predictand_key, predictor_keys, season_id):
+def table_cb(issue_month0, freq, mode, geom_key, pathname, severity, predictand_key, predictor_keys, include_upcoming, season_id):
     country_key = country(pathname)
     config = CONFIG["countries"][country_key]
+    season_config = config["seasons"][season_id]
+
+    final_season = None
+    if not include_upcoming:
+        now = datetime.datetime.now()
+        now = cftime.Datetime360Day(now.year, now.month, min(now.day, 30))
+        final_season = (
+            cftime.Datetime360Day(now.year, 1, 1) +
+            pd.Timedelta(season_config["target_month"] * 30, unit='days')
+        )
+        # if the season's end is in the future
+        if final_season + datetime.timedelta(days=season_config["length"] / 2 * 30) > now:
+            final_season = cftime.Datetime360Day(
+                final_season.year - 1, final_season.month, final_season.day
+            )
+
     tcs = table_columns(
         config["datasets"],
         predictor_keys,
         predictand_key,
-        config["seasons"][season_id]["length"],
+        season_config["length"],
     )
     mpolygon, region_label = get_mpoly(mode, country_key, geom_key)
     try:
@@ -920,6 +938,7 @@ def table_cb(issue_month0, freq, mode, geom_key, pathname, severity, predictand_
             freq,
             mode,
             mpolygon,
+            final_season,
         )
         summary_presentation_df = format_summary_table(
             summary_df, tcs, thresholds,
@@ -927,7 +946,7 @@ def table_cb(issue_month0, freq, mode, geom_key, pathname, severity, predictand_
             geom_key, region_label, severity,
         )
         return fbftable.gen_table(
-            tcs, summary_presentation_df, main_df, thresholds, severity
+            tcs, summary_presentation_df, main_df, thresholds, severity, final_season
         )
     except Exception as e:
         if isinstance(e, NotFoundError):
@@ -1285,6 +1304,7 @@ def export_endpoint(country_key):
     geom_key = parse_arg("region")
     predictor_key = parse_arg("predictor")
     predictand_key = parse_arg("predictand")
+    include_upcoming = parse_arg("include_upcoming", bool, default=False)
 
     config = CONFIG["countries"][country_key]
 
@@ -1314,6 +1334,21 @@ def export_endpoint(country_key):
         predictand_key,
         season_length=season_config["length"],
     )
+
+    final_season = None
+    if not include_upcoming:
+        now = datetime.datetime.now()
+        now = cftime.Datetime360Day(now.year, now.month, min(now.day, 30))
+        final_season = (
+            cftime.Datetime360Day(now.year, 1, 1) +
+            pd.Timedelta(season_config["target_month"] * 30, unit='days')
+        )
+        # if the season's end is in the future
+        if final_season + datetime.timedelta(days=season_config["length"] / 2 * 30) > now:
+            final_season = cftime.Datetime360Day(
+                final_season.year - 1, final_season.month, final_season.day
+            )
+
     main_df, summary_df, thresholds = generate_tables(
         country_key,
         season_id,
@@ -1323,6 +1358,7 @@ def export_endpoint(country_key):
         freq,
         mode,
         mpoly,
+        final_season,
     )
 
     main_df['year'] = main_df['time'].apply(lambda x: x.year)
