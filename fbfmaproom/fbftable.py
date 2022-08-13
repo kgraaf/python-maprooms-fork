@@ -80,9 +80,19 @@ def cell_class(col_name, row, severity, thresh, lower_is_worse, final_season):
             (not lower_is_worse and val >= thresh)
         )
     )
-    if highlight:
-        return f'cell-severity-{severity}'
-    now = datetime.datetime.now()
-    if final_season is not None and row['time'] > final_season:
-        return 'cell-excluded'
-    return ''
+    excluded = (
+        final_season is not None and
+        row['time'] > final_season
+    )
+    if not highlight and not excluded:
+        cls = ''
+    elif not highlight and excluded:
+        cls = 'cell-excluded'
+    elif highlight and not excluded:
+        cls = f'cell-severity-{severity}'
+    elif highlight and excluded:
+        cls = f'cell-excluded-severity-{severity}'
+    else:
+        assert False
+
+    return cls
