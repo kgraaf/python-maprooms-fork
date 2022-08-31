@@ -511,7 +511,7 @@ def augment_table_data(main_df, freq, table_columns, predictand_key):
         return table_columns[col_key]["lower_is_worse"]
 
     now = datetime.datetime.now()
-    now = cftime.Datetime360Day(now.year, now.month, now.day)
+    now = cftime.Datetime360Day(now.year, now.month, min(30, now.day))
     rank_pct = {
         key: (
             regular_data[key]
