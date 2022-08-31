@@ -78,6 +78,6 @@ def worst_class(col_name, row, severity, thresh, lower_is_worse):
     )):
         return f'cell-severity-{severity}'
     now = datetime.datetime.now()
-    if row['time'] >= cftime.Datetime360Day(now.year, now.month, now.day):
+    if row['time'] >= cftime.Datetime360Day(now.year, now.month, min(30, now.day)):
         return 'cell-excluded'
     return ''
