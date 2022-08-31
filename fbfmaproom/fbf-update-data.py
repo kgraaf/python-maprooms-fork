@@ -2,13 +2,9 @@ import argparse
 import cftime
 import xarray as xr
 import os
-import pandas as pd
-import psycopg2
-import pyaconf
 import shutil
 
 import pingrid
-import fbfmaproom
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--cookiefile', type=os.path.expanduser)
@@ -271,76 +267,3 @@ for dataset in url_datasets:
         if os.path.exists(zarrpath):
             shutil.rmtree(zarrpath)
         ds.to_zarr(zarrpath)
-
-
-# Convert rain gauge data:
-# this is one-off thing (for now) so I am merely preserving my code
-# here for posterity/future reference (in a comment)
-# NB: the pandas read_excel function depends on openpyxl. I figure the cost of adding a new dependency is probably worth it
-# on balance compared to introducing another point to introduce error, i.e. manually converting xls(x) to csv
-# (which is fraught and necessarily lossy)
-
-# import pandas as pd
-# import xarray as xr
-# import cftime
-# data = pd.read_excel("/data/kgraaf/original-data/Cumul_juine_juiy_monthly_rainfall_1991_2022.xlsx", sheet_name="array and analysis", usecols="AQ", skiprows=42, nrows=32)
-# data_fixed = pd.read_excel("/data/kgraaf/original-data/Cumul_juine_juiy_monthly_rainfall_1991_2022.xlsx", sheet_name="array and analysis", usecols="AS", skiprows=42, nrows=32)
-# data['Average'][data.index[-1]] = data_fixed['Unnamed: 44'][data_fixed.index[-1]]
-# t = pd.read_excel("/data/kgraaf/original-data/Cumul_juine_juiy_monthly_rainfall_1991_2022.xlsx", sheet_name="array and analysis", usecols="AR", skiprows=42, nrows=32)
-# T = t.apply(lambda y: cftime.datetime(y, 8, 16, calendar='360_day'), axis=1)
-# xr.Dataset(data.rename(T)).rename_dims({'dim_0': 'T'}).rename_vars({'dim_0': 'T'}).to_zarr("/data/<<DATADIR>>/niger/station-spi-jj.zarr")
-
-
-def fetch_bad_years(country_key):
-    config = CONFIG
-    conn = psycopg2.connect(
-        dbname=dbconfig['name'],
-        host=dbconfig['host'],
-        port=dbconfig['port'],
-        user=dbconfig['user'],
-        password=dbconfig['password'],
-    )
-    df = pd.read_sql_query(
-        psycopg2.sql.SQL(
-            """
-            select month_since_01011960, bad_year2 as bad
-            from public.fbf_maproom
-            where lower(adm0_name) = %(country_key)s
-            """
-        ),
-        conn,
-        params={"country_key": country_key},
-        dtype={"bad": float},
-    )
-    df["T"] = df["month_since_01011960"].apply(fbfmaproom.from_month_since_360Day)
-    df = df.drop("month_since_01011960", axis=1)
-    df = df.set_index("T")
-    return df
-
-
-config_files = os.environ["CONFIG"].split(":")
-
-CONFIG = {}
-for fname in config_files:
-    CONFIG = pyaconf.merge([CONFIG, pyaconf.load(fname)])
-dbconfig = CONFIG['dbpool']
-
-# Countries for which the zarr bad years data is a copy of the
-# db. These are legacy bad years datasets. New ones go directly to
-# zarr.
-DB_BAD_YEARS_COUNTRIES = ['malawi', 'madagascar', 'madagascar-ond', 'niger', 'guatemala', 'djibouti']
-for country in DB_BAD_YEARS_COUNTRIES:
-    ds_key = f'{country}/bad-years'
-    if ds_key in opts.datasets:
-        print(ds_key)
-        df = fetch_bad_years(country)
-        zarrpath = f'{opts.datadir}/{ds_key}.zarr'
-        df.to_xarray().to_zarr(zarrpath)
-
-if 'lesotho/bad-years-ond' in opts.datasets:
-    ds = xr.open_zarr(f'{opts.datadir}/lesotho/bad-years.zarr')
-    ds['T'] = list(map(
-        lambda x: cftime.Datetime360Day(x.year, (x.month - 1 - 2) % 12 + 1, x.day),
-        ds['T'].values
-    ))
-    ds.to_zarr(f'{opts.datadir}/lesotho/bad-years-ond.zarr')

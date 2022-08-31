@@ -15,3 +15,9 @@ ds = xr.merge(
 
 ds['T'] = ds['T'] + datetime.timedelta(days=60)
 ds.to_zarr('/home/aaron/scratch/iri/data/aaron/fbf-candidate/lesotho/bad-years.zarr')
+
+ds['T'] = list(map(
+    lambda x: cftime.Datetime360Day(x.year, (x.month - 1 - 2) % 12 + 1, x.day),
+    ds['T'].values
+))
+ds.to_zarr(f'{opts.datadir}/lesotho/bad-years-ond.zarr')
