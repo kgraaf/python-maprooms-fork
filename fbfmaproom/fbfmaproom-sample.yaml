@@ -1044,8 +1044,8 @@ countries:
                         obs: bad
                         time: T
                     colormap: *raincm
-                    lower_is_worse: no
-                    format: bad
+                    lower_is_worse: yes
+                    format: number0
             forecasts:
                 pnep:
                     label: Forecast prob non-exc
