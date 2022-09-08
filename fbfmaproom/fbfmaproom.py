@@ -110,7 +110,7 @@ def table_columns(dataset_config, predictor_keys, predictand_key,
     tcs["time"] = dict(
         name="Year",
         format=format_funcs['year'],
-        tooltip="The year whose forecast is displayed on the map",
+        tooltip=None,
         type=ColType.SPECIAL,
     )
 
