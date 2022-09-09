@@ -714,7 +714,9 @@ def client_side_error(e):
     return (e.to_dict(), e.status)
 
 
-def parse_arg(name, conversion=str, required=True):
+REQUIRED = object()
+
+def parse_arg(name, conversion=str, default=REQUIRED):
     '''Stricter version of flask.request.args.get. Raises an exception in
 cases where args.get ignores the problem and silently falls back on a
 default behavior:
@@ -727,10 +729,10 @@ default behavior:
     if len(raw_vals) > 1:
         raise InvalidRequestError(f"{name} was provided multiple times")
     if len(raw_vals) == 0:
-        if required:
+        if default is REQUIRED:
             raise InvalidRequestError(f"{name} is required")
         else:
-            return None
+            return default
     try:
         val = conversion(raw_vals[0])
     except Exception as e:

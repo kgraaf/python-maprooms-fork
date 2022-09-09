@@ -1142,8 +1142,8 @@ def pnep_percentile():
     season_year = parse_arg("season_year", int)
     freq = parse_arg("freq", float)
     prob_thresh = parse_arg("prob_thresh", float)
-    bounds = parse_arg("bounds", required=False)
-    region = parse_arg("region", required=False)
+    bounds = parse_arg("bounds", default=None)
+    region = parse_arg("region", default=None)
 
     forecast_key = "pnep"
 
@@ -1201,8 +1201,8 @@ def trigger_check():
     season_year = parse_arg("season_year", int)
     freq = parse_arg("freq", float)
     thresh = parse_arg("thresh", float)
-    bounds = parse_arg("bounds", required=False)
-    region = parse_arg("region", required=False)
+    bounds = parse_arg("bounds", default=None)
+    region = parse_arg("region", default=None)
 
     config = CONFIG["countries"][country_key]
     if var in config["datasets"]["forecasts"]:
