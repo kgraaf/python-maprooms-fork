@@ -537,7 +537,6 @@ def augment_table_data(main_df, freq, table_columns, predictand_key, final_seaso
     for key in regular_keys:
         if key != predictand_key:
             summary_df[key] = hits_and_misses(worst_flags[key], bad_year)
-        main_df[key] = regular_data[key]
         main_df[f"worst_{key}"] = worst_flags[key].astype(int)
 
     return main_df, summary_df, thresholds
