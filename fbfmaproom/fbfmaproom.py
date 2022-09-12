@@ -368,14 +368,46 @@ def generate_tables(
     return main_df, summary_df, thresholds
 
 
-def get_mpoly(mode, country_key, geom_key):
+def region_mpoly(mode, country_key, geom_key):
     if mode == "pixel":
         [[y0, x0], [y1, x1]] = json.loads(geom_key)
-        label = None
         mpolygon = MultiPolygon([Polygon([(x0, y0), (x0, y1), (x1, y1), (x1, y0)])])
     else:
-        label, mpolygon = retrieve_geometry2(country_key, int(mode), geom_key)
-    return mpolygon, label
+        config = CONFIG["countries"][country_key]
+        base_query = config["shapes"][int(mode)]["sql"]
+        response = subquery_unique(base_query, geom_key, "the_geom")
+        mpolygon = wkb.loads(response.tobytes())
+    return mpolygon
+
+
+def region_label(country_key: str, mode: int, region_key: str):
+    if mode == "pixel":
+        label = None
+    else:
+        config = CONFIG["countries"][country_key]
+        base_query = config["shapes"][int(mode)]["sql"]
+        label = subquery_unique(base_query, region_key, "label")
+    return label
+
+
+def subquery_unique(base_query, key, field):
+    query = sql.Composed(
+        [
+            sql.SQL(
+                "with a as (",
+            ),
+            sql.SQL(base_query),
+            sql.SQL(
+                ") select {} from a where key::text = %(key)s"
+            ).format(sql.Identifier(field)),
+        ]
+    )
+    with psycopg2.connect(**CONFIG["db"]) as conn:
+        df = pd.read_sql(query, conn, params={"key": key})
+    if len(df) == 0:
+        raise InvalidRequestError(f"invalid region {region_key}")
+    assert len(df) == 1
+    return df.iloc[0][field]
 
 
 def select_forecast(country_key, forecast_key, issue_month0, target_month0,
@@ -609,7 +641,7 @@ def format_ganttit(
 
 def format_summary_table(summary_df, table_columns, thresholds,
                          country, mode, freq, season_id, issue_month0,
-                         geom_id, region_label, severity
+                         geom_key, severity
 ):
     format_accuracy = lambda x: f"{x * 100:.2f}%"
     format_count = lambda x: f"{x:.0f}"
@@ -642,8 +674,8 @@ def format_summary_table(summary_df, table_columns, thresholds,
                 freq,
                 season_id,
                 issue_month0,
-                geom_id,
-                region_label,
+                geom_key,
+                region_label(country, mode, geom_key),
                 severity,
             )] +
             list(map(format_count, summary_df[c][0:4])) +
@@ -926,7 +958,9 @@ def table_cb(issue_month0, freq, mode, geom_key, pathname, severity, predictand_
         predictand_key,
         season_config["length"],
     )
-    mpolygon, region_label = get_mpoly(mode, country_key, geom_key)
+
+    mpolygon = region_mpoly(mode, country_key, geom_key)
+
     try:
         main_df, summary_df, thresholds = generate_tables(
             country_key,
@@ -942,7 +976,7 @@ def table_cb(issue_month0, freq, mode, geom_key, pathname, severity, predictand_
         summary_presentation_df = format_summary_table(
             summary_df, tcs, thresholds,
             country_key, mode, freq, season_id, issue_month0,
-            geom_key, region_label, severity,
+            geom_key, severity,
         )
         return fbftable.gen_table(
             tcs, summary_presentation_df, main_df, thresholds, severity, final_season
@@ -1185,7 +1219,7 @@ def pnep_percentile():
         geom_key = bounds
     else:
         geom_key = region
-    mpoly, _ = get_mpoly(mode, country_key, geom_key)
+    mpoly = region_mpoly(mode, country_key, geom_key)
 
     try:
         pnep = select_forecast(country_key, forecast_key,issue_month0,
@@ -1249,7 +1283,7 @@ def trigger_check():
         geom_key = bounds
     else:
         geom_key = region
-    mpoly, _ = get_mpoly(mode, country_key, geom_key)
+    mpoly = region_mpoly(mode, country_key, geom_key)
 
     if var_is_forecast:
         data = select_forecast(country_key, var, issue_month0,
@@ -1270,28 +1304,6 @@ def trigger_check():
     }
 
     return response
-
-
-def retrieve_geometry2(country_key: str, mode: int, region_key: str):
-    config = CONFIG["countries"][country_key]
-    sc = config["shapes"][mode]
-    query = sql.Composed(
-        [
-            sql.SQL(
-                "with a as (",
-            ),
-            sql.SQL(sc["sql"]),
-            sql.SQL(") select the_geom, label from a where key::text = %(key)s"),
-        ]
-    )
-    with psycopg2.connect(**CONFIG["db"]) as conn:
-        df = pd.read_sql(query, conn, params={"key": region_key})
-    if len(df) == 0:
-        raise InvalidRequestError(f"invalid region {region_key}")
-    assert len(df) == 1
-    row = df.iloc[0]
-    geom = wkb.loads(row["the_geom"].tobytes())
-    return row["label"], geom
 
 
 @SERVER.route(f"{PFX}/<country_key>/export")
@@ -1325,7 +1337,7 @@ def export_endpoint(country_key):
 
     target_month0 = season_config["target_month"]
 
-    mpoly, _ = get_mpoly(mode, country_key, geom_key)
+    mpoly = region_mpoly(mode, country_key, geom_key)
 
     cols = table_columns(
         config["datasets"],
