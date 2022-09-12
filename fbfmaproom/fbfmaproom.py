@@ -346,7 +346,7 @@ def retrieve_vulnerability(
 
 def generate_tables(
     country_key,
-    season_id,
+    season_config,
     table_columns,
     predictand_key,
     issue_month0,
@@ -355,8 +355,9 @@ def generate_tables(
     mpolygon,
     final_season,
 ):
+
     basic_ds = fundamental_table_data(
-        country_key, table_columns, season_id, issue_month0,
+        country_key, table_columns, season_config, issue_month0,
         freq, mode, mpolygon
     )
     if "pct" in basic_ds.coords:
@@ -480,9 +481,8 @@ def select_obs(country_key, obs_keys, target_month0, target_year=None, mpolygon=
 
 
 def fundamental_table_data(country_key, table_columns,
-                           season_id, issue_month0, freq, mode,
+                           season_config, issue_month0, freq, mode,
                            mpolygon):
-    season_config = CONFIG["countries"][country_key]["seasons"][season_id]
     year_min = season_config["start_year"]
     season_length = season_config["length"]
     target_month0 = season_config["target_month"]
@@ -964,7 +964,7 @@ def table_cb(issue_month0, freq, mode, geom_key, pathname, severity, predictand_
     try:
         main_df, summary_df, thresholds = generate_tables(
             country_key,
-            season_id,
+            season_config,
             tcs,
             predictand_key,
             issue_month0,
@@ -1362,7 +1362,7 @@ def export_endpoint(country_key):
 
     main_df, summary_df, thresholds = generate_tables(
         country_key,
-        season_id,
+        season_config,
         cols,
         predictand_key,
         issue_month0,
