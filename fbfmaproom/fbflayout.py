@@ -396,7 +396,10 @@ def table_layout():
                     label_with_tooltip(
                         "Include upcoming",
                         "If this is checked, data for the upcoming season "
-                        "will be included in the threshold calculation.",
+                        "is included in the threshold calculation. "
+                        "If unchecked, it is not included "
+                        "in the calculation and its row in the table "
+                        "is grayed out.",
                     ),
                     dbc.Checkbox(
                         id="include_upcoming",
