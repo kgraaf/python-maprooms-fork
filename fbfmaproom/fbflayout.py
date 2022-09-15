@@ -151,6 +151,7 @@ def map_layout():
             "height": "100%",
             "position": "absolute",
         },
+        closePopupOnClick=False,
     )
 
 
