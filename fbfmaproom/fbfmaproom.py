@@ -852,9 +852,8 @@ def update_selected_region(pathname, position, mode):
     Input("location", "pathname"),
     Input("marker", "position"),
     Input("mode", "value"),
-    Input("year", "value"),
 )
-def update_popup(pathname, position, mode, year):
+def update_popup(pathname, position, mode):
     country_key = country(pathname)
     y, x = position
     c = CONFIG["countries"][country_key]
@@ -873,14 +872,10 @@ def update_popup(pathname, position, mode, year):
             pys = "N" if py > 0.0 else "S" if py < 0.0 else ""
             title = f"{np.abs(py):.5f}° {pys} {np.abs(px):.5f}° {pxs}"
     else:
-        _, attrs = retrieve_geometry(country_key, (x, y), mode, year)
+        _, attrs = retrieve_geometry(country_key, (x, y), mode, None)
         if attrs is not None:
             title = attrs["label"]
-            fmt = lambda k: [html.B(k + ": "), attrs[k], html.Br()]
-            content = (
-                fmt("Vulnerability") + fmt("Mean") + fmt("Stddev") + fmt("Normalized")
-            )
-    return [html.H3(title), html.Div(content)]
+    return [html.H3(title)]
 
 
 @APP.callback(
