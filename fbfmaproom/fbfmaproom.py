@@ -697,7 +697,6 @@ def country(pathname: str) -> str:
     Output("logo", "src"),
     Output("map", "center"),
     Output("map", "zoom"),
-    Output("marker", "position"),
     Output("season", "options"),
     Output("season", "value"),
     Output("vuln_colorbar", "colorscale"),
@@ -722,7 +721,6 @@ def _(pathname):
         for k in sorted(c["seasons"].keys())
     ]
     season_value = min(c["seasons"].keys())
-    x, y = c["marker"]
     cx, cy = c["center"]
     vuln_cs = pingrid.to_dash_colorscale(open_vuln(country_key).attrs["colormap"])
     mode_options = [
@@ -753,7 +751,6 @@ def _(pathname):
         f"{PFX}/custom/{c['logo']}",
         [cy, cx],
         c["zoom"],
-        [y, x],
         season_options,
         season_value,
         vuln_cs,
@@ -813,13 +810,26 @@ def _(season, pathname):
 
 
 @APP.callback(
+    Output("marker", "position"),
+    Input("location", "pathname"),
+    Input("map", "click_lat_lng"),
+)
+def map_click(pathname, lat_lng):
+    if lat_lng is not None:
+        return lat_lng
+    country_key = country(pathname)
+    x, y = CONFIG["countries"][country_key]["marker"]
+    return y, x
+
+
+@APP.callback(
     Output("feature", "positions"),
     Output("geom_key", "data"),
-    Input("location", "pathname"),
     Input("marker", "position"),
     Input("mode", "value"),
+    State("location", "pathname"),
 )
-def update_selected_region(pathname, position, mode):
+def update_selected_region(position, mode, pathname):
     country_key = country(pathname)
     y, x = position
     c = CONFIG["countries"][country_key]
