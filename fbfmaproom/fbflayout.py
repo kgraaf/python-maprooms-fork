@@ -106,7 +106,9 @@ def map_layout():
                     ),
                     dlf.Marker(
                         [
-                            dlf.Popup(id="marker_popup"),
+                            dlf.Popup([
+                                dcc.Loading(id="marker_popup", type="dot"),
+                            ]),
                         ],
                         position=(0, 0),
                         draggable=True,
