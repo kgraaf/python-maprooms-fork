@@ -459,7 +459,7 @@ def fundamental_table_data(country_key, table_columns,
                            season_id, issue_month0, freq, mode,
                            geom_key):
     season_config = CONFIG["countries"][country_key]["seasons"][season_id]
-    year_min, year_max = season_config["year_range"]
+    year_min = season_config["start_year"]
     season_length = season_config["length"]
     target_month0 = season_config["target_month"]
     mpolygon, region_label = get_mpoly(mode, country_key, geom_key)
@@ -486,7 +486,7 @@ def fundamental_table_data(country_key, table_columns,
     )
 
     year = main_ds["time"].dt.year
-    main_ds = main_ds.where((year >= year_min) & (year <= year_max), drop=True)
+    main_ds = main_ds.where(year >= year_min, drop=True)
 
     main_ds = main_ds.sortby("time", ascending=False)
 
@@ -777,20 +777,30 @@ def custom_static(relpath):
     Output("issue_month", "options"),
     Output("issue_month", "value"),
     Input("season", "value"),
+    Input("map_column", "value"),
     Input("location", "pathname"),
 )
-def _(season, pathname):
+def forecast_selectors(season, col_name, pathname):
     country_key = country(pathname)
-    c = CONFIG["countries"][country_key]["seasons"][season]
-    year_min, year_max = c["year_range"]
+    country_conf = CONFIG["countries"][country_key]
+    season_conf = country_conf["seasons"][season]
+
+    year_min = season_conf["start_year"]
+    fcst = open_forecast(country_key, col_name)
+    latest_issue = fcst["issue"].max().item()
+    if season_conf["target_month"] < latest_issue.month:
+        year_max = latest_issue.year + 1
+    else:
+        year_max = latest_issue.year
     year_range = range(year_max, year_min - 1, -1)
+
     midpoints = [
-        cftime.Datetime360Day(year, 1, 1) + pd.Timedelta(days=c["target_month"] * 30)
+        cftime.Datetime360Day(year, 1, 1) + pd.Timedelta(days=season_conf["target_month"] * 30)
         for year in year_range
     ]
     year_options = [
         dict(
-            label=year_label(midpoint, c["length"]),
+            label=year_label(midpoint, season_conf["length"]),
             value=midpoint.year
         )
         for midpoint in midpoints
@@ -801,9 +811,9 @@ def _(season, pathname):
             label=pd.to_datetime(int(v) + 1, format="%m").month_name(),
             value=v,
         )
-        for v in reversed(c["issue_months"])
+        for v in reversed(season_conf["issue_months"])
     ]
-    issue_month_value = c["issue_months"][-1]
+    issue_month_value = season_conf["issue_months"][-1]
     return (
         year_options,
         year_value,
