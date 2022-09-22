@@ -138,7 +138,7 @@ countries:
                 target_month: 0.5  # season center in months since Jan 1: 0.0 <= season < 12.0
                 length: 3.0
                 issue_months: [7, 8, 9, 10]  # months since Jan 1: 0.0 <= season < 12.0
-                year_range: [1983, 2021]
+                start_year: 1983
 
     madagascar:
         logo: Madagascar_IRI_98x48.png
@@ -224,7 +224,7 @@ countries:
                 target_month: 0.5  # season center in months since Jan 1: 0.0 <= season < 12.0
                 length: 3.0
                 issue_months: [8, 9, 10]  # months since Jan 1: 0.0 <= season < 12.0
-                year_range: [1982, 2022]
+                start_year: 1982
 
     madagascar-ond:
         logo: Madagascar_IRI_98x48.png
@@ -368,7 +368,7 @@ countries:
                 target_month: 10.5  # season center in months since Jan 1: 0.0 <= season < 12.0
                 length: 3.0
                 issue_months: [6, 7, 8]  # months since Jan 1: 0.0 <= season < 12.0
-                year_range: [1993, 2022]
+                start_year: 1993
 
     ethiopia:
         logo: Ethiopia_IRI_98x48.png
@@ -509,7 +509,7 @@ countries:
                 target_month: 3.5
                 length: 3.0
                 issue_months: [11, 0, 1]
-                year_range: [1983, 2022]
+                start_year: 1983
     ethiopia-ond:
         logo: Ethiopia_IRI_98x48.png
         resolution: [.25, .25]
@@ -685,7 +685,7 @@ countries:
                 target_month: 10.5
                 length: 3.0
                 issue_months: [8, 7, 6]
-                year_range: [1982, 2022]
+                start_year: 1982
     niger:
         logo: Niger_IRI_120x48.png
         resolution: [0.05, 0.05]
@@ -892,7 +892,7 @@ countries:
                 target_month: 7.5
                 length: 3.0
                 issue_months: [0, 1, 2, 3, 4, 5]
-                year_range: [1991, 2022]
+                start_year: 1991
 
     guatemala:
         logo: Guatemala_IRI_120x48.png
@@ -975,7 +975,7 @@ countries:
                 target_month: 10.5
                 length: 3.0
                 issue_months: [8]
-                year_range: [1996, 2021]
+                start_year: 1996
 
     djibouti:
         logo: Djibouti_IRI.svg
@@ -1069,7 +1069,7 @@ countries:
                 target_month: 7.5
                 length: 3.0
                 issue_months: [3, 4, 5]
-                year_range: [1990, 2022]
+                start_year: 1990
 
     lesotho:
         logo: Lesotho_IRI_94x48.png
@@ -1209,7 +1209,7 @@ countries:
                 target_month: 0.5
                 length: 3.0
                 issue_months: [8, 9, 10]
-                year_range: [1983, 2022]
+                start_year: 1983
     lesotho-ond:
         logo: Lesotho_IRI_94x48.png
         resolution: [.0375, .0375]
@@ -1348,4 +1348,4 @@ countries:
                 target_month: 10.5
                 length: 3.0
                 issue_months: [6, 7, 8]
-                year_range: [1983, 2022]
+                start_year: 1983
