@@ -689,25 +689,17 @@ countries:
                   from iridb.eth_zones_dd
                   where name_2 in ('East Shewa', 'Arsi', 'West Arsi', 'West Haraghe', 'East Haraghe', 'Bale', 'East Bale', 'Guji', 'Borena')
                   group by 1, 2
-                  #where name_2 in ('East Shewa', 'Arsi')
               vuln_sql: select cast(null as int) as key, 0 as year, 0 as vuln where 1 = 2
-              #vuln_sql: select adm0_code as key, year, sum(vulnerability) as vuln
-              #    from public.fbf_vulnerability where adm0_name = 'Madagascar' group by 1, 2
-            #  sql: select adm0_code as key, adm0_name as label, ST_AsBinary(ST_Union(the_geom)) as the_geom
-            #      from iridb.g2015_2014_1 g where adm0_name = 'Madagascar'
-            #      and adm1_name in ('Androy', 'Anosy', 'Atsimo Andrefana', 'Atsimo Atsinanana')
-            #      group by 1, 2
 
-
-              # sql: select (adm1_pcode, adm2_pcode) as key, adm2_en as label,
-              #     ST_AsBinary(the_geom) as the_geom from iridb.somali_zone
-              # vuln_sql: select (adm1_pcode, adm2_pcode) as key, year, vulnerability as vuln
-              #     from public.fbf_vulnerability_ethiopia_somali
             - name: Zonal
               sql: select id_2 as key, name_2 as label, ST_AsBinary(the_geom) as the_geom from iridb.eth_zones_dd
                   where name_2 in ('East Shewa', 'Arsi', 'West Arsi', 'West Haraghe', 'East Haraghe', 'Bale', 'East Bale', 'Guji', 'Borena')
               vuln_sql: select cast(null as int) as key, 0 as year, 0 as vuln where 1 = 2
 
+            - name: Woreda
+              sql: select id_3 as key, name_3 as label, ST_AsBinary(the_geom) as the_geom from iridb.eth_woredas_dd
+                  where name_2 in ('East Shewa', 'Arsi', 'West Arsi', 'West Haraghe', 'East Haraghe', 'Bale', 'East Bale', 'Guji', 'Borena')
+              vuln_sql: select cast(null as int) as key, 0 as year, 0 as vuln where 1 = 2
         datasets:
             defaults:
                 predictors:
