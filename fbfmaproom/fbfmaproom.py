@@ -373,6 +373,8 @@ def region_mpoly(mode, country_key, geom_key):
         base_query = config["shapes"][int(mode)]["sql"]
         response = subquery_unique(base_query, geom_key, "the_geom")
         mpolygon = wkb.loads(response.tobytes())
+        if isinstance(mpolygon, Polygon):
+            mpolygon = MultiPolygon([mpolygon])
     return mpolygon
 
 
