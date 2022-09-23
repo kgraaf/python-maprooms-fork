@@ -689,17 +689,14 @@ countries:
                   from iridb.eth_zones_dd
                   where name_2 in ('East Shewa', 'Arsi', 'West Arsi', 'West Haraghe', 'East Haraghe', 'Bale', 'East Bale', 'Guji', 'Borena')
                   group by 1, 2
-              vuln_sql: select cast(null as int) as key, 0 as year, 0 as vuln where 1 = 2
 
             - name: Zonal
               sql: select id_2 as key, name_2 as label, ST_AsBinary(the_geom) as the_geom from iridb.eth_zones_dd
                   where name_2 in ('East Shewa', 'Arsi', 'West Arsi', 'West Haraghe', 'East Haraghe', 'Bale', 'East Bale', 'Guji', 'Borena')
-              vuln_sql: select cast(null as int) as key, 0 as year, 0 as vuln where 1 = 2
 
             - name: Woreda
               sql: select id_3 as key, name_3 as label, ST_AsBinary(the_geom) as the_geom from iridb.eth_woredas_dd
                   where name_2 in ('East Shewa', 'Arsi', 'West Arsi', 'West Haraghe', 'East Haraghe', 'Bale', 'East Bale', 'Guji', 'Borena')
-              vuln_sql: select cast(null as int) as key, 0 as year, 0 as vuln where 1 = 2
         datasets:
             defaults:
                 predictors:

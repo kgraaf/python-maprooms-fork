@@ -291,11 +291,15 @@ def retrieve_vulnerability(
 ) -> pd.DataFrame:
     config = CONFIG["countries"][country_key]
     sc = config["shapes"][int(mode)]
+    vuln_sql = sc.get(
+        "vuln_sql",
+        "select cast(null as int) as key, 0 as year, 0 as vuln where 1 = 2"
+    )
     with psycopg2.connect(**CONFIG["db"]) as conn:
         s = sql.Composed(
             [
                 sql.SQL("with v as ("),
-                sql.SQL(sc["vuln_sql"]),
+                sql.SQL(vuln_sql),
                 sql.SQL("), g as ("),
                 sql.SQL(sc["sql"]),
                 sql.SQL(
