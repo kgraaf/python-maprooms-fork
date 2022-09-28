@@ -22,6 +22,7 @@ dependencies:
     # connection. To upgrade, use psycopg2 via SLQAlchemy.
   - pandas=1.3
   - psycopg2
+  - pyyaml
   - rasterio
 
     # Shapely changed how looping over geometries works in the newer version and
@@ -34,8 +35,5 @@ dependencies:
   - werkzeug<2.1 # werkzeug 2.1 spews warnings at dev server startup
 
   - xarray
-  - yaml
   - zarr
-  - pip
-  - pip:
-    - pyaconf
+

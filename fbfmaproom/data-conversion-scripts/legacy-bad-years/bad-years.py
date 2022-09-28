@@ -1,8 +1,8 @@
 import fbfmaproom
 import os
 import pandas as pd
+import pingrid
 import psycopg2
-import pyaconf
 
 """Translates legacy boolean bad years datasets from the db to zarr"""
 
@@ -33,11 +33,7 @@ def fetch_bad_years(country_key):
     return df
 
 
-config_files = os.environ["CONFIG"].split(":")
-
-CONFIG = {}
-for fname in config_files:
-    CONFIG = pyaconf.merge([CONFIG, pyaconf.load(fname)])
+CONFIG = pingrid.load_config(os.environ["CONFIG"])
 dbconfig = CONFIG['dbpool']
 
 # Countries for which the zarr bad years data is a copy of the
