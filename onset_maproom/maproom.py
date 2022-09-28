@@ -21,6 +21,7 @@ from widgets import Sentence, Number
 import shapely
 from shapely import wkb
 from shapely.geometry.multipolygon import MultiPolygon
+import psycopg2
 from psycopg2 import sql
 
 CONFIG = pyaconf.load(os.environ["CONFIG"])
@@ -35,8 +36,6 @@ CONFIG = pyaconf.load(os.environ["CONFIG"])
 DR_PATH = CONFIG["rr_mrg_zarr_path"]
 RR_MRG_ZARR = Path(DR_PATH)
 rr_mrg = calc.read_zarr_data(RR_MRG_ZARR)
-
-DBPOOL = pingrid.init_dbpool("dbpool", CONFIG)
 
 # Assumes that grid spacing is regular and cells are square. When we
 # generalize this, don't make those assumptions.
@@ -76,28 +75,23 @@ def toggle_navbar_collapse(n, is_open):
 
 
 def adm_borders(shapes):
-    dbpool = DBPOOL
-    with dbpool.take() as cm:
-        conn = cm.resource
-        with conn:  # transaction
-            s = sql.Composed(
-                [
-                    sql.SQL("with g as ("),
-                    sql.SQL(shapes),
-                    sql.SQL(
-                        """
-                        )
-                        select
-                            g.label, g.key, g.the_geom
-                        from g
-                        """
-                    ),
-                ]
-            )
-            df = pd.read_sql(
-                s,
-                conn,
-            )
+    with psycopg2.connect(**CONFIG["db"]) as conn:
+        s = sql.Composed(
+            [
+                sql.SQL("with g as ("),
+                sql.SQL(shapes),
+                sql.SQL(
+                    """
+                    )
+                    select
+                        g.label, g.key, g.the_geom
+                    from g
+                    """
+                ),
+            ]
+        )
+        df = pd.read_sql(s, conn)
+
     df["the_geom"] = df["the_geom"].apply(lambda x: wkb.loads(x.tobytes()))
     df["the_geom"] = df["the_geom"].apply(
         lambda x: x if isinstance(x, MultiPolygon) else MultiPolygon([x])

@@ -8,16 +8,18 @@ dependencies:
     # https://github.com/rasterio/rasterio/issues/2333
   - python=3.9
   - cftime
-  - dash
+
+  # some later version removes the __wrapped__ attribute on callbacks,
+  # which is used by some tests
+  - dash=2.3.1
+
   - dash-leaflet
   - dash-bootstrap-components
   - numpy
   - opencv
 
-    # Newer versions of Pandas do not appear to work correctly with queuepool.
-    # In particular, how that package forms SQL query objects needs to be updated. 
-    # Hopefully the solution here is to either send Igor a issue or to migrate to
-    # a different connection pooling library
+    # Newer versions of Pandas emit warnings when passed a psycopg2
+    # connection. To upgrade, use psycopg2 via SLQAlchemy.
   - pandas=1.3
   - psycopg2
   - rasterio
@@ -37,4 +39,3 @@ dependencies:
   - pip
   - pip:
     - pyaconf
-    - queuepool

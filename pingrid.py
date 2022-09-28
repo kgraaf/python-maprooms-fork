@@ -10,8 +10,6 @@ from collections.abc import Iterable as CollectionsIterable
 import cv2
 import psycopg2.extensions
 from psycopg2 import sql
-from queuepool.psycopg2cm import ConnectionManagerExtended
-from queuepool.pool import Pool
 import rasterio.features
 import rasterio.transform
 import shapely.geometry
@@ -39,34 +37,6 @@ def error_fig(error_msg="error"):
         yshift=10,
         xshift=60,
     )
-
-
-def init_dbpool(name, config):
-    dbpoolConf = config[name]
-    dbpool = Pool(
-        name=dbpoolConf["name"],
-        capacity=dbpoolConf["capacity"],
-        maxIdleTime=dbpoolConf["max_idle_time"],
-        maxOpenTime=dbpoolConf["max_open_time"],
-        maxUsageCount=dbpoolConf["max_usage_count"],
-        closeOnException=dbpoolConf["close_on_exception"],
-    )
-    for i in range(dbpool.capacity):
-        dbpool.put(
-            ConnectionManagerExtended(
-                name=dbpool.name + "-" + str(i),
-                autocommit=False,
-                isolation_level=psycopg2.extensions.ISOLATION_LEVEL_SERIALIZABLE,
-                dbname=dbpool.name,
-                host=dbpoolConf["host"],
-                port=dbpoolConf["port"],
-                user=dbpoolConf["user"],
-                password=dbpoolConf["password"],
-            )
-        )
-    if dbpoolConf["recycle_interval"] is not None:
-        dbpool.startRecycler(dbpoolConf["recycle_interval"])
-    return dbpool
 
 
 FuncInterp2d = Callable[[Iterable[np.ndarray]], np.ndarray]

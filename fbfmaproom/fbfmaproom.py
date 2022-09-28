@@ -22,6 +22,7 @@ from shapely import wkb
 from shapely.geometry.multipolygon import MultiPolygon
 from shapely.geometry import Polygon, Point
 from shapely.geometry.multipoint import MultiPoint
+import psycopg2
 from psycopg2 import sql
 import math
 import traceback
@@ -47,7 +48,6 @@ CONFIG = {}
 for fname in config_files:
     CONFIG = pyaconf.merge([CONFIG, pyaconf.load(fname)])
 
-DBPOOL = pingrid.init_dbpool("dbpool", CONFIG)
 
 ZERO_SHAPE = [[[[0, 0], [0, 0], [0, 0], [0, 0]]]]
 
@@ -296,49 +296,46 @@ def retrieve_vulnerability(
 ) -> pd.DataFrame:
     config = CONFIG["countries"][country_key]
     sc = config["shapes"][int(mode)]
-    dbpool = DBPOOL
-    with dbpool.take() as cm:
-        conn = cm.resource
-        with conn:  # transaction
-            s = sql.Composed(
-                [
-                    sql.SQL("with v as ("),
-                    sql.SQL(sc["vuln_sql"]),
-                    sql.SQL("), g as ("),
-                    sql.SQL(sc["sql"]),
-                    sql.SQL(
-                        """
-                        ), a as (
-                            select
-                                key,
-                                avg(vuln) as mean,
-                                stddev_pop(vuln) as stddev
-                            from v
-                            group by key
-                        )
+    with psycopg2.connect(**CONFIG["db"]) as conn:
+        s = sql.Composed(
+            [
+                sql.SQL("with v as ("),
+                sql.SQL(sc["vuln_sql"]),
+                sql.SQL("), g as ("),
+                sql.SQL(sc["sql"]),
+                sql.SQL(
+                    """
+                    ), a as (
                         select
-                            g.label, g.key, g.the_geom,
-                            v.year,
-                            v.vuln as vulnerability,
-                            a.mean as mean,
-                            a.stddev as stddev,
-                            v.vuln / a.mean as normalized,
-                            coalesce(to_char(v.vuln,'999,999,999,999'),'N/A') as "Vulnerability",
-                            coalesce(to_char(a.mean,'999,999,999,999'),'N/A') as "Mean",
-                            coalesce(to_char(a.stddev,'999,999,999,999'),'N/A') as "Stddev",
-                            coalesce(to_char(v.vuln / a.mean,'999,990D999'),'N/A') as "Normalized"
-                        from (g left outer join a using (key))
-                            left outer join v on(g.key=v.key and v.year=%(year)s)
-                        """
-                    ),
-                ]
-            )
-            # print(s.as_string(conn))
-            df = pd.read_sql(
-                s,
-                conn,
-                params=dict(year=year),
-            )
+                            key,
+                            avg(vuln) as mean,
+                            stddev_pop(vuln) as stddev
+                        from v
+                        group by key
+                    )
+                    select
+                        g.label, g.key, g.the_geom,
+                        v.year,
+                        v.vuln as vulnerability,
+                        a.mean as mean,
+                        a.stddev as stddev,
+                        v.vuln / a.mean as normalized,
+                        coalesce(to_char(v.vuln,'999,999,999,999'),'N/A') as "Vulnerability",
+                        coalesce(to_char(a.mean,'999,999,999,999'),'N/A') as "Mean",
+                        coalesce(to_char(a.stddev,'999,999,999,999'),'N/A') as "Stddev",
+                        coalesce(to_char(v.vuln / a.mean,'999,990D999'),'N/A') as "Normalized"
+                    from (g left outer join a using (key))
+                        left outer join v on(g.key=v.key and v.year=%(year)s)
+                    """
+                ),
+            ]
+        )
+        # print(s.as_string(conn))
+        df = pd.read_sql(
+            s,
+            conn,
+            params=dict(year=year),
+        )
     # print("bytes: ", sum(df.the_geom.apply(lambda x: len(x.tobytes()))))
     df["the_geom"] = df["the_geom"].apply(lambda x: wkb.loads(x.tobytes()))
     df["the_geom"] = df["the_geom"].apply(
@@ -1270,10 +1267,8 @@ def retrieve_geometry2(country_key: str, mode: int, region_key: str):
             sql.SQL(") select the_geom, label from a where key::text = %(key)s"),
         ]
     )
-    with DBPOOL.take() as cm:
-        conn = cm.resource
-        with conn:  # transaction
-            df = pd.read_sql(query, conn, params={"key": region_key})
+    with psycopg2.connect(**CONFIG["db"]) as conn:
+        df = pd.read_sql(query, conn, params={"key": region_key})
     if len(df) == 0:
         raise InvalidRequestError(f"invalid region {region_key}")
     assert len(df) == 1
@@ -1367,10 +1362,8 @@ def regions_endpoint():
         sql.SQL(shapes_config["sql"]),
         sql.SQL(") select key, label from a"),
     ])
-    with DBPOOL.take() as cm:
-        conn = cm.resource
-        with conn:  # transaction
-            df = pd.read_sql(query, conn)
+    with psycopg2.connect(**CONFIG["db"]) as conn:
+        df = pd.read_sql(query, conn)
     d = {'regions': df.to_dict(orient="records")}
     return flask.jsonify(d)
 

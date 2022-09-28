@@ -2,7 +2,7 @@ name: flex_fcst_mr
 channels:
   - conda-forge
   - defaults
-  - hallkjc01
+  - iri-nextgen
 dependencies:
   - python=3.9
   - cptio
@@ -24,4 +24,3 @@ dependencies:
   - pip
   - pip:
     - pyaconf
-    - queuepool
