@@ -80,3 +80,18 @@ def test_parse_colormap_interp():
     assert np.array_equal(cm[0], [0, 0, 0, 255])
     assert np.array_equal(cm[128], [128, 0, 0, 255])
     assert np.array_equal(cm[255], [255, 0, 0, 255])
+
+def test_deep_merge_disjoint():
+    a = {'a': 1}
+    b = {'b': 2}
+    assert pingrid.deep_merge(a, b) == {'a': 1, 'b': 2}
+
+def test_deep_merge_overlap():
+    a = {'a': 1, 'b': 2}
+    b = {'b': 3, 'c': 4}
+    assert pingrid.deep_merge(a, b) == {'a': 1, 'b': 3, 'c': 4}
+
+def test_deep_merge_nested():
+    a = {'a': 1, 'b': {'c': 2, 'd': 3}}
+    b = {'a': 4, 'b': {'d': 5, 'e': 6}}
+    assert pingrid.deep_merge(a, b) == {'a': 4, 'b': {'c': 2, 'd': 5, 'e': 6}}
