@@ -114,12 +114,24 @@ table.supertable tbody {
     background-color: #fdfd96;
 }
 
+.cell-excluded-severity-0 {
+    background-color: #98985a;
+}
+
 .cell-severity-1 {
     background-color: #ffb347;
 }
 
+.cell-excluded-severity-1 {
+    background-color: #996b2b;
+}
+
 .cell-severity-2 {
     background-color: #ff6961;
+}
+
+.cell-excluded-severity-2 {
+    background-color: #993f3a;
     color: white;
 }
 

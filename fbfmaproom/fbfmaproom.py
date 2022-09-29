@@ -79,7 +79,7 @@ def is_valid_root(path):
 
 APP = FbfDash(
     __name__,
-    external_stylesheets=[dbc.themes.SIMPLEX],
+    external_stylesheets=[dbc.themes.BOOTSTRAP],
     server=SERVER,
     url_base_pathname=f"{PFX}/",
     meta_tags=[
@@ -93,7 +93,7 @@ APP.layout = fbflayout.app_layout()
 
 
 def table_columns(dataset_config, predictor_keys, predictand_key,
-                  severity, season_length):
+                  season_length):
     format_funcs = {
         'year': lambda midpoint: year_label(midpoint, season_length),
         'number0': number_formatter(0),
@@ -346,41 +346,69 @@ def retrieve_vulnerability(
 
 def generate_tables(
     country_key,
-    season_id,
+    season_config,
     table_columns,
     predictand_key,
     issue_month0,
     freq,
     mode,
-    geom_key,
-    severity,
+    mpolygon,
+    final_season,
 ):
-    basic_ds, region_label = fundamental_table_data(
-        country_key, table_columns, season_id, issue_month0,
-        freq, mode, geom_key
+
+    basic_ds = fundamental_table_data(
+        country_key, table_columns, season_config, issue_month0,
+        freq, mode, mpolygon
     )
     if "pct" in basic_ds.coords:
         basic_ds = basic_ds.drop_vars("pct")
     basic_df = basic_ds.to_dataframe()
     main_df, summary_df, thresholds = augment_table_data(
-        basic_df, freq, table_columns, predictand_key
+        basic_df, freq, table_columns, predictand_key, final_season
     )
-    summary_presentation_df = format_summary_table(
-        summary_df, table_columns, thresholds,
-        country_key, mode, freq, season_id, issue_month0,
-        geom_key, region_label, severity,
-    )
-    return main_df, summary_presentation_df, thresholds
+    return main_df, summary_df, thresholds
 
 
-def get_mpoly(mode, country_key, geom_key):
+def region_mpoly(mode, country_key, geom_key):
     if mode == "pixel":
         [[y0, x0], [y1, x1]] = json.loads(geom_key)
-        label = None
         mpolygon = MultiPolygon([Polygon([(x0, y0), (x0, y1), (x1, y1), (x1, y0)])])
     else:
-        label, mpolygon = retrieve_geometry2(country_key, int(mode), geom_key)
-    return mpolygon, label
+        config = CONFIG["countries"][country_key]
+        base_query = config["shapes"][int(mode)]["sql"]
+        response = subquery_unique(base_query, geom_key, "the_geom")
+        mpolygon = wkb.loads(response.tobytes())
+    return mpolygon
+
+
+def region_label(country_key: str, mode: int, region_key: str):
+    if mode == "pixel":
+        label = None
+    else:
+        config = CONFIG["countries"][country_key]
+        base_query = config["shapes"][int(mode)]["sql"]
+        label = subquery_unique(base_query, region_key, "label")
+    return label
+
+
+def subquery_unique(base_query, key, field):
+    query = sql.Composed(
+        [
+            sql.SQL(
+                "with a as (",
+            ),
+            sql.SQL(base_query),
+            sql.SQL(
+                ") select {} from a where key::text = %(key)s"
+            ).format(sql.Identifier(field)),
+        ]
+    )
+    with psycopg2.connect(**CONFIG["db"]) as conn:
+        df = pd.read_sql(query, conn, params={"key": key})
+    if len(df) == 0:
+        raise InvalidRequestError(f"invalid region {region_key}")
+    assert len(df) == 1
+    return df.iloc[0][field]
 
 
 def select_forecast(country_key, forecast_key, issue_month0, target_month0,
@@ -453,13 +481,11 @@ def select_obs(country_key, obs_keys, target_month0, target_year=None, mpolygon=
 
 
 def fundamental_table_data(country_key, table_columns,
-                           season_id, issue_month0, freq, mode,
-                           geom_key):
-    season_config = CONFIG["countries"][country_key]["seasons"][season_id]
+                           season_config, issue_month0, freq, mode,
+                           mpolygon):
     year_min = season_config["start_year"]
     season_length = season_config["length"]
     target_month0 = season_config["target_month"]
-    mpolygon, region_label = get_mpoly(mode, country_key, geom_key)
 
     forecast_ds = xr.Dataset(
         data_vars={
@@ -487,10 +513,10 @@ def fundamental_table_data(country_key, table_columns,
 
     main_ds = main_ds.sortby("time", ascending=False)
 
-    return main_ds, region_label
+    return main_ds
 
 
-def augment_table_data(main_df, freq, table_columns, predictand_key):
+def augment_table_data(main_df, freq, table_columns, predictand_key, final_season):
     main_df = main_df.copy()
 
     main_df["time"] = main_df.index.to_series()
@@ -507,14 +533,14 @@ def augment_table_data(main_df, freq, table_columns, predictand_key):
     def is_ascending(col_key):
         return table_columns[col_key]["lower_is_worse"]
 
-    now = datetime.datetime.now()
-    now = cftime.Datetime360Day(now.year, now.month, min(30, now.day))
+    def percentiles(df, is_ascending):
+        if final_season is not None:
+            df = df.where(lambda x: x.index <= final_season, np.nan)
+        df = df.rank(method="min", ascending=is_ascending, pct=True)
+        return df
+
     rank_pct = {
-        key: (
-            regular_data[key]
-            .where(lambda x: x.index < now, np.nan)
-            .rank(method="min", ascending=is_ascending(key), pct=True)
-        )
+        key: percentiles(regular_data[key], is_ascending(key))
         for key in regular_keys
     }
 
@@ -543,7 +569,6 @@ def augment_table_data(main_df, freq, table_columns, predictand_key):
     for key in regular_keys:
         if key != predictand_key:
             summary_df[key] = hits_and_misses(worst_flags[key], bad_year)
-        main_df[key] = regular_data[key]
         main_df[f"worst_{key}"] = worst_flags[key].astype(int)
 
     return main_df, summary_df, thresholds
@@ -600,7 +625,7 @@ def format_ganttit(
     component = html.A(
         [
             dbc.Button(
-                "Set trigger", color="info", id=id_, size='sm'
+                "Set trigger", id=id_, size='sm'
             ),
             dbc.Tooltip(
                 f"Click to trigger if {var_name} is {format_thresh(thresh)} or {more_less}",
@@ -616,7 +641,7 @@ def format_ganttit(
 
 def format_summary_table(summary_df, table_columns, thresholds,
                          country, mode, freq, season_id, issue_month0,
-                         geom_id, region_label, severity
+                         geom_key, severity
 ):
     format_accuracy = lambda x: f"{x * 100:.2f}%"
     format_count = lambda x: f"{x:.0f}"
@@ -649,8 +674,8 @@ def format_summary_table(summary_df, table_columns, thresholds,
                 freq,
                 season_id,
                 issue_month0,
-                geom_id,
-                region_label,
+                geom_key,
+                region_label(country, mode, geom_key),
                 severity,
             )] +
             list(map(format_count, summary_df[c][0:4])) +
@@ -905,31 +930,57 @@ def update_popup(pathname, position, mode):
     Input("severity", "value"),
     Input("predictand", "value"),
     Input("predictors", "value"),
+    Input("include_upcoming", "value"),
     State("season", "value"),
 )
-def table_cb(issue_month0, freq, mode, geom_key, pathname, severity, predictand_key, predictor_keys, season_id):
+def table_cb(issue_month0, freq, mode, geom_key, pathname, severity, predictand_key, predictor_keys, include_upcoming, season_id):
     country_key = country(pathname)
     config = CONFIG["countries"][country_key]
+    season_config = config["seasons"][season_id]
+
+    final_season = None
+    if not include_upcoming:
+        now = datetime.datetime.now()
+        now = cftime.Datetime360Day(now.year, now.month, min(now.day, 30))
+        final_season = (
+            cftime.Datetime360Day(now.year, 1, 1) +
+            pd.Timedelta(season_config["target_month"] * 30, unit='days')
+        )
+        # if the season's end is in the future
+        if final_season + datetime.timedelta(days=season_config["length"] / 2 * 30) > now:
+            final_season = cftime.Datetime360Day(
+                final_season.year - 1, final_season.month, final_season.day
+            )
+
     tcs = table_columns(
         config["datasets"],
         predictor_keys,
         predictand_key,
-        severity,
-        config["seasons"][season_id]["length"],
+        season_config["length"],
     )
+
+    mpolygon = region_mpoly(mode, country_key, geom_key)
+
     try:
-        dft, dfs, thresholds = generate_tables(
+        main_df, summary_df, thresholds = generate_tables(
             country_key,
-            season_id,
+            season_config,
             tcs,
             predictand_key,
             issue_month0,
             freq,
             mode,
-            geom_key,
-            severity,
+            mpolygon,
+            final_season,
         )
-        return fbftable.gen_table(tcs, dfs, dft, thresholds, severity)
+        summary_presentation_df = format_summary_table(
+            summary_df, tcs, thresholds,
+            country_key, mode, freq, season_id, issue_month0,
+            geom_key, severity,
+        )
+        return fbftable.gen_table(
+            tcs, summary_presentation_df, main_df, thresholds, severity, final_season
+        )
     except Exception as e:
         if isinstance(e, NotFoundError):
             # If it's the user just asked for a forecast that doesn't
@@ -1143,8 +1194,8 @@ def pnep_percentile():
     season_year = parse_arg("season_year", int)
     freq = parse_arg("freq", float)
     prob_thresh = parse_arg("prob_thresh", float)
-    bounds = parse_arg("bounds", required=False)
-    region = parse_arg("region", required=False)
+    bounds = parse_arg("bounds", default=None)
+    region = parse_arg("region", default=None)
 
     forecast_key = "pnep"
 
@@ -1168,7 +1219,7 @@ def pnep_percentile():
         geom_key = bounds
     else:
         geom_key = region
-    mpoly, _ = get_mpoly(mode, country_key, geom_key)
+    mpoly = region_mpoly(mode, country_key, geom_key)
 
     try:
         pnep = select_forecast(country_key, forecast_key,issue_month0,
@@ -1202,8 +1253,8 @@ def trigger_check():
     season_year = parse_arg("season_year", int)
     freq = parse_arg("freq", float)
     thresh = parse_arg("thresh", float)
-    bounds = parse_arg("bounds", required=False)
-    region = parse_arg("region", required=False)
+    bounds = parse_arg("bounds", default=None)
+    region = parse_arg("region", default=None)
 
     config = CONFIG["countries"][country_key]
     if var in config["datasets"]["forecasts"]:
@@ -1232,7 +1283,7 @@ def trigger_check():
         geom_key = bounds
     else:
         geom_key = region
-    mpoly, _ = get_mpoly(mode, country_key, geom_key)
+    mpoly = region_mpoly(mode, country_key, geom_key)
 
     if var_is_forecast:
         data = select_forecast(country_key, var, issue_month0,
@@ -1255,28 +1306,6 @@ def trigger_check():
     return response
 
 
-def retrieve_geometry2(country_key: str, mode: int, region_key: str):
-    config = CONFIG["countries"][country_key]
-    sc = config["shapes"][mode]
-    query = sql.Composed(
-        [
-            sql.SQL(
-                "with a as (",
-            ),
-            sql.SQL(sc["sql"]),
-            sql.SQL(") select the_geom, label from a where key::text = %(key)s"),
-        ]
-    )
-    with psycopg2.connect(**CONFIG["db"]) as conn:
-        df = pd.read_sql(query, conn, params={"key": region_key})
-    if len(df) == 0:
-        raise InvalidRequestError(f"invalid region {region_key}")
-    assert len(df) == 1
-    row = df.iloc[0]
-    geom = wkb.loads(row["the_geom"].tobytes())
-    return row["label"], geom
-
-
 @SERVER.route(f"{PFX}/<country_key>/export")
 def export_endpoint(country_key):
     mode = parse_arg("mode", int) # not supporting pixel mode for now
@@ -1286,6 +1315,7 @@ def export_endpoint(country_key):
     geom_key = parse_arg("region")
     predictor_key = parse_arg("predictor")
     predictand_key = parse_arg("predictand")
+    include_upcoming = parse_arg("include_upcoming", bool, default=False)
 
     config = CONFIG["countries"][country_key]
 
@@ -1307,24 +1337,39 @@ def export_endpoint(country_key):
 
     target_month0 = season_config["target_month"]
 
-    mpoly, _ = get_mpoly(mode, country_key, geom_key)
+    mpoly = region_mpoly(mode, country_key, geom_key)
 
     cols = table_columns(
         config["datasets"],
         [predictor_key],
         predictand_key,
-        severity=0, # unimportant because we won't be formatting it
         season_length=season_config["length"],
     )
-    basic_ds, _ = fundamental_table_data(
-        country_key, cols, season_id, issue_month0,
-        freq, mode, geom_key
-    )
-    if "pct" in basic_ds.coords:
-        basic_ds = basic_ds.drop_vars("pct")
-    basic_df = basic_ds.to_dataframe()
-    main_df, summary_df, thresholds = augment_table_data(
-        basic_df, freq, cols, predictand_key
+
+    final_season = None
+    if not include_upcoming:
+        now = datetime.datetime.now()
+        now = cftime.Datetime360Day(now.year, now.month, min(now.day, 30))
+        final_season = (
+            cftime.Datetime360Day(now.year, 1, 1) +
+            pd.Timedelta(season_config["target_month"] * 30, unit='days')
+        )
+        # if the season's end is in the future
+        if final_season + datetime.timedelta(days=season_config["length"] / 2 * 30) > now:
+            final_season = cftime.Datetime360Day(
+                final_season.year - 1, final_season.month, final_season.day
+            )
+
+    main_df, summary_df, thresholds = generate_tables(
+        country_key,
+        season_config,
+        cols,
+        predictand_key,
+        issue_month0,
+        freq,
+        mode,
+        mpoly,
+        final_season,
     )
 
     main_df['year'] = main_df['time'].apply(lambda x: x.year)

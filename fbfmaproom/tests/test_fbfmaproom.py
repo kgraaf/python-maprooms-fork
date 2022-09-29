@@ -6,6 +6,7 @@ import io
 import numpy as np
 import pandas as pd
 from collections import OrderedDict
+import xarray as xr
 
 import fbfmaproom
 
@@ -35,6 +36,7 @@ def test_table_cb():
         predictand_key="bad-years",
         predictor_keys=['pnep', 'rain', 'ndvi', 'enso_state'],
         season_id='season1',
+        include_upcoming='true',
     )
 
     thead, tbody = table.children
@@ -94,7 +96,7 @@ def test_augment_table_data():
     # pnep_summ       tn   fn   fp   tn   fn
     time = [DT360(y, 1, 16) for y in range(2022, 2016, -1)]
     main_df = pd.DataFrame(
-        index=time,
+        index=xr.coding.cftimeindex.CFTimeIndex(time),
         data={
             "bad-years": [1, 0, 1, 0, 0, 1],
             "enso_state": [np.nan, np.nan, 3, 1, 3, 2],
@@ -123,7 +125,7 @@ def test_augment_table_data():
         },
     }
 
-    aug, summ, thresholds = fbfmaproom.augment_table_data(main_df, freq, table_columns, "bad-years")
+    aug, summ, thresholds = fbfmaproom.augment_table_data(main_df, freq, table_columns, "bad-years", final_season=None)
 
     expected_aug = main_df.copy()
     expected_aug["worst_bad-years"] = [1, 0, 1, 0, 0, 1]
