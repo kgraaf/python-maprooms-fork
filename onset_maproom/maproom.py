@@ -7,7 +7,6 @@ import dash_bootstrap_components as dbc
 from dash.dependencies import Output, Input, State
 import dash_leaflet as dlf
 from pathlib import Path
-import pyaconf
 import pingrid 
 import layout
 import calc
@@ -25,7 +24,7 @@ import shapely
 from shapely import wkb
 from shapely.geometry.multipolygon import MultiPolygon
 
-CONFIG = pyaconf.load(os.environ["CONFIG"])
+CONFIG = pingrid.load_config(os.environ["CONFIG"])
 
 PFX = CONFIG["core_path"]
 TILE_PFX = CONFIG["tile_path"]
@@ -33,7 +32,6 @@ ADMIN_PFX = CONFIG["admin_path"]
 
 # Reads daily data
 
-CONFIG = pyaconf.load(os.environ["CONFIG"])
 DR_PATH = CONFIG["rr_mrg_zarr_path"]
 RR_MRG_ZARR = Path(DR_PATH)
 rr_mrg = calc.read_zarr_data(RR_MRG_ZARR)

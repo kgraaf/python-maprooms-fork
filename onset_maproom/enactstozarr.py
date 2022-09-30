@@ -4,9 +4,9 @@ import pandas as pd
 import xarray as xr
 import datetime as dt
 from pathlib import Path
-import pyaconf
+import pingrid
 
-CONFIG = pyaconf.load(os.environ["CONFIG"])
+CONFIG = pingrid.load_config(os.environ["CONFIG"])
 
 RR_MRG_NC_PATH = CONFIG["rr_mrg_nc_path"]
 RR_MRG_ZARR_PATH = CONFIG["rr_mrg_zarr_path"]
