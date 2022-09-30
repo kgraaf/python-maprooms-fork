@@ -9,7 +9,6 @@ import dash_bootstrap_components as dbc
 from dash.dependencies import Output, Input, State
 import dash_leaflet as dlf
 from pathlib import Path
-import pyaconf
 import pingrid
 import layout
 import plotly.graph_objects as pgo
@@ -21,7 +20,7 @@ from scipy.stats import t, norm, rankdata
 import pandas as pd
 import predictions
 
-CONFIG = pyaconf.load(os.environ["CONFIG"])
+CONFIG = pingrid.load_config(os.environ["CONFIG"])
 
 PFX = CONFIG["core_path"]
 TILE_PFX = CONFIG["tile_path"]
@@ -29,8 +28,6 @@ ADMIN_PFX = CONFIG["admin_path"]
 DATA_PATH = CONFIG["results_path"]
 
 # App
-
-CONFIG = pyaconf.load(os.environ["CONFIG"])
 
 SERVER = flask.Flask(__name__)
 APP = dash.Dash(

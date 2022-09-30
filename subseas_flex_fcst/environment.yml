@@ -21,6 +21,3 @@ dependencies:
   - yaml
   - zarr
   - bottleneck
-  - pip
-  - pip:
-    - pyaconf
