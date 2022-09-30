@@ -1,3 +1,4 @@
+import copy
 import io
 from typing import Tuple, List, Literal, Optional, Union, Callable, Iterable as Iterable
 from typing import NamedTuple
@@ -770,3 +771,25 @@ def _proxy(fn, *args, **kwargs):
     if decode_times:
         ds = fix_calendar(ds)
     return ds
+
+
+# Copyright tfeldmann, MIT license.
+# https://gist.github.com/angstwad/bf22d1822c38a92ec0a9
+def deep_merge(a: dict, b: dict) -> dict:
+    result = copy.deepcopy(a)
+    for bk, bv in b.items():
+        av = result.get(bk)
+        if isinstance(av, dict) and isinstance(bv, dict):
+            result[bk] = deep_merge(av, bv)
+        else:
+            result[bk] = copy.deepcopy(bv)
+    return result
+
+
+def load_config(colon_separated_filenames):
+    filenames = colon_separated_filenames.split(":")
+    config = {}
+    for fname in filenames:
+        with open(fname) as f:
+            config = deep_merge(config, yaml.safe_load(f))
+    return config

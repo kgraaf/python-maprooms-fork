@@ -21,6 +21,3 @@ dependencies:
   - xarray
   - yaml
   - zarr
-  - pip
-  - pip:
-    - pyaconf

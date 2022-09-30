@@ -32,7 +32,6 @@ import uuid
 import warnings
 
 import __about__ as about
-import pyaconf
 import pingrid
 from pingrid import BGRA, ClientSideError, InvalidRequestError, NotFoundError, parse_arg
 import fbflayout
@@ -42,11 +41,7 @@ import dash_bootstrap_components as dbc
 from collections import OrderedDict
 
 
-config_files = os.environ["CONFIG"].split(":")
-
-CONFIG = {}
-for fname in config_files:
-    CONFIG = pyaconf.merge([CONFIG, pyaconf.load(fname)])
+CONFIG = pingrid.load_config(os.environ["CONFIG"])
 
 
 ZERO_SHAPE = [[[[0, 0], [0, 0], [0, 0], [0, 0]]]]
@@ -1425,7 +1420,7 @@ if __name__ == "__main__":
         CONFIG["dev_server_interface"],
         CONFIG["dev_server_port"],
         debug=debug,
-        extra_files=config_files,
+        extra_files=os.environ["CONFIG"].split(";"),
         processes=CONFIG["dev_processes"],
         threaded=False,
     )

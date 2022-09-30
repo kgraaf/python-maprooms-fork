@@ -1,5 +1,4 @@
 import os
-import pyaconf
 from dash import dcc
 from dash import html
 import dash_bootstrap_components as dbc
@@ -15,7 +14,7 @@ import pingrid
 import pandas as pd
 
 
-CONFIG = pyaconf.load(os.environ["CONFIG"])
+CONFIG = pingrid.load_config(os.environ["CONFIG"])
 DR_PATH = CONFIG["rr_mrg_zarr_path"]
 RR_MRG_ZARR = Path(DR_PATH)
 

@@ -7,7 +7,7 @@ from widgets import Block, Sentence, Date, Units, Number
 import pandas as pd
 from datetime import datetime
 
-import pyaconf
+import pingrid
 import os
 import glob
 import re
@@ -17,7 +17,7 @@ import predictions
 from pathlib import Path
 import numpy as np
 
-CONFIG = pyaconf.load(os.environ["CONFIG"])
+CONFIG = pingrid.load_config(os.environ["CONFIG"])
 DATA_PATH = CONFIG["results_path"]
 
 IRI_BLUE = "rgb(25,57,138)"
