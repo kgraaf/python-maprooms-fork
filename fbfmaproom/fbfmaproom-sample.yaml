@@ -411,7 +411,7 @@ countries:
                 enso_state: *enso_ds
                 ndvi:
                     label: NDVI
-                    path: ndvi-ethiopia.zarr
+                    path: ethiopia/ndvi-mam.zarr
                     var_names:
                         obs: NDVI
                         lat: Y
@@ -718,7 +718,7 @@ countries:
                 enso_state: *enso_ds
                 ndvi:
                     label: NDVI
-                    path: ndvi-ethiopia.zarr
+                    path: ethiopia/ndvi-mam.zarr
                     var_names:
                         obs: NDVI
                         lat: Y
