@@ -125,7 +125,7 @@ url_datasets = [
     ),
     (
         "ethiopia/pnep-mam",
-        "http://iridl.ldeo.columbia.edu/home/.remic/.NMA/.NextGen/.MAM_PRCP/.Ethiopia/.NextGen/.FbF/.pne/P//P//percentile/0/5/5/95/NewEvenGRID/replaceGRID/",
+        "http://iridl.ldeo.columbia.edu/home/.aaron/.Ethiopia/.CPT/.NextGen/.MAM_PRCP/.Ethiopia/.NextGen/.FbF/.pne/P//P//percentile/0/5/5/95/NewEvenGRID/replaceGRID/",
     ),
     (
         "ethiopia/rain-ond",
