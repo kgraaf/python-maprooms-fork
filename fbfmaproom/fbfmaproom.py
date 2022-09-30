@@ -407,7 +407,8 @@ def subquery_unique(base_query, key, field):
     with psycopg2.connect(**CONFIG["db"]) as conn:
         df = pd.read_sql(query, conn, params={"key": key})
     if len(df) == 0:
-        raise InvalidRequestError(f"invalid region {region_key}")
+        raise Exception
+        raise InvalidRequestError(f"invalid region {key}")
     assert len(df) == 1
     return df.iloc[0][field]
 
@@ -960,9 +961,11 @@ def table_cb(issue_month0, freq, mode, geom_key, pathname, severity, predictand_
         season_config["length"],
     )
 
-    mpolygon = region_mpoly(mode, country_key, geom_key)
-
     try:
+        if geom_key is None:
+            raise NotFoundError("No region found")
+        mpolygon = region_mpoly(mode, country_key, geom_key)
+
         main_df, summary_df, thresholds = generate_tables(
             country_key,
             season_config,
