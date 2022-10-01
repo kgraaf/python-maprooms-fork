@@ -12,17 +12,17 @@ RUN rm -r /etc/httpd/conf.d /etc/httpd/conf.modules.d
 
 # miniconda
 RUN curl -L \
-    https://repo.anaconda.com/miniconda/Miniconda3-py39_4.9.2-Linux-x86_64.sh \
+    https://repo.anaconda.com/miniconda/Miniconda3-py39_4.12.0-Linux-x86_64.sh \
     -o /miniconda-installer.sh
 RUN bash /miniconda-installer.sh -b -p /conda
 RUN eval "$('/conda/bin/conda' 'shell.bash' 'hook' 2> /dev/null)" && \
     conda config --set auto_update_conda False && \
-    conda install conda==4.11.0
+    conda install -c conda-forge conda==22.9.0 conda-lock==1.1.1
 
 # build conda environment
-COPY fbfmaproom/conda-linux-64.lock /build/conda-linux-64.lock
+COPY fbfmaproom/conda-lock.yml /build/conda-lock.yml
 RUN eval "$('/conda/bin/conda' 'shell.bash' 'hook' 2> /dev/null)" && \
-    conda create --file /build/conda-linux-64.lock -n app && \
+    conda-lock install --no-dev -n app /build/conda-lock.yml && \
     conda clean -afy
 
 # mod_wsgi: use pip to compile mod_wsgi from source for the particular versions
