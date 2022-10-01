@@ -1,5 +1,26 @@
 # FbF Maproom
 
+## Creating a conda environment containing this project's dependencies
+
+```
+conda create -n fbfmaproom2 --file conda-linux-64.lock
+```
+(substituting osx or win for linux as appropriate)
+
+You don't need to install conda-lock for this.
+
+Note that the command is `conda create`, not `conda env create`. Both exist, and they're different :-(
+
+
+## Adding or removing dependencies
+
+Edit `environment.yml`, then regenerate the lock files as follows:
+```
+conda install conda-lock
+conda-lock lock -f environment.yml
+conda-lock render
+```
+
 ## Adding a foreign table
 
 This maproom makes use of foreign tables in Postgres. Here's a brief explanation of how to add one:
