@@ -407,7 +407,6 @@ def subquery_unique(base_query, key, field):
     with psycopg2.connect(**CONFIG["db"]) as conn:
         df = pd.read_sql(query, conn, params={"key": key})
     if len(df) == 0:
-        raise Exception
         raise InvalidRequestError(f"invalid region {key}")
     assert len(df) == 1
     return df.iloc[0][field]
