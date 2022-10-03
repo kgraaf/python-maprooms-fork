@@ -21,6 +21,7 @@ dependencies:
     # Newer versions of Pandas emit warnings when passed a psycopg2
     # connection. To upgrade, use psycopg2 via SLQAlchemy.
   - pandas=1.3
+  - pip  # to support compilation of mod_wsgi from source
   - psycopg2
   - pyyaml
   - rasterio
@@ -36,4 +37,3 @@ dependencies:
 
   - xarray
   - zarr
-

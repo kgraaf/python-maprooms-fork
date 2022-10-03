@@ -20,9 +20,9 @@ RUN eval "$('/conda/bin/conda' 'shell.bash' 'hook' 2> /dev/null)" && \
     conda install conda==4.11.0
 
 # build conda environment
-COPY fbfmaproom/environment_linux.yml /build/environment.yml
+COPY fbfmaproom/conda-linux-64.lock /build/conda-linux-64.lock
 RUN eval "$('/conda/bin/conda' 'shell.bash' 'hook' 2> /dev/null)" && \
-    conda env create -f /build/environment.yml -n app && \
+    conda create --file /build/conda-linux-64.lock -n app && \
     conda clean -afy
 
 # mod_wsgi: use pip to compile mod_wsgi from source for the particular versions
