@@ -1,14 +1,18 @@
-ARG BASE=centos:7.9.2009
-FROM ${BASE} as build
+FROM centos:7.9.2009 as common
+# Dependencies that are used in both build stage and final stage
 
-# yum packages
-# httpd-devel and gcc are to support building mod_wsgi from source.
 # mesa-libGL is a dependency of opencv that is not packaged for conda (see
 # https://conda-forge.org/docs/maintainer/knowledge_base.html#core-dependency-tree-packages-cdts)
-RUN yum install -y httpd httpd-devel gcc mesa-libGL
+RUN yum install -y httpd mesa-libGL
 
 RUN rm -r /etc/httpd/conf.d /etc/httpd/conf.modules.d
 
+
+
+FROM common as build
+
+# httpd-devel and gcc are to support building mod_wsgi from source.
+RUN yum install -y httpd-devel gcc
 
 # miniconda
 RUN curl -L \
@@ -33,7 +37,7 @@ RUN eval "$('/conda/bin/conda' 'shell.bash' 'hook' 2> /dev/null)" && \
 
 
 
-FROM ${BASE}
+FROM common
 
 COPY --from=build /conda /conda
 
