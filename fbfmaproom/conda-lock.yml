@@ -6,10 +6,12 @@
 #
 # Install this environment as "YOURENV" with:
 #     conda-lock install -n YOURENV --file conda-lock.yml
+# This lock contains optional development dependencies. Include them in the installed environment with:
+#     conda-lock install --dev-dependencies -n YOURENV --file conda-lock.yml
 # To update a single package to the latest version compatible with the version constraints in the source:
 #     conda-lock lock --lockfile conda-lock.yml --update PACKAGE
 # To re-solve the entire environment, e.g. after changing a version constraint in the source file:
-#     conda-lock -f /home/aaron/src/python-maprooms/fbfmaproom/environment.yml --lockfile conda-lock.yml
+#     conda-lock -f /home/aaron/src/python-maprooms/fbfmaproom/environment.yml -f /home/aaron/src/python-maprooms/fbfmaproom/environment-dev.yml --lockfile conda-lock.yml
 metadata:
   channels:
   - url: conda-forge
@@ -17,15 +19,16 @@ metadata:
   - url: defaults
     used_env_vars: []
   content_hash:
-    linux-64: cae7fe0f5735cefb99434fb92a487dfe623e900d6420e6b868ae83829a555e6c
-    osx-64: 0f68766e91dcd3e8b4a5cfa0db913a8adabf907a3ca75bc6ea6cb7580bc8d7d1
-    win-64: ea652e7b66a9236a1df5047ac01fcf942594957cfaffe16f9e373391a64289a4
+    linux-64: 4b0dd37bd807a83a78252d14a010a47fe3dcac51b363f49cffc33535f346f7cc
+    osx-64: 6387ac09d5d77afbcb690f7977ede7a7cbde6dd7b228c17dd2c7fc228089ef91
+    win-64: 194aae09c867706d53e19778a52c89d05611ddfde4417df9ec716746cf796a08
   platforms:
   - linux-64
   - osx-64
   - win-64
   sources:
   - /home/aaron/src/python-maprooms/fbfmaproom/environment.yml
+  - /home/aaron/src/python-maprooms/fbfmaproom/environment-dev.yml
 package:
 - category: main
   dependencies: {}
@@ -1794,6 +1797,18 @@ package:
   platform: linux-64
   url: https://conda.anaconda.org/conda-forge/linux-64/hdf5-1.12.1-nompi_h2386368_104.tar.bz2
   version: 1.12.1
+- category: dev
+  dependencies:
+    python: ''
+  hash:
+    md5: 39161f81cc5e5ca45b8226fbb06c6905
+    sha256: 9423ded508ebda87dae21d7876134e406ffeb88e6059f3fe1a909d180c351959
+  manager: conda
+  name: iniconfig
+  optional: true
+  platform: linux-64
+  url: https://conda.anaconda.org/conda-forge/noarch/iniconfig-1.1.1-pyh9f0ad1d_0.tar.bz2
+  version: 1.1.1
 - category: main
   dependencies:
     python: '>=3.7'
@@ -1843,6 +1858,18 @@ package:
   platform: linux-64
   url: https://conda.anaconda.org/conda-forge/linux-64/proj-8.1.1-h277dcde_2.tar.bz2
   version: 8.1.1
+- category: dev
+  dependencies:
+    python: '>=2.7'
+  hash:
+    md5: b4613d7e7a493916d867842a6a148054
+    sha256: 268be33a290e3d51467ab29cbb5a80cf79f69dade2f2dead25d7f80d76c3543a
+  manager: conda
+  name: py
+  optional: true
+  platform: linux-64
+  url: https://conda.anaconda.org/conda-forge/noarch/py-1.11.0-pyh6c4a22f_0.tar.bz2
+  version: 1.11.0
 - category: main
   dependencies:
     python: '>=3.6'
@@ -1903,6 +1930,18 @@ package:
   platform: linux-64
   url: https://conda.anaconda.org/conda-forge/noarch/tenacity-8.1.0-pyhd8ed1ab_0.tar.bz2
   version: 8.1.0
+- category: dev
+  dependencies:
+    python: '>=3.7'
+  hash:
+    md5: 5844808ffab9ebdb694585b50ba02a96
+    sha256: 4cd48aba7cd026d17e86886af48d0d2ebc67ed36f87f6534f4b67138f5a5a58f
+  manager: conda
+  name: tomli
+  optional: true
+  platform: linux-64
+  url: https://conda.anaconda.org/conda-forge/noarch/tomli-2.0.1-pyhd8ed1ab_0.tar.bz2
+  version: 2.0.1
 - category: main
   dependencies:
     python: '>=3.7'
@@ -2207,6 +2246,19 @@ package:
   platform: linux-64
   url: https://conda.anaconda.org/conda-forge/noarch/plotly-5.10.0-pyhd8ed1ab_0.tar.bz2
   version: 5.10.0
+- category: dev
+  dependencies:
+    python: '>=3.9,<3.10.0a0'
+    python_abi: 3.9.* *_cp39
+  hash:
+    md5: c375c89340e563053f3656c7f134d265
+    sha256: d82e717937e171a2b124030acd2625e0a3ab62e82a137a21c03a91013280c29f
+  manager: conda
+  name: pluggy
+  optional: true
+  platform: linux-64
+  url: https://conda.anaconda.org/conda-forge/linux-64/pluggy-1.0.0-py39hf3d152e_3.tar.bz2
+  version: 1.0.0
 - category: main
   dependencies:
     boost-cpp: '>=1.74.0,<1.74.1.0a0'
@@ -2526,6 +2578,25 @@ package:
   platform: linux-64
   url: https://conda.anaconda.org/conda-forge/linux-64/protobuf-3.19.4-py39he80948d_0.tar.bz2
   version: 3.19.4
+- category: dev
+  dependencies:
+    attrs: '>=19.2.0'
+    iniconfig: ''
+    packaging: ''
+    pluggy: '>=0.12,<2.0'
+    py: '>=1.8.2'
+    python: '>=3.9,<3.10.0a0'
+    python_abi: 3.9.* *_cp39
+    tomli: '>=1.0.0'
+  hash:
+    md5: b807481ba94ec32bc742f2fe775d0bff
+    sha256: c60a5039c01de846e7b717831c81e1de13da8d951d9728990481fd54363689aa
+  manager: conda
+  name: pytest
+  optional: true
+  platform: linux-64
+  url: https://conda.anaconda.org/conda-forge/linux-64/pytest-7.1.3-py39hf3d152e_0.tar.bz2
+  version: 7.1.3
 - category: main
   dependencies:
     geos: '>=3.9.1,<3.9.2.0a0'
@@ -2618,6 +2689,25 @@ package:
   platform: linux-64
   url: https://conda.anaconda.org/conda-forge/linux-64/libopencv-4.5.5-py39h7d09d5f_0.tar.bz2
   version: 4.5.5
+- category: dev
+  dependencies:
+    cftime: ''
+    hdf5: '>=1.12.1,<1.12.2.0a0'
+    libgcc-ng: '>=12'
+    libnetcdf: '>=4.8.1,<4.8.2.0a0'
+    numpy: '>=1.19.5,<2.0a0'
+    python: '>=3.9,<3.10.0a0'
+    python_abi: 3.9.* *_cp39
+    setuptools: ''
+  hash:
+    md5: e7f0560cfc4fdbd1fb4fc8a305410a44
+    sha256: e67d1b954838b066356df296090135885135de58bc6d9744f121f0fc58445e43
+  manager: conda
+  name: netcdf4
+  optional: true
+  platform: linux-64
+  url: https://conda.anaconda.org/conda-forge/linux-64/netcdf4-1.6.0-nompi_py39hf5a3a3f_100.tar.bz2
+  version: 1.6.0
 - category: main
   dependencies:
     affine: ''
@@ -3921,6 +4011,18 @@ package:
   platform: osx-64
   url: https://conda.anaconda.org/conda-forge/osx-64/hdf5-1.12.1-nompi_ha60fbc9_104.tar.bz2
   version: 1.12.1
+- category: dev
+  dependencies:
+    python: ''
+  hash:
+    md5: 39161f81cc5e5ca45b8226fbb06c6905
+    sha256: 9423ded508ebda87dae21d7876134e406ffeb88e6059f3fe1a909d180c351959
+  manager: conda
+  name: iniconfig
+  optional: true
+  platform: osx-64
+  url: https://conda.anaconda.org/conda-forge/noarch/iniconfig-1.1.1-pyh9f0ad1d_0.tar.bz2
+  version: 1.1.1
 - category: main
   dependencies:
     python: '>=3.7'
@@ -3980,6 +4082,18 @@ package:
   platform: osx-64
   url: https://conda.anaconda.org/conda-forge/osx-64/proj-8.1.1-h1512c50_2.tar.bz2
   version: 8.1.1
+- category: dev
+  dependencies:
+    python: '>=2.7'
+  hash:
+    md5: b4613d7e7a493916d867842a6a148054
+    sha256: 268be33a290e3d51467ab29cbb5a80cf79f69dade2f2dead25d7f80d76c3543a
+  manager: conda
+  name: py
+  optional: true
+  platform: osx-64
+  url: https://conda.anaconda.org/conda-forge/noarch/py-1.11.0-pyh6c4a22f_0.tar.bz2
+  version: 1.11.0
 - category: main
   dependencies:
     python: '>=3.6'
@@ -4040,6 +4154,18 @@ package:
   platform: osx-64
   url: https://conda.anaconda.org/conda-forge/noarch/tenacity-8.1.0-pyhd8ed1ab_0.tar.bz2
   version: 8.1.0
+- category: dev
+  dependencies:
+    python: '>=3.7'
+  hash:
+    md5: 5844808ffab9ebdb694585b50ba02a96
+    sha256: 4cd48aba7cd026d17e86886af48d0d2ebc67ed36f87f6534f4b67138f5a5a58f
+  manager: conda
+  name: tomli
+  optional: true
+  platform: osx-64
+  url: https://conda.anaconda.org/conda-forge/noarch/tomli-2.0.1-pyhd8ed1ab_0.tar.bz2
+  version: 2.0.1
 - category: main
   dependencies:
     python: '>=3.7'
@@ -4306,6 +4432,19 @@ package:
   platform: osx-64
   url: https://conda.anaconda.org/conda-forge/noarch/plotly-5.10.0-pyhd8ed1ab_0.tar.bz2
   version: 5.10.0
+- category: dev
+  dependencies:
+    python: '>=3.9,<3.10.0a0'
+    python_abi: 3.9.* *_cp39
+  hash:
+    md5: 8241cb5aaabd8a108a78c1a13c048cec
+    sha256: cf21c6df3d1967ea4888bb07859888ba85f48a680869f03111aed61b00ec7b91
+  manager: conda
+  name: pluggy
+  optional: true
+  platform: osx-64
+  url: https://conda.anaconda.org/conda-forge/osx-64/pluggy-1.0.0-py39h6e9494a_3.tar.bz2
+  version: 1.0.0
 - category: main
   dependencies:
     boost-cpp: '>=1.74.0,<1.74.1.0a0'
@@ -4548,6 +4687,25 @@ package:
   platform: osx-64
   url: https://conda.anaconda.org/conda-forge/osx-64/protobuf-3.18.1-py39h9fcab8e_0.tar.bz2
   version: 3.18.1
+- category: dev
+  dependencies:
+    attrs: '>=19.2.0'
+    iniconfig: ''
+    packaging: ''
+    pluggy: '>=0.12,<2.0'
+    py: '>=1.8.2'
+    python: '>=3.9,<3.10.0a0'
+    python_abi: 3.9.* *_cp39
+    tomli: '>=1.0.0'
+  hash:
+    md5: 95d048dee0c7b26d105b8ab3bd85ffb6
+    sha256: 33d9c31edb5e3ef631c0c1f73c32a1b07a1074da1f9a355b174aed90122963cc
+  manager: conda
+  name: pytest
+  optional: true
+  platform: osx-64
+  url: https://conda.anaconda.org/conda-forge/osx-64/pytest-7.1.3-py39h6e9494a_0.tar.bz2
+  version: 7.1.3
 - category: main
   dependencies:
     numpy: '>=1.20.3,<2.0a0'
@@ -4700,6 +4858,24 @@ package:
   platform: osx-64
   url: https://conda.anaconda.org/conda-forge/noarch/flask-compress-1.13-pyhd8ed1ab_0.tar.bz2
   version: '1.13'
+- category: dev
+  dependencies:
+    cftime: ''
+    hdf5: '>=1.12.1,<1.12.2.0a0'
+    libnetcdf: '>=4.8.1,<4.8.2.0a0'
+    numpy: '>=1.19.5,<2.0a0'
+    python: '>=3.9,<3.10.0a0'
+    python_abi: 3.9.* *_cp39
+    setuptools: ''
+  hash:
+    md5: 14eafbbe06c6b1d42c779cf1a1dae592
+    sha256: 0591bc60f403c09ffa390d332b579950bcf459cfbe930705c07d1d3ed0aa50f2
+  manager: conda
+  name: netcdf4
+  optional: true
+  platform: osx-64
+  url: https://conda.anaconda.org/conda-forge/osx-64/netcdf4-1.6.0-nompi_py39h340a447_100.tar.bz2
+  version: 1.6.0
 - category: main
   dependencies:
     libopencv: 4.5.3 py39hd2a74c5_5
@@ -5827,6 +6003,18 @@ package:
   platform: win-64
   url: https://conda.anaconda.org/conda-forge/win-64/hdf5-1.12.1-nompi_h2a0e4a3_104.tar.bz2
   version: 1.12.1
+- category: dev
+  dependencies:
+    python: ''
+  hash:
+    md5: 39161f81cc5e5ca45b8226fbb06c6905
+    sha256: 9423ded508ebda87dae21d7876134e406ffeb88e6059f3fe1a909d180c351959
+  manager: conda
+  name: iniconfig
+  optional: true
+  platform: win-64
+  url: https://conda.anaconda.org/conda-forge/noarch/iniconfig-1.1.1-pyh9f0ad1d_0.tar.bz2
+  version: 1.1.1
 - category: main
   dependencies:
     python: '>=3.7'
@@ -5945,6 +6133,18 @@ package:
   platform: win-64
   url: https://conda.anaconda.org/conda-forge/win-64/proj-8.1.1-h1cfcee9_2.tar.bz2
   version: 8.1.1
+- category: dev
+  dependencies:
+    python: '>=2.7'
+  hash:
+    md5: b4613d7e7a493916d867842a6a148054
+    sha256: 268be33a290e3d51467ab29cbb5a80cf79f69dade2f2dead25d7f80d76c3543a
+  manager: conda
+  name: py
+  optional: true
+  platform: win-64
+  url: https://conda.anaconda.org/conda-forge/noarch/py-1.11.0-pyh6c4a22f_0.tar.bz2
+  version: 1.11.0
 - category: main
   dependencies:
     python: '>=3.6'
@@ -6005,6 +6205,18 @@ package:
   platform: win-64
   url: https://conda.anaconda.org/conda-forge/noarch/tenacity-8.1.0-pyhd8ed1ab_0.tar.bz2
   version: 8.1.0
+- category: dev
+  dependencies:
+    python: '>=3.7'
+  hash:
+    md5: 5844808ffab9ebdb694585b50ba02a96
+    sha256: 4cd48aba7cd026d17e86886af48d0d2ebc67ed36f87f6534f4b67138f5a5a58f
+  manager: conda
+  name: tomli
+  optional: true
+  platform: win-64
+  url: https://conda.anaconda.org/conda-forge/noarch/tomli-2.0.1-pyhd8ed1ab_0.tar.bz2
+  version: 2.0.1
 - category: main
   dependencies:
     python: '>=3.7'
@@ -6277,6 +6489,19 @@ package:
   platform: win-64
   url: https://conda.anaconda.org/conda-forge/noarch/plotly-5.10.0-pyhd8ed1ab_0.tar.bz2
   version: 5.10.0
+- category: dev
+  dependencies:
+    python: '>=3.9,<3.10.0a0'
+    python_abi: 3.9.* *_cp39
+  hash:
+    md5: 7c78954b71d00dcede886c75fd116060
+    sha256: 4284a34276803a77cd30f7f8307640c4502df321566e16af42d53369b04e3848
+  manager: conda
+  name: pluggy
+  optional: true
+  platform: win-64
+  url: https://conda.anaconda.org/conda-forge/win-64/pluggy-1.0.0-py39hcbf5309_3.tar.bz2
+  version: 1.0.0
 - category: main
   dependencies:
     libpq: '>=13.3,<14.0a0'
@@ -6526,6 +6751,26 @@ package:
   platform: win-64
   url: https://conda.anaconda.org/conda-forge/win-64/protobuf-3.20.1-py39hcbf5309_0.tar.bz2
   version: 3.20.1
+- category: dev
+  dependencies:
+    attrs: '>=19.2.0'
+    colorama: ''
+    iniconfig: ''
+    packaging: ''
+    pluggy: '>=0.12,<2.0'
+    py: '>=1.8.2'
+    python: '>=3.9,<3.10.0a0'
+    python_abi: 3.9.* *_cp39
+    tomli: '>=1.0.0'
+  hash:
+    md5: 1dbf41f27f8e4829f53ec74e520acede
+    sha256: 12e9acd381d98d7557479b86ee0358e5d99a7b101c6401212249b78318a115bd
+  manager: conda
+  name: pytest
+  optional: true
+  platform: win-64
+  url: https://conda.anaconda.org/conda-forge/win-64/pytest-7.1.3-py39hcbf5309_0.tar.bz2
+  version: 7.1.3
 - category: main
   dependencies:
     geos: '>=3.9.1,<3.9.2.0a0'
@@ -6632,6 +6877,26 @@ package:
   platform: win-64
   url: https://conda.anaconda.org/conda-forge/win-64/libgdal-3.3.3-h08edb8f_0.tar.bz2
   version: 3.3.3
+- category: dev
+  dependencies:
+    cftime: ''
+    hdf5: '>=1.12.1,<1.12.2.0a0'
+    libnetcdf: '>=4.8.1,<4.8.2.0a0'
+    numpy: '>=1.19.5,<2.0a0'
+    python: '>=3.9,<3.10.0a0'
+    python_abi: 3.9.* *_cp39
+    setuptools: ''
+    vc: '>=14.1,<15'
+    vs2015_runtime: '>=14.16.27033'
+  hash:
+    md5: 0da30ed5167ada4bdb2234da28fb1d74
+    sha256: d5223cfa00e677c6e0131a62701c9f7900eea8d6cc09b473efe0742eb7ca1ac5
+  manager: conda
+  name: netcdf4
+  optional: true
+  platform: win-64
+  url: https://conda.anaconda.org/conda-forge/win-64/netcdf4-1.6.0-nompi_py39hf113b1f_100.tar.bz2
+  version: 1.6.0
 - category: main
   dependencies:
     libopencv: 4.5.5 py39h1d41392_10

@@ -17,8 +17,8 @@ Note that the command is `conda create`, not `conda env create`. Both exist, and
 Edit `environment.yml`, then regenerate the lock files as follows:
 ```
 conda install conda-lock
-conda-lock lock -f environment.yml
-conda-lock render
+conda-lock lock -f environment.yml -f environment-dev.yml
+conda-lock render --no-dev-dependencies
 ```
 
 ## Adding a foreign table
