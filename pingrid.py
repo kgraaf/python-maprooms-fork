@@ -535,7 +535,7 @@ def average_over(ds, s, lon_res, lat_res, lon_name="lon", lat_name="lat", all_to
     )
     r = r0 * np.cos(np.deg2rad(ds[lat_name]))
 
-    norm = r / r.sum([lat_name, lon_name])
+    norm = r / r.where(ds.notnull()).sum([lat_name, lon_name])
     res = (ds * norm).sum([lat_name, lon_name], skipna=True, min_count=1)
 
     # For some reason, DataArray names get preserved when they're
