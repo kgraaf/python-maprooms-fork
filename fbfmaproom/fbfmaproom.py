@@ -874,7 +874,7 @@ def update_selected_region(position, mode, pathname):
     else:
         geom, attrs = retrieve_geometry(country_key, (x, y), mode, None)
         if geom is not None:
-            positions = pingrid.shapely_to_leaflet(geom)
+            positions = shapely.geometry.mapping(geom)["coordinates"]
             key = str(attrs["key"])
     if positions is None:
         positions = ZERO_SHAPE

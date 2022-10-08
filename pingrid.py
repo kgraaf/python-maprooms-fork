@@ -653,45 +653,6 @@ def sel_periodic(ds, dim, vals, period=360.0):
     return ds
 
 
-def mpoly_leaflet_to_shapely(polys):
-    return MultiPolygon(poly_leaflet_to_shapely(poly) for poly in polys)
-
-
-def poly_leaflet_to_shapely(poly):
-    exterior = poly[0]
-    interiors = poly[1:]
-    return Polygon(
-        ring_leaflet_to_shapely(exterior),
-        [ring_leaflet_to_shapely(interior) for interior in interiors],
-    )
-
-
-def ring_leaflet_to_shapely(ring):
-    return [(x, y) for y, x in ring]
-
-
-def shapely_to_leaflet(geom):
-    if isinstance(geom, MultiPolygon):
-        return mpoly_shapely_to_leaflet(geom)
-    elif isinstance(geom, Polygon):
-        return poly_shapely_to_leaflet(geom)
-    else:
-        raise Exception(f"Don't know how to handle {type(geom)}")
-
-
-def mpoly_shapely_to_leaflet(mpoly):
-    return [poly_shapely_to_leaflet(poly) for poly in mpoly.geoms]
-
-
-def poly_shapely_to_leaflet(poly):
-    return [ring_shapely_to_leaflet(poly.exterior)] + [
-        ring_shapely_to_leaflet(interior) for interior in poly.interiors
-    ]
-
-
-def ring_shapely_to_leaflet(ring):
-    return [(y, x) for x, y in ring.coords]
-
 
 # Flask utils
 
