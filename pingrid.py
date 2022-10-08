@@ -670,6 +670,15 @@ def ring_leaflet_to_shapely(ring):
     return [(x, y) for y, x in ring]
 
 
+def shapely_to_leaflet(geom):
+    if isinstance(geom, MultiPolygon):
+        return mpoly_shapely_to_leaflet(geom)
+    elif isinstance(geom, Polygon):
+        return poly_shapely_to_leaflet(geom)
+    else:
+        raise Exception(f"Don't know how to handle {type(geom)}")
+
+
 def mpoly_shapely_to_leaflet(mpoly):
     return [poly_shapely_to_leaflet(poly) for poly in mpoly.geoms]
 
