@@ -18,7 +18,7 @@ Edit `environment.yml`, then regenerate the lock files as follows:
 ```
 conda install conda-lock
 conda-lock lock -f environment.yml -f environment-dev.yml
-conda-lock render --no-dev-dependencies
+conda-lock render
 ```
 
 ## Adding a foreign table
