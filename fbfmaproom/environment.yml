@@ -25,13 +25,7 @@ dependencies:
   - psycopg2
   - pyyaml
   - rasterio
-
-    # Shapely changed how looping over geometries works in the newer version and
-    # Pingrid relies on the old functionality. It is unclear to me whether using
-    # the .geoms property has the same behavior as the "built in" iterator the
-    # old version had. As we may migrate way from Pingrid and we're not going to
-    # upgrade it right now and possibly waste the work or effort.
-  - shapely=1.7
+  - shapely
 
   - werkzeug<2.1 # werkzeug 2.1 spews warnings at dev server startup
 
