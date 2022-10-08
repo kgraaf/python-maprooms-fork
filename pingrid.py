@@ -286,7 +286,7 @@ def rasterize_multipolygon(
     bg_color: Union[int, BGRA] = 0,
     shift: int = 0,
 ) -> np.ndarray:
-    for p in mp:
+    for p in mp.geoms:
         if not p.is_empty:
             rasterize_linearring(im, p.exterior, fxs, fys, line_type, fg_color, shift)
             for q in p.interiors:
@@ -527,7 +527,7 @@ def average_over(ds, s, lon_res, lat_res, lon_name="lon", lat_name="lat", all_to
     )
 
     r0 = rasterio.features.rasterize(
-        s, out_shape=(lat_size, lon_size), transform=t, all_touched=all_touched
+        [s], out_shape=(lat_size, lon_size), transform=t, all_touched=all_touched
     )
     r0 = xr.DataArray(
         r0,
@@ -671,7 +671,7 @@ def ring_leaflet_to_shapely(ring):
 
 
 def mpoly_shapely_to_leaflet(mpoly):
-    return [poly_shapely_to_leaflet(poly) for poly in mpoly]
+    return [poly_shapely_to_leaflet(poly) for poly in mpoly.geoms]
 
 
 def poly_shapely_to_leaflet(poly):
