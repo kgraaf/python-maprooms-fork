@@ -16,7 +16,6 @@ __all__ = [
     'open_mfdataset',
     'parse_arg',
     'parse_colormap',
-    'produce_shape_tile',
     'tile',
     'tile_left',
     'tile_top_mercator',

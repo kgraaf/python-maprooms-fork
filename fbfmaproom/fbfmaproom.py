@@ -1153,7 +1153,7 @@ def vuln_tiles(tz, tx, ty, country_key, mode, year):
             )
             for _, r in df.iterrows()
         ]
-        im = pingrid.produce_shape_tile(im, shapes, tx, ty, tz, oper="intersection")
+        im = pingrid.impl.produce_shape_tile(im, shapes, tx, ty, tz, oper="intersection")
     return pingrid.image_resp(im)
 
 
