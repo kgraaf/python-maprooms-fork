@@ -33,7 +33,8 @@ import yaml
 
 import __about__ as about
 import pingrid
-from pingrid import BGRA, ClientSideError, InvalidRequestError, NotFoundError, parse_arg
+from pingrid import ClientSideError, InvalidRequestError, NotFoundError, parse_arg
+from pingrid.impl import BGRA  # TODO stop using private BGRA class
 import fbflayout
 import fbftable
 import dash_bootstrap_components as dbc

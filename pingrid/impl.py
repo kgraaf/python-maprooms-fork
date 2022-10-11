@@ -1,5 +1,4 @@
 __all__ = [
-    'BGRA',
     'CORRELATION_COLORMAP',
     'ClientSideError',
     'DrawAttrs',
@@ -72,12 +71,6 @@ def error_fig(error_msg="error"):
 FuncInterp2d = Callable[[Iterable[np.ndarray]], np.ndarray]
 
 
-class BGR(NamedTuple):
-    blue: int
-    green: int
-    red: int
-
-
 class BGRA(NamedTuple):
     blue: int
     green: int
@@ -86,8 +79,8 @@ class BGRA(NamedTuple):
 
 
 class DrawAttrs(NamedTuple):
-    line_color: Union[int, BGR, BGRA]
-    background_color: Union[int, BGR, BGRA]
+    line_color: Union[int, BGRA]
+    background_color: Union[int, BGRA]
     line_thickness: int
     line_type: int  # cv2.LINE_4 | cv2.LINE_8 | cv2.LINE_AA
 
