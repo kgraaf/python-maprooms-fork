@@ -18,7 +18,6 @@ __all__ = [
     'open_mfdataset',
     'parse_arg',
     'parse_colormap',
-    'produce_bkg_tile',
     'produce_shape_tile',
     'tile',
     'tile_left',
@@ -227,15 +226,6 @@ def empty_tile(width: int = 256, height: int = 256):
         np.zeros((256, 4)),
     )
     return image_resp(im)
-
-
-def produce_bkg_tile(
-    background_color: BGRA,
-    tile_width: int = 256,
-    tile_height: int = 256,
-) -> np.ndarray:
-    im = np.zeros((tile_height, tile_width, 4), np.uint8) + background_color
-    return im
 
 
 def produce_data_tile(

@@ -1119,7 +1119,7 @@ def obs_tile(obs_key, tz, tx, ty, country_key, season_id, target_year):
     f"{TILE_PFX}/vuln/<int:tz>/<int:tx>/<int:ty>/<country_key>/<mode>/<int:year>"
 )
 def vuln_tiles(tz, tx, ty, country_key, mode, year):
-    im = pingrid.produce_bkg_tile(BGRA(0, 0, 0, 0))
+    im = produce_bkg_tile(BGRA(0, 0, 0, 0))
     da = open_vuln(country_key)
     if mode != "pixel":
         df = retrieve_vulnerability(country_key, mode, year)
@@ -1151,6 +1151,15 @@ def vuln_tiles(tz, tx, ty, country_key, mode, year):
         ]
         im = pingrid.produce_shape_tile(im, shapes, tx, ty, tz, oper="intersection")
     return pingrid.image_resp(im)
+
+
+def produce_bkg_tile(
+    background_color: BGRA,
+    tile_width: int = 256,
+    tile_height: int = 256,
+) -> np.ndarray:
+    im = np.zeros((tile_height, tile_width, 4), np.uint8) + background_color
+    return im
 
 
 @SERVER.route(f"{ADMIN_PFX}/stats")
