@@ -442,7 +442,8 @@ def select_forecast(country_key, forecast_key, issue_month0, target_month0,
         da = da.sel(pct=freq)
 
     if shape is not None:
-        da = pingrid.average_over_trimmed(da, shape, all_touched=True)
+        da = pingrid.average_over(da, shape, all_touched=True)
+
     return da
 
 
@@ -473,7 +474,8 @@ def select_obs(country_key, obs_keys, target_month0, target_year=None, shape=Non
         warnings.filterwarnings("ignore", category=DeprecationWarning, module='numpy.core.fromnumeric')
         ds = ds.where(lambda x: x["time"].dt.month == target_month0 + 0.5, drop=True)
     if shape is not None and 'lon' in ds.coords:
-        ds = pingrid.average_over_trimmed(ds, shape, all_touched=True)
+        ds = pingrid.average_over(ds, shape, all_touched=True)
+
     return ds
 
 

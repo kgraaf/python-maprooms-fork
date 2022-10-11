@@ -6,7 +6,7 @@ __all__ = [
     'RAINBOW_COLORMAP',
     'RAIN_PNE_COLORMAP',
     'RAIN_POE_COLORMAP',
-    'average_over_trimmed',
+    'average_over',
     'client_side_error',
     'deep_merge',
     'empty_tile',
@@ -511,8 +511,13 @@ def trim_to_bbox(ds, s, lon_name="lon", lat_name="lat"):
     )
 
 
-def average_over(ds, s, lon_res, lat_res, lon_name="lon", lat_name="lat", all_touched=False):
+def average_over(ds, s, lon_name="lon", lat_name="lat", all_touched=False):
     """Average a Dataset over a shape"""
+    lon_res = ds[lon_name].values[1] - ds[lon_name].values[0]
+    lat_res = ds[lat_name].values[1] - ds[lat_name].values[0]
+
+    ds = trim_to_bbox(ds, s, lon_name=lon_name, lat_name=lat_name)
+
     lon_min = ds[lon_name].values[0] - 0.5 * lon_res
     lon_max = ds[lon_name].values[-1] + 0.5 * lon_res
     lat_min = ds[lat_name].values[0] - 0.5 * lat_res
@@ -547,17 +552,6 @@ def average_over(ds, s, lon_res, lat_res, lon_name="lon", lat_name="lat", all_to
     if isinstance(res, xr.DataArray):
         res.name = ds.name
 
-    return res
-
-
-def average_over_trimmed(ds, s, lon_name="lon", lat_name="lat", all_touched=False):
-    lon_res = ds[lon_name].values[1] - ds[lon_name].values[0]
-    lat_res = ds[lat_name].values[1] - ds[lat_name].values[0]
-
-    ds = trim_to_bbox(ds, s, lon_name=lon_name, lat_name=lat_name)
-    res = average_over(
-        ds, s, lon_res, lat_res, lon_name=lon_name, lat_name=lat_name, all_touched=all_touched
-    )
     return res
 
 
