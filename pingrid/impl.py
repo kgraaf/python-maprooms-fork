@@ -20,7 +20,6 @@ __all__ = [
     'tile_left',
     'tile_top_mercator',
     'to_dash_colorscale',
-    'with_alpha',
 ]
 
 import copy
