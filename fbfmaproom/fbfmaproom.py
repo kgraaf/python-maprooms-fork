@@ -1128,7 +1128,7 @@ def vuln_tiles(tz, tx, ty, country_key, mode, year):
         shapes = [
             (
                 r["the_geom"],
-                pingrid.DrawAttrs(
+                pingrid.impl.DrawAttrs(
                     BGRA(0, 0, 255, 255),
                     pingrid.with_alpha(
                         pingrid.parse_colormap(da.attrs["colormap"])[

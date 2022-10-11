@@ -1,7 +1,6 @@
 __all__ = [
     'CORRELATION_COLORMAP',
     'ClientSideError',
-    'DrawAttrs',
     'InvalidRequestError',
     'NotFoundError',
     'RAINBOW_COLORMAP',
