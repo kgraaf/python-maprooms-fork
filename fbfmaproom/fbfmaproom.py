@@ -29,6 +29,7 @@ import enum
 import itertools
 import uuid
 import warnings
+import yaml
 
 import __about__ as about
 import pingrid
@@ -1182,7 +1183,15 @@ def stats():
         timestamp=datetime.datetime.now(datetime.timezone.utc).isoformat(),
         process_stats=ps,
     )
-    return pingrid.yaml_resp(rs)
+    return yaml_resp(rs)
+
+
+# Do not imitate this. Use JSON responses, not YAML.
+def yaml_resp(data):
+    s = yaml.dump(data, default_flow_style=False, width=120, allow_unicode=True)
+    resp = flask.Response(response=s, mimetype="text/x-yaml")
+    resp.headers["Cache-Control"] = "private, max-age=0, no-cache, no-store"
+    return resp
 
 
 @SERVER.route(f"{PFX}/pnep_percentile")
