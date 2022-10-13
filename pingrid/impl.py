@@ -1,3 +1,27 @@
+__all__ = [
+    'CORRELATION_COLORMAP',
+    'ClientSideError',
+    'InvalidRequestError',
+    'NotFoundError',
+    'RAINBOW_COLORMAP',
+    'RAIN_PNE_COLORMAP',
+    'RAIN_POE_COLORMAP',
+    'average_over',
+    'client_side_error',
+    'deep_merge',
+    'empty_tile',
+    'image_resp',
+    'load_config',
+    'open_dataset',
+    'open_mfdataset',
+    'parse_arg',
+    'parse_colormap',
+    'tile',
+    'tile_left',
+    'tile_top_mercator',
+    'to_dash_colorscale',
+]
+
 import copy
 import io
 from typing import Tuple, List, Literal, Optional, Union, Callable, Iterable as Iterable
@@ -44,12 +68,6 @@ def error_fig(error_msg="error"):
 FuncInterp2d = Callable[[Iterable[np.ndarray]], np.ndarray]
 
 
-class BGR(NamedTuple):
-    blue: int
-    green: int
-    red: int
-
-
 class BGRA(NamedTuple):
     blue: int
     green: int
@@ -58,8 +76,8 @@ class BGRA(NamedTuple):
 
 
 class DrawAttrs(NamedTuple):
-    line_color: Union[int, BGR, BGRA]
-    background_color: Union[int, BGR, BGRA]
+    line_color: Union[int, BGRA]
+    background_color: Union[int, BGRA]
     line_thickness: int
     line_type: int  # cv2.LINE_4 | cv2.LINE_8 | cv2.LINE_AA
 
@@ -199,15 +217,6 @@ def empty_tile(width: int = 256, height: int = 256):
     return image_resp(im)
 
 
-def produce_bkg_tile(
-    background_color: BGRA,
-    tile_width: int = 256,
-    tile_height: int = 256,
-) -> np.ndarray:
-    im = np.zeros((tile_height, tile_width, 4), np.uint8) + background_color
-    return im
-
-
 def produce_data_tile(
     da: xr.DataArray,
     tx: int,
@@ -241,13 +250,6 @@ def image_resp(im):
     assert cv2_imencode_success
     io_buf = io.BytesIO(buffer)
     resp = flask.send_file(io_buf, mimetype="image/png")
-    return resp
-
-
-def yaml_resp(data):
-    s = yaml.dump(data, default_flow_style=False, width=120, allow_unicode=True)
-    resp = flask.Response(response=s, mimetype="text/x-yaml")
-    resp.headers["Cache-Control"] = "private, max-age=0, no-cache, no-store"
     return resp
 
 
@@ -507,8 +509,13 @@ def trim_to_bbox(ds, s, lon_name="lon", lat_name="lat"):
     )
 
 
-def average_over(ds, s, lon_res, lat_res, lon_name="lon", lat_name="lat", all_touched=False):
+def average_over(ds, s, lon_name="lon", lat_name="lat", all_touched=False):
     """Average a Dataset over a shape"""
+    lon_res = ds[lon_name].values[1] - ds[lon_name].values[0]
+    lat_res = ds[lat_name].values[1] - ds[lat_name].values[0]
+
+    ds = trim_to_bbox(ds, s, lon_name=lon_name, lat_name=lat_name)
+
     lon_min = ds[lon_name].values[0] - 0.5 * lon_res
     lon_max = ds[lon_name].values[-1] + 0.5 * lon_res
     lat_min = ds[lat_name].values[0] - 0.5 * lat_res
@@ -543,17 +550,6 @@ def average_over(ds, s, lon_res, lat_res, lon_name="lon", lat_name="lat", all_to
     if isinstance(res, xr.DataArray):
         res.name = ds.name
 
-    return res
-
-
-def average_over_trimmed(ds, s, lon_name="lon", lat_name="lat", all_touched=False):
-    lon_res = ds[lon_name].values[1] - ds[lon_name].values[0]
-    lat_res = ds[lat_name].values[1] - ds[lat_name].values[0]
-
-    ds = trim_to_bbox(ds, s, lon_name=lon_name, lat_name=lat_name)
-    res = average_over(
-        ds, s, lon_res, lat_res, lon_name=lon_name, lat_name=lat_name, all_touched=all_touched
-    )
     return res
 
 

@@ -29,10 +29,12 @@ import enum
 import itertools
 import uuid
 import warnings
+import yaml
 
 import __about__ as about
 import pingrid
-from pingrid import BGRA, ClientSideError, InvalidRequestError, NotFoundError, parse_arg
+from pingrid import ClientSideError, InvalidRequestError, NotFoundError, parse_arg
+from pingrid.impl import BGRA  # TODO stop using private BGRA class
 import fbflayout
 import fbftable
 import dash_bootstrap_components as dbc
@@ -440,7 +442,8 @@ def select_forecast(country_key, forecast_key, issue_month0, target_month0,
         da = da.sel(pct=freq)
 
     if shape is not None:
-        da = pingrid.average_over_trimmed(da, shape, all_touched=True)
+        da = pingrid.average_over(da, shape, all_touched=True)
+
     return da
 
 
@@ -471,7 +474,8 @@ def select_obs(country_key, obs_keys, target_month0, target_year=None, shape=Non
         warnings.filterwarnings("ignore", category=DeprecationWarning, module='numpy.core.fromnumeric')
         ds = ds.where(lambda x: x["time"].dt.month == target_month0 + 0.5, drop=True)
     if shape is not None and 'lon' in ds.coords:
-        ds = pingrid.average_over_trimmed(ds, shape, all_touched=True)
+        ds = pingrid.average_over(ds, shape, all_touched=True)
+
     return ds
 
 
@@ -1119,16 +1123,16 @@ def obs_tile(obs_key, tz, tx, ty, country_key, season_id, target_year):
     f"{TILE_PFX}/vuln/<int:tz>/<int:tx>/<int:ty>/<country_key>/<mode>/<int:year>"
 )
 def vuln_tiles(tz, tx, ty, country_key, mode, year):
-    im = pingrid.produce_bkg_tile(BGRA(0, 0, 0, 0))
+    im = produce_bkg_tile(BGRA(0, 0, 0, 0))
     da = open_vuln(country_key)
     if mode != "pixel":
         df = retrieve_vulnerability(country_key, mode, year)
         shapes = [
             (
                 r["the_geom"],
-                pingrid.DrawAttrs(
+                pingrid.impl.DrawAttrs(
                     BGRA(0, 0, 255, 255),
-                    pingrid.with_alpha(
+                    pingrid.impl.with_alpha(
                         pingrid.parse_colormap(da.attrs["colormap"])[
                             min(
                                 255,
@@ -1149,8 +1153,17 @@ def vuln_tiles(tz, tx, ty, country_key, mode, year):
             )
             for _, r in df.iterrows()
         ]
-        im = pingrid.produce_shape_tile(im, shapes, tx, ty, tz, oper="intersection")
+        im = pingrid.impl.produce_shape_tile(im, shapes, tx, ty, tz, oper="intersection")
     return pingrid.image_resp(im)
+
+
+def produce_bkg_tile(
+    background_color: BGRA,
+    tile_width: int = 256,
+    tile_height: int = 256,
+) -> np.ndarray:
+    im = np.zeros((tile_height, tile_width, 4), np.uint8) + background_color
+    return im
 
 
 @SERVER.route(f"{ADMIN_PFX}/stats")
@@ -1173,7 +1186,15 @@ def stats():
         timestamp=datetime.datetime.now(datetime.timezone.utc).isoformat(),
         process_stats=ps,
     )
-    return pingrid.yaml_resp(rs)
+    return yaml_resp(rs)
+
+
+# Do not imitate this. Use JSON responses, not YAML.
+def yaml_resp(data):
+    s = yaml.dump(data, default_flow_style=False, width=120, allow_unicode=True)
+    resp = flask.Response(response=s, mimetype="text/x-yaml")
+    resp.headers["Cache-Control"] = "private, max-age=0, no-cache, no-store"
+    return resp
 
 
 @SERVER.route(f"{PFX}/pnep_percentile")

@@ -590,9 +590,6 @@ def cess_plots(
         return cessDate_graph, probExceed_cess, tab_style
 
 
-# TODO can we make this any more redundant?
-
-
 @SERVER.route(f"{TILE_PFX}/<int:tz>/<int:tx>/<int:ty>")
 def onset_tile(tz, tx, ty):
     parse_arg = pingrid.parse_arg

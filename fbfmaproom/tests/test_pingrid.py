@@ -109,7 +109,7 @@ def test_average_over():
     shape = shapely.geometry.Polygon(
         [(0., 0.), (0., 1.), (1., 1.), (1., 0.)]
     )
-    v = pingrid.average_over(da, [shape], 1., 1., all_touched=True)
+    v = pingrid.average_over(da, shape, all_touched=True)
     assert np.isclose(v.item(), 1.5)
 
 # TODO this is a legitimately failing test, but I'm not going to fix
@@ -130,7 +130,7 @@ def test_average_over():
 #     shape = shapely.geometry.Polygon(
 #         [(0.5, 0.5), (0.5, 1.5), (1.5, 1.5), (1.5, 0.5)]
 #     )
-#     v = pingrid.average_over(da, [shape], 1., 1., all_touched=True)
+#     v = pingrid.average_over(da, shape, all_touched=True)
 #     assert v.item() == 5.
 
 def test_average_over_nans():
@@ -145,6 +145,6 @@ def test_average_over_nans():
     shape = shapely.geometry.Polygon(
         [(0., 0.), (0., 1.), (1., 1.), (1., 0.)]
     )
-    v = pingrid.average_over(da, [shape], 1., 1., all_touched=True)
+    v = pingrid.average_over(da, shape, all_touched=True)
     assert np.isclose(v.item(), 1.5)
 
