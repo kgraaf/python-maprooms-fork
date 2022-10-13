@@ -19,7 +19,6 @@ from dash.dependencies import Output, Input, State, ALL
 from dash.exceptions import PreventUpdate
 import shapely
 from shapely import wkb
-from shapely.geometry.multipolygon import MultiPolygon
 from shapely.geometry import Polygon, Point
 from shapely.geometry.multipoint import MultiPoint
 import psycopg2
@@ -272,7 +271,7 @@ def year_label(midpoint, season_length):
 
 def retrieve_geometry(
     country_key: str, point: Tuple[float, float], mode: str, year: Optional[int]
-) -> Tuple[MultiPolygon, Dict[str, Any]]:
+):
     df = retrieve_vulnerability(country_key, mode, year)
     x, y = point
     p = Point(x, y)
@@ -337,9 +336,6 @@ def retrieve_vulnerability(
         )
     # print("bytes: ", sum(df.the_geom.apply(lambda x: len(x.tobytes()))))
     df["the_geom"] = df["the_geom"].apply(lambda x: wkb.loads(x.tobytes()))
-    df["the_geom"] = df["the_geom"].apply(
-        lambda x: x if isinstance(x, MultiPolygon) else MultiPolygon([x])
-    )
     return df
 
 
@@ -351,13 +347,13 @@ def generate_tables(
     issue_month0,
     freq,
     mode,
-    mpolygon,
+    shape,
     final_season,
 ):
 
     basic_ds = fundamental_table_data(
         country_key, table_columns, season_config, issue_month0,
-        freq, mode, mpolygon
+        freq, mode, shape
     )
     if "pct" in basic_ds.coords:
         basic_ds = basic_ds.drop_vars("pct")
@@ -368,18 +364,16 @@ def generate_tables(
     return main_df, summary_df, thresholds
 
 
-def region_mpoly(mode, country_key, geom_key):
+def region_shape(mode, country_key, geom_key):
     if mode == "pixel":
         [[y0, x0], [y1, x1]] = json.loads(geom_key)
-        mpolygon = MultiPolygon([Polygon([(x0, y0), (x0, y1), (x1, y1), (x1, y0)])])
+        shape = Polygon([(x0, y0), (x0, y1), (x1, y1), (x1, y0)])
     else:
         config = CONFIG["countries"][country_key]
         base_query = config["shapes"][int(mode)]["sql"]
         response = subquery_unique(base_query, geom_key, "the_geom")
-        mpolygon = wkb.loads(response.tobytes())
-        if isinstance(mpolygon, Polygon):
-            mpolygon = MultiPolygon([mpolygon])
-    return mpolygon
+        shape = wkb.loads(response.tobytes())
+    return shape
 
 
 def region_label(country_key: str, mode: int, region_key: str):
@@ -413,7 +407,7 @@ def subquery_unique(base_query, key, field):
 
 
 def select_forecast(country_key, forecast_key, issue_month0, target_month0,
-                    target_year=None, freq=None, mpolygon=None):
+                    target_year=None, freq=None, shape=None):
     l = (target_month0 - issue_month0) % 12
 
     da = open_forecast(country_key, forecast_key)
@@ -445,13 +439,13 @@ def select_forecast(country_key, forecast_key, issue_month0, target_month0,
     if freq is not None:
         da = da.sel(pct=freq)
 
-    if mpolygon is not None:
-        da = pingrid.average_over_trimmed(da, mpolygon, all_touched=True)
+    if shape is not None:
+        da = pingrid.average_over_trimmed(da, shape, all_touched=True)
     return da
 
 
 
-def select_obs(country_key, obs_keys, target_month0, target_year=None, mpolygon=None):
+def select_obs(country_key, obs_keys, target_month0, target_year=None, shape=None):
     ds = xr.Dataset(
         data_vars={
             obs_key: open_obs(country_key, obs_key)
@@ -476,14 +470,14 @@ def select_obs(country_key, obs_keys, target_month0, target_year=None, mpolygon=
         # https://github.com/pydata/xarray/commit/3a320724100ab05531d8d18ca8cb279a8e4f5c7f
         warnings.filterwarnings("ignore", category=DeprecationWarning, module='numpy.core.fromnumeric')
         ds = ds.where(lambda x: x["time"].dt.month == target_month0 + 0.5, drop=True)
-    if mpolygon is not None and 'lon' in ds.coords:
-        ds = pingrid.average_over_trimmed(ds, mpolygon, all_touched=True)
+    if shape is not None and 'lon' in ds.coords:
+        ds = pingrid.average_over_trimmed(ds, shape, all_touched=True)
     return ds
 
 
 def fundamental_table_data(country_key, table_columns,
                            season_config, issue_month0, freq, mode,
-                           mpolygon):
+                           shape):
     year_min = season_config["start_year"]
     season_length = season_config["length"]
     target_month0 = season_config["target_month"]
@@ -492,7 +486,7 @@ def fundamental_table_data(country_key, table_columns,
         data_vars={
             forecast_key: select_forecast(
                 country_key, forecast_key, issue_month0, target_month0,
-                freq=freq, mpolygon=mpolygon
+                freq=freq, shape=shape
             ).rename({'target_date':"time"})
             for forecast_key, col in table_columns.items()
             if col["type"] is ColType.FORECAST
@@ -500,7 +494,7 @@ def fundamental_table_data(country_key, table_columns,
     )
 
     obs_keys = [key for key, col in table_columns.items() if col["type"] is ColType.OBS]
-    obs_ds = select_obs(country_key, obs_keys, target_month0, mpolygon=mpolygon)
+    obs_ds = select_obs(country_key, obs_keys, target_month0, shape=shape)
 
     main_ds = xr.merge(
         [
@@ -880,7 +874,7 @@ def update_selected_region(position, mode, pathname):
     else:
         geom, attrs = retrieve_geometry(country_key, (x, y), mode, None)
         if geom is not None:
-            positions = pingrid.mpoly_shapely_to_leaflet(geom)
+            positions = shapely.geometry.mapping(geom)["coordinates"]
             key = str(attrs["key"])
     if positions is None:
         positions = ZERO_SHAPE
@@ -963,7 +957,7 @@ def table_cb(issue_month0, freq, mode, geom_key, pathname, severity, predictand_
     try:
         if geom_key is None:
             raise NotFoundError("No region found")
-        mpolygon = region_mpoly(mode, country_key, geom_key)
+        shape = region_shape(mode, country_key, geom_key)
 
         main_df, summary_df, thresholds = generate_tables(
             country_key,
@@ -973,7 +967,7 @@ def table_cb(issue_month0, freq, mode, geom_key, pathname, severity, predictand_
             issue_month0,
             freq,
             mode,
-            mpolygon,
+            shape,
             final_season,
         )
         summary_presentation_df = format_summary_table(
@@ -1222,12 +1216,12 @@ def pnep_percentile():
         geom_key = bounds
     else:
         geom_key = region
-    mpoly = region_mpoly(mode, country_key, geom_key)
+    shape = region_shape(mode, country_key, geom_key)
 
     try:
         pnep = select_forecast(country_key, forecast_key,issue_month0,
                                target_month0, season_year, freq,
-                               mpolygon=mpoly)
+                               shape=shape)
     except KeyError:
         pnep = None
 
@@ -1286,15 +1280,15 @@ def trigger_check():
         geom_key = bounds
     else:
         geom_key = region
-    mpoly = region_mpoly(mode, country_key, geom_key)
+    shape = region_shape(mode, country_key, geom_key)
 
     if var_is_forecast:
         data = select_forecast(country_key, var, issue_month0,
                                target_month0, season_year, freq,
-                               mpolygon=mpoly)
+                               shape=shape)
     else:
         data = select_obs(country_key, [var], target_month0, season_year,
-                          mpolygon=mpoly)[var]
+                          shape=shape)[var]
 
     value = data.item()
     if lower_is_worse:
@@ -1340,7 +1334,7 @@ def export_endpoint(country_key):
 
     target_month0 = season_config["target_month"]
 
-    mpoly = region_mpoly(mode, country_key, geom_key)
+    shape = region_shape(mode, country_key, geom_key)
 
     cols = table_columns(
         config["datasets"],
@@ -1371,7 +1365,7 @@ def export_endpoint(country_key):
         issue_month0,
         freq,
         mode,
-        mpoly,
+        shape,
         final_season,
     )
 

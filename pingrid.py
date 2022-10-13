@@ -286,7 +286,7 @@ def rasterize_multipolygon(
     bg_color: Union[int, BGRA] = 0,
     shift: int = 0,
 ) -> np.ndarray:
-    for p in mp:
+    for p in mp.geoms:
         if not p.is_empty:
             rasterize_linearring(im, p.exterior, fxs, fys, line_type, fg_color, shift)
             for q in p.interiors:
@@ -527,7 +527,7 @@ def average_over(ds, s, lon_res, lat_res, lon_name="lon", lat_name="lat", all_to
     )
 
     r0 = rasterio.features.rasterize(
-        s, out_shape=(lat_size, lon_size), transform=t, all_touched=all_touched
+        [s], out_shape=(lat_size, lon_size), transform=t, all_touched=all_touched
     )
     r0 = xr.DataArray(
         r0,
@@ -652,36 +652,6 @@ def sel_periodic(ds, dim, vals, period=360.0):
 
     return ds
 
-
-def mpoly_leaflet_to_shapely(polys):
-    return MultiPolygon(poly_leaflet_to_shapely(poly) for poly in polys)
-
-
-def poly_leaflet_to_shapely(poly):
-    exterior = poly[0]
-    interiors = poly[1:]
-    return Polygon(
-        ring_leaflet_to_shapely(exterior),
-        [ring_leaflet_to_shapely(interior) for interior in interiors],
-    )
-
-
-def ring_leaflet_to_shapely(ring):
-    return [(x, y) for y, x in ring]
-
-
-def mpoly_shapely_to_leaflet(mpoly):
-    return [poly_shapely_to_leaflet(poly) for poly in mpoly]
-
-
-def poly_shapely_to_leaflet(poly):
-    return [ring_shapely_to_leaflet(poly.exterior)] + [
-        ring_shapely_to_leaflet(interior) for interior in poly.interiors
-    ]
-
-
-def ring_shapely_to_leaflet(ring):
-    return [(y, x) for x, y in ring.coords]
 
 
 # Flask utils
