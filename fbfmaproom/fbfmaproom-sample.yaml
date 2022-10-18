@@ -45,6 +45,13 @@ data_root: /data/aaron/fbf
 custom_asset_path: /path/to/my/custom/icons/directory
 
 countries:
+    kenya:
+        logo: Kenya_IRI_98x48.png
+        resolution: [1, 1]
+        center: [37.5, -13]
+        zoom: 7
+        rotation: 0
+        marker: [34, -14]
     malawi:
         logo: Malawi_IRI_98x48.png
         resolution: [1, 1]
